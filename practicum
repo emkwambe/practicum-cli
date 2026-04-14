@@ -1,0 +1,27 @@
+#!/bin/bash
+# Practicum CLI - Linux terminal courses
+
+show_help() {
+    cat << EOF
+Practicum CLI – Linux terminal courses
+Usage: practicum {start|status|quiz|lab|field|wizard|activate}
+
+Commands:
+  start     Begin or resume a course
+  status    Show progress
+  quiz      Take a quiz
+  lab       Enter sandbox mode
+  field     Enter real system mode
+  wizard    Enter guided mode
+  activate  Activate license key
+EOF
+}
+
+case "$1" in
+    start|status|quiz|lab|field|wizard|activate)
+        echo "Command: $1 (not yet implemented)"
+        ;;
+    *)
+        show_help
+        ;;
+esac
