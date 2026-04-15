@@ -5,6 +5,7 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Source all libraries
+source "$SCRIPT_DIR/lib/colors.sh"
 source "$SCRIPT_DIR/lib/state.sh"
 source "$SCRIPT_DIR/lib/lessons.sh"
 source "$SCRIPT_DIR/lib/quiz_engine.sh"
@@ -59,85 +60,79 @@ cmd_status() {
     local day3_score
     day3_score=$(get_score "day3_quiz")
     
-    echo ""
-    echo "========================================="
-    echo "  📊 Practicum CLI — Status"
-    echo "========================================="
-    echo ""
-    echo "  Course:    Linux Foundations for IT & DevOps"
-    echo "  Mode:      $mode"
-    echo "  Completed: $completed lessons"
-    echo "  Unlocked:  $unlocked lessons"
+    print_header "📊 Practicum CLI — Status"
+    echo -e "  ${C_WHITE}Course:${C_RESET}    Linux Foundations for IT & DevOps"
+    echo -e "  ${C_WHITE}Mode:${C_RESET}      ${C_CYAN}$mode${C_RESET}"
+    echo -e "  ${C_WHITE}Completed:${C_RESET} ${C_GREEN}$completed lessons${C_RESET}"
+    echo -e "  ${C_WHITE}Unlocked:${C_RESET}  $unlocked lessons"
     echo ""
     if [ -n "$day1_score" ]; then
-        echo "  Day 1 Quiz: ✅ $day1_score"
+        echo -e "  Day 1 Quiz: ${C_GREEN}✅ $day1_score${C_RESET}"
     else
-        echo "  Day 1 Quiz: not taken"
+        echo -e "  Day 1 Quiz: ${C_DIM}not taken${C_RESET}"
     fi
     if [ -n "$day2_score" ]; then
-        echo "  Day 2 Quiz: ✅ $day2_score"
+        echo -e "  Day 2 Quiz: ${C_GREEN}✅ $day2_score${C_RESET}"
     else
-        echo "  Day 2 Quiz: not taken"
+        echo -e "  Day 2 Quiz: ${C_DIM}not taken${C_RESET}"
     fi
     if [ -n "$day3_score" ]; then
-        echo "  Day 3 Quiz: ✅ $day3_score"
+        echo -e "  Day 3 Quiz: ${C_GREEN}✅ $day3_score${C_RESET}"
     else
-        echo "  Day 3 Quiz: not taken"
+        echo -e "  Day 3 Quiz: ${C_DIM}not taken${C_RESET}"
     fi
     local day4_score
     day4_score=$(get_score "day4_quiz")
     if [ -n "$day4_score" ]; then
-        echo "  Day 4 Quiz: ✅ $day4_score"
+        echo -e "  Day 4 Quiz: ${C_GREEN}✅ $day4_score${C_RESET}"
     else
-        echo "  Day 4 Quiz: not taken"
+        echo -e "  Day 4 Quiz: ${C_DIM}not taken${C_RESET}"
     fi
     local day5_score
     day5_score=$(get_score "day5_quiz")
     if [ -n "$day5_score" ]; then
-        echo "  Day 5 Quiz: ✅ $day5_score"
+        echo -e "  Day 5 Quiz: ${C_GREEN}✅ $day5_score${C_RESET}"
     else
-        echo "  Day 5 Quiz: not taken"
+        echo -e "  Day 5 Quiz: ${C_DIM}not taken${C_RESET}"
     fi
     local capstone_score
     capstone_score=$(get_score "capstone")
     if [ -n "$capstone_score" ]; then
-        echo "  Capstone:   🏆 $capstone_score"
+        echo -e "  Capstone:   ${C_GREEN}🏆 $capstone_score${C_RESET}"
     fi
     echo ""
-    echo "  Unlocked lessons:"
+    echo -e "  ${C_PURPLE}Unlocked lessons:${C_RESET}"
     if [ -f "$UNLOCKED_FILE" ]; then
         while IFS= read -r lesson; do
-            local mark="🔓"
-            is_completed "$lesson" && mark="✅"
-            echo "    $mark $lesson"
+            if is_completed "$lesson"; then
+                print_completed "$lesson"
+            else
+                print_unlocked "$lesson"
+            fi
         done < "$UNLOCKED_FILE"
     fi
     echo ""
-    echo "========================================="
+    echo -e "${C_PURPLE}=========================================${C_RESET}"
     echo ""
 }
 
 cmd_start() {
+    print_header "Practicum CLI — Linux Foundations"
+    echo -e "  ${C_DIM}Intent. Context. Action. Result.${C_RESET}"
     echo ""
-    echo "========================================="
-    echo "  Practicum CLI — Linux Foundations"
-    echo "  Intent. Context. Action. Result."
-    echo "========================================="
+    echo -e "  ${C_PURPLE}Main Menu:${C_RESET}"
     echo ""
-    echo "  Main Menu:"
+    print_menu_item "1" "Day 1 — Navigation & Files"
+    print_menu_item "2" "Day 2 — Text Processing & Pipes"
+    print_menu_item "3" "Day 3 — Scripting Basics"
+    print_menu_item "4" "Day 4 — Process & Environment"
+    print_menu_item "5" "Day 5 — Final Assessment"
     echo ""
-    echo "  [1] Day 1 — Navigation & Files"
-    echo "  [2] Day 2 — Text Processing & Pipes"
-    echo "  [3] Day 3 — Scripting Basics"
-    echo "  [4] Day 4 — Process & Environment"
-    echo "  [5] Day 5 — Final Assessment"
-    echo ""
-    echo "  [6] View progress"
-    echo "  [7] Take quiz"
-    echo "  [8] Generate certificate"
-    echo "  [0] Exit"
-    echo ""
-    printf "  Your choice: "
+    print_menu_item "6" "View progress"
+    print_menu_item "7" "Take quiz"
+    print_menu_item "8" "Generate certificate"
+    print_menu_item "0" "Exit"
+    print_prompt
     read -r choice || return 0
     
     case "$choice" in
@@ -149,8 +144,8 @@ cmd_start() {
         6) cmd_status ;;
         7) cmd_quiz_select ;;
         8) cmd_certificate ;;
-        0) echo "  Goodbye!"; return 0 ;;
-        *) echo "  Invalid choice."; cmd_start ;;
+        0) echo -e "  ${C_GREEN}Goodbye!${C_RESET}"; return 0 ;;
+        *) echo -e "  ${C_RED}Invalid choice.${C_RESET}"; cmd_start ;;
     esac
 }
 

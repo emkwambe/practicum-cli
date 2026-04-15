@@ -19,11 +19,7 @@ list_lessons() {
         return 1
     fi
     
-    echo ""
-    echo "========================================="
-    echo "  Practicum CLI — $day Lessons"
-    echo "========================================="
-    echo ""
+    print_header "Practicum CLI — $day Lessons"
     
     local i=1
     for f in "$lesson_dir"/lesson*.txt; do
@@ -33,22 +29,19 @@ list_lessons() {
         local cmd
         cmd=$(basename "$f" .txt | sed 's/lesson[0-9]*_//')
         
-        local status="  "
         if is_completed "$cmd" 2>/dev/null; then
-            status="✅"
+            print_completed "[$i] $name"
         elif is_unlocked "$cmd" 2>/dev/null; then
-            status="🔓"
+            print_unlocked "[$i] $name"
         else
-            status="🔒"
+            print_locked "[$i] $name"
         fi
-        
-        echo "  [$i] $status $name"
         i=$((i + 1))
     done
     
     echo ""
-    echo "  [9] Back to main menu"
-    echo "  [0] Exit"
+    print_menu_item "9" "Back to main menu"
+    print_menu_item "0" "Exit"
     echo ""
 }
 
@@ -131,16 +124,16 @@ show_encouragement() {
     next_name=$(get_next_lesson_preview "$day" "$completed")
 
     echo ""
-    echo "========================================="
-    echo "  🎉 Great job!"
-    echo "  Progress: $completed of $total lessons completed"
+    echo -e "${C_PURPLE}=========================================${C_RESET}"
+    echo -e "  ${C_GREEN}🎉 Great job!${C_RESET}"
+    echo -e "  ${C_WHITE}Progress: $completed of $total lessons completed${C_RESET}"
     echo ""
     if [ -n "$next_name" ]; then
-        echo "  📚 Next up: $next_name"
+        echo -e "  ${C_CYAN}📚 Next up: $next_name${C_RESET}"
     else
-        echo "  🏆 You've completed all lessons for this day!"
-        echo "  Take the quiz to test your knowledge."
+        echo -e "  ${C_GREEN}🏆 You've completed all lessons for this day!${C_RESET}"
+        echo -e "  ${C_CYAN}Take the quiz to test your knowledge.${C_RESET}"
     fi
-    echo "========================================="
+    echo -e "${C_PURPLE}=========================================${C_RESET}"
     echo ""
 }
