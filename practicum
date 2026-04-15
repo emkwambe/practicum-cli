@@ -13,11 +13,13 @@ source "$SCRIPT_DIR/lib/modes.sh"
 source "$SCRIPT_DIR/lib/sandbox.sh"
 source "$SCRIPT_DIR/lib/wrappers.sh"
 source "$SCRIPT_DIR/lib/apprentice.sh"
+source "$SCRIPT_DIR/lib/license.sh"
 [ -f "$SCRIPT_DIR/lib/challenges/engine.sh" ] && source "$SCRIPT_DIR/lib/challenges/engine.sh"
 
 # Initialize state on every run
 init_state
 init_mastery
+init_license
 
 # --- Command Implementations ---
 
@@ -71,6 +73,8 @@ cmd_status() {
     echo -e "  ${C_WHITE}Mode:${C_RESET}      ${C_CYAN}$mode${C_RESET}"
     echo -e "  ${C_WHITE}Completed:${C_RESET} ${C_GREEN}$completed lessons${C_RESET}"
     echo -e "  ${C_WHITE}Unlocked:${C_RESET}  $unlocked lessons"
+    echo ""
+    license_status
     echo ""
     if [ -n "$day1_score" ]; then
         echo -e "  Day 1 Quiz: ${C_GREEN}✅ $day1_score${C_RESET}"
@@ -215,13 +219,13 @@ cmd_start() {
         1) cmd_day1_menu ;;
         2) cmd_day2_menu ;;
         3) cmd_day3_menu ;;
-        4) cmd_day4_menu ;;
-        5) cmd_day5_menu ;;
-        6) cmd_day6_menu ;;
-        7) cmd_day7_menu ;;
-        8) cmd_day8_menu ;;
-        9) cmd_day9_menu ;;
-        10) cmd_day10_menu ;;
+        4) if can_access_day "day4"; then cmd_day4_menu; else show_upgrade_prompt; cmd_start; fi ;;
+        5) if can_access_day "day5"; then cmd_day5_menu; else show_upgrade_prompt; cmd_start; fi ;;
+        6) if can_access_day "day6"; then cmd_day6_menu; else show_upgrade_prompt; cmd_start; fi ;;
+        7) if can_access_day "day7"; then cmd_day7_menu; else show_upgrade_prompt; cmd_start; fi ;;
+        8) if can_access_day "day8"; then cmd_day8_menu; else show_upgrade_prompt; cmd_start; fi ;;
+        9) if can_access_day "day9"; then cmd_day9_menu; else show_upgrade_prompt; cmd_start; fi ;;
+        10) if can_access_day "day10"; then cmd_day10_menu; else show_upgrade_prompt; cmd_start; fi ;;
         p|P) cmd_status ;;
         q|Q) cmd_quiz_select ;;
         c|C) cmd_certificate ;;
@@ -1210,8 +1214,13 @@ case "$1" in
         cmd_snapshot "$@"
         ;;
     activate)
-        echo "License activation not yet implemented."
-        echo "Contact: support@practicum-cli.dev"
+        activate_license "$2"
+        ;;
+    deactivate)
+        deactivate_license
+        ;;
+    license)
+        license_status
         ;;
     certificate|cert)
         cmd_certificate
