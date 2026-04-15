@@ -25,32 +25,3 @@ case "$1" in
         show_help
         ;;
 esac
-# State directory
-PRACTICUM_HOME="$HOME/.practicum"
-mkdir -p "$PRACTICUM_HOME"
-
-init_state() {
-    if [ ! -f "$PRACTICUM_HOME/progress.json" ]; then
-        echo '{"completed":[],"scores":{}}' > "$PRACTICUM_HOME/progress.json"
-    fi
-}
-
-cmd_status() {
-    init_state
-    echo "📊 Practicum CLI Status"
-    echo "Course: Linux Foundations (not started)"
-    echo "Completed lessons: $(jq -r '.completed | length' "$PRACTICUM_HOME/progress.json" 2>/dev/null || echo 0)"
-}
-
-case "$1" in
-    start|status|quiz|lab|field|wizard|activate)
-        if [ "$1" = "status" ]; then
-            cmd_status
-        else
-            echo "Command: $1 (not yet implemented)"
-        fi
-        ;;
-    *)
-        show_help
-        ;;
-esac
