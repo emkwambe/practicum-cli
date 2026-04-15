@@ -1,6 +1,6 @@
 #!/bin/bash
 # Practicum CLI — Intent. Context. Action. Result.
-# Version: 0.2.0
+# Version: 2.0.0
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -12,9 +12,12 @@ source "$SCRIPT_DIR/lib/quiz_engine.sh"
 source "$SCRIPT_DIR/lib/modes.sh"
 source "$SCRIPT_DIR/lib/sandbox.sh"
 source "$SCRIPT_DIR/lib/wrappers.sh"
+source "$SCRIPT_DIR/lib/apprentice.sh"
+[ -f "$SCRIPT_DIR/lib/challenges/engine.sh" ] && source "$SCRIPT_DIR/lib/challenges/engine.sh"
 
 # Initialize state on every run
 init_state
+init_mastery
 
 # --- Command Implementations ---
 
@@ -34,6 +37,9 @@ Commands:
   field       Enter Field mode (real system)
   snapshot    Save/restore lab state
   certificate Generate completion certificate
+  challenges  Interactive problem-solving scenarios
+  scenarios   Multi-step work scenarios (apprenticeship)
+  mastery     View skill mastery dashboard
   activate    Activate a license key
   help        Show this help message
 
@@ -158,6 +164,8 @@ cmd_start() {
     print_menu_item "q" "Take quiz"
     print_menu_item "c" "Generate certificate"
     print_menu_item "x" "🏋️ Linux Challenges"
+    print_menu_item "s" "🏢 Work Scenarios"
+    print_menu_item "m" "🎯 Skill Mastery"
     print_menu_item "0" "Exit"
     print_prompt
     read -r choice || return 0
@@ -175,9 +183,37 @@ cmd_start() {
         q|Q) cmd_quiz_select ;;
         c|C) cmd_certificate ;;
         x|X) cmd_challenges ;;
+        s|S) cmd_scenarios; cmd_start ;;
+        m|M) show_mastery_dashboard; cmd_start ;;
         0) echo -e "  ${C_GREEN}Goodbye!${C_RESET}"; return 0 ;;
         *) echo -e "  ${C_RED}Invalid choice.${C_RESET}"; cmd_start ;;
     esac
+}
+
+# --- Apprenticeship-Aware Lesson Display ---
+# Wraps lesson with situational awareness (WIZARD), mastery tracking (all modes)
+show_lesson_with_context() {
+    local day="$1"
+    local lesson_file="$2"
+    local cmd="$3"
+    local mode
+    mode=$(get_mode 2>/dev/null || echo "WIZARD")
+    
+    # WIZARD mode: show situation before lesson
+    if [ "$mode" = "WIZARD" ]; then
+        show_situation "$cmd"
+    fi
+    
+    # Show the lesson
+    load_lesson "$day" "$lesson_file"
+    
+    # WIZARD mode: show senior tip after lesson
+    if [ "$mode" = "WIZARD" ]; then
+        senior_tip "$cmd"
+    fi
+    
+    # All modes: record mastery
+    record_skill_use "$cmd" "lesson"
 }
 
 cmd_day1_menu() {
@@ -193,7 +229,7 @@ cmd_day1_menu() {
                 local cmd
                 cmd=$(get_lesson_command "$lesson_file")
                 if is_unlocked "$cmd" || [ "$choice" -le 3 ]; then
-                    load_lesson "day1" "$lesson_file"
+                    show_lesson_with_context "day1" "$lesson_file" "$cmd"
                     add_completed "$cmd"
                     # Unlock next lesson
                     case "$cmd" in
@@ -284,7 +320,7 @@ cmd_day2_menu() {
                 local cmd
                 cmd=$(get_lesson_command "$lesson_file")
                 if is_unlocked "$cmd"; then
-                    load_lesson "day2" "$lesson_file"
+                    show_lesson_with_context "day2" "$lesson_file" "$cmd"
                     add_completed "$cmd"
                     # Unlock next Day 2 lesson
                     case "$cmd" in
@@ -371,7 +407,7 @@ cmd_day3_menu() {
                 local cmd
                 cmd=$(get_lesson_command "$lesson_file")
                 if is_unlocked "$cmd"; then
-                    load_lesson "day3" "$lesson_file"
+                    show_lesson_with_context "day3" "$lesson_file" "$cmd"
                     add_completed "$cmd"
                     case "$cmd" in
                         variables)    unlock_lesson "conditionals" ;;
@@ -539,7 +575,7 @@ cmd_day4_menu() {
                 local cmd
                 cmd=$(get_lesson_command "$lesson_file")
                 if is_unlocked "$cmd"; then
-                    load_lesson "day4" "$lesson_file"
+                    show_lesson_with_context "day4" "$lesson_file" "$cmd"
                     add_completed "$cmd"
                     case "$cmd" in
                         ps)    unlock_lesson "kill" ;;
@@ -671,7 +707,7 @@ cmd_day6_menu() {
                 local cmd
                 cmd=$(get_lesson_command "$lesson_file")
                 if is_unlocked "$cmd"; then
-                    load_lesson "day6" "$lesson_file"
+                    show_lesson_with_context "day6" "$lesson_file" "$cmd"
                     add_completed "$cmd"
                     case "$cmd" in
                         chmod)              unlock_lesson "chown" ;;
@@ -748,7 +784,7 @@ cmd_day7_menu() {
                 local cmd
                 cmd=$(get_lesson_command "$lesson_file")
                 if is_unlocked "$cmd"; then
-                    load_lesson "day7" "$lesson_file"
+                    show_lesson_with_context "day7" "$lesson_file" "$cmd"
                     add_completed "$cmd"
                     case "$cmd" in
                         ip)          unlock_lesson "ping_curl" ;;
@@ -808,7 +844,7 @@ cmd_day8_menu() {
                 local cmd
                 cmd=$(get_lesson_command "$lesson_file")
                 if is_unlocked "$cmd"; then
-                    load_lesson "day8" "$lesson_file"
+                    show_lesson_with_context "day8" "$lesson_file" "$cmd"
                     add_completed "$cmd"
                     case "$cmd" in
                         systemctl)      unlock_lesson "journalctl" ;;
@@ -912,20 +948,71 @@ cmd_wizard() {
 cmd_lab() {
     enter_mode "LAB"
     init_sandbox
-    echo "  Sandbox initialized at: ~/.practicum/sandbox/"
-    echo "  Type 'exit' to leave LAB mode."
+    
+    local lab_rc="$HOME/.practicum/lab_bashrc"
+    cat > "$lab_rc" << LABRC
+export PRACTICUM_MODE="LAB"
+export SANDBOX_DIR="$HOME/.practicum/sandbox"
+export PS1='🔬 [LAB] \w\$ '
+source "$SCRIPT_DIR/lib/colors.sh"
+source "$SCRIPT_DIR/lib/wrappers.sh"
+source "$SCRIPT_DIR/lib/apprentice.sh"
+
+# On-demand situational awareness
+situation() {
     echo ""
-    cd "$SANDBOX_DIR" || true
-    export PS1="🔬 [LAB] \w\$ "
-    exec bash --norc --noprofile -i
+    echo -e "\${C_CYAN}  📍 Current Situation\${C_RESET}"
+    echo -e "  \${C_DIM}Directory: \$(pwd)\${C_RESET}"
+    echo -e "  \${C_DIM}Files: \$(ls -1 2>/dev/null | wc -l)\${C_RESET}"
+    echo -e "  \${C_DIM}Disk used here: \$(du -sh . 2>/dev/null | cut -f1)\${C_RESET}"
+    echo ""
+}
+
+# Block practicum from inside lab
+practicum() {
+    echo -e "\${C_YELLOW}  ⚠️  Type 'exit' to leave Lab first, then run practicum.\${C_RESET}"
+}
+
+echo ""
+echo -e "\${C_PURPLE}=========================================\${C_RESET}"
+echo -e "\${C_PURPLE}  🔬 LAB MODE — Safe Sandbox\${C_RESET}"
+echo -e "\${C_PURPLE}=========================================\${C_RESET}"
+echo ""
+echo -e "  \${C_WHITE}All commands affect only the sandbox.\${C_RESET}"
+echo -e "  \${C_CYAN}Sandbox: ~/.practicum/sandbox/\${C_RESET}"
+echo -e "  \${C_DIM}Type 'situation' for system awareness.\${C_RESET}"
+echo -e "  \${C_GREEN}Type 'exit' to leave Lab mode.\${C_RESET}"
+echo ""
+cd "$HOME/.practicum/sandbox"
+LABRC
+    
+    exec bash --rcfile "$lab_rc" -i
 }
 
 cmd_field() {
     enter_mode "FIELD"
-    echo "  Type 'exit' to leave FIELD mode."
-    echo ""
-    export PS1="🌍 [FIELD] \w\$ "
-    exec bash --norc --noprofile -i
+    
+    local field_rc="$HOME/.practicum/field_bashrc"
+    cat > "$field_rc" << FIELDRC
+export PRACTICUM_MODE="FIELD"
+export PS1='🌍 [FIELD] \w\$ '
+source "$SCRIPT_DIR/lib/colors.sh"
+
+practicum() {
+    echo -e "\${C_YELLOW}  ⚠️  Type 'exit' to leave Field first, then run practicum.\${C_RESET}"
+}
+
+echo ""
+echo -e "\${C_PURPLE}=========================================\${C_RESET}"
+echo -e "\${C_RED}  🌍 FIELD MODE — Real System\${C_RESET}"
+echo -e "\${C_PURPLE}=========================================\${C_RESET}"
+echo ""
+echo -e "  \${C_RED}Commands affect the REAL system. Be careful.\${C_RESET}"
+echo -e "  \${C_GREEN}Type 'exit' to leave Field mode.\${C_RESET}"
+echo ""
+FIELDRC
+    
+    exec bash --rcfile "$field_rc" -i
 }
 
 cmd_snapshot() {
@@ -977,6 +1064,12 @@ case "$1" in
         ;;
     final)
         cmd_final
+        ;;
+    scenarios|scenario)
+        cmd_scenarios
+        ;;
+    mastery)
+        show_mastery_dashboard
         ;;
     --help|-h|help)
         show_help
