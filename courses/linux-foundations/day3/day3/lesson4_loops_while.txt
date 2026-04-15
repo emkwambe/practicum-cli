@@ -1,0 +1,43 @@
+# Lesson: while Loops — Repeat Until a Condition Changes
+
+## [WHEN] You need this when:
+1. You do not know how many times to loop in advance.
+2. You are reading a file line by line.
+3. You want to retry a command until it succeeds.
+4. You need to wait for a condition (file appears, process stops).
+5. You are building a menu that loops until the user exits.
+
+## [INTENT] "Keep doing this while something is true."
+
+## [CONTEXT]
+A while loop repeats as long as its condition is true.
+It checks the condition BEFORE each iteration.
+If the condition is false from the start, the body never runs.
+Use break to exit early. Use continue to skip to the next iteration.
+
+## [ACTION] while [ condition ]; do ... done
+Common patterns:
+  counter=1                            — counting loop
+  while [ $counter -le 5 ]; do
+      echo "Count: $counter"
+      counter=$((counter + 1))
+  done
+
+  while read -r line; do               — read file line by line
+      echo "Line: $line"
+  done < input.txt
+
+  while true; do                       — infinite loop (use break)
+      read -p "Continue? (y/n): " ans
+      [ "$ans" = "n" ] && break
+  done
+
+## [EXPECTED RESULT]
+The loop body executes repeatedly until the condition becomes false.
+After exiting, the script continues with the next command.
+
+## Try it now:
+  n=1; while [ $n -le 3 ]; do echo "Step $n"; n=$((n+1)); done
+
+## Next:
+Type menu to continue or try reading /etc/passwd line by line.

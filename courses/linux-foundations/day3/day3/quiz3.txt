@@ -1,0 +1,41 @@
+Q1: How do you create a variable named "name" with value "John"?
+A) name = "John"
+B) name="John"
+C) $name="John"
+D) set name="John"
+Correct: B
+
+Q2: Which condition checks if a file called "data.txt" exists?
+A) if [ -f data.txt ]
+B) if [ data.txt exists ]
+C) if exists data.txt
+D) if -f data.txt
+Correct: A
+
+Q3: What does "for i in 1 2 3; do echo $i; done" output?
+A) 1 2 3 on one line
+B) 1 then 2 then 3 on separate lines
+C) 123
+D) Nothing — syntax error
+Correct: B
+
+Q4: Which loop continues while a condition is true?
+A) for
+B) until
+C) while
+D) loop
+Correct: C
+
+Q5: What is the exit code for success?
+A) 1
+B) 0
+C) -1
+D) true
+Correct: B
+
+Q6: How do you define a function named "backup"?
+A) def backup() { ... }
+B) function backup { ... }
+C) backup() { ... }
+D) Both B and C
+Correct: D
