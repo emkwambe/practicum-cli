@@ -1,0 +1,48 @@
+# Lesson: du and df — Check Disk Usage and Free Space
+
+## [WHEN] You need this when:
+1. The server says "disk full" and you need to find what is using space.
+2. You want to know how much free space is left on each partition.
+3. You need to find which directory is consuming the most disk space.
+4. You are cleaning up and want to verify you freed enough space.
+5. A monitoring script needs to check if disk usage exceeds a threshold.
+
+## [INTENT] "How much disk space am I using?" or "How much is free?"
+
+## [CONTEXT]
+df (disk free) shows free space on each mounted filesystem/partition.
+du (disk usage) shows how much space files and directories consume.
+Use df to get the big picture, du to drill into specific directories.
+Both support -h for human-readable output (KB, MB, GB instead of blocks).
+
+## [ACTION] df -h / du -sh <directory>
+Common patterns:
+  df -h                              — free space on all partitions
+  df -h /                            — free space on root partition
+  du -sh *                           — size of each item in current dir
+  du -sh /var/log                    — total size of /var/log
+  du -sh * | sort -rh | head -10     — top 10 largest items
+  du -ah . | sort -rh | head -20     — top 20 largest files (recursive)
+
+Key columns in df output:
+  Filesystem — the partition/device
+  Size — total size
+  Used — space used
+  Avail — space available
+  Use% — percentage used (watch for >80%)
+  Mounted on — where it is accessible
+
+## [EXPECTED RESULT]
+df: a table showing each partition with size, used, available, percentage.
+du: the size of specified files or directories.
+
+## Try it now:
+  df -h
+  du -sh /tmp
+
+## Real-world example:
+Disk is 95% full. Find what is eating space:
+  du -sh /* 2>/dev/null | sort -rh | head -10
+
+## Next:
+Type menu to return. You now have the tools to diagnose any disk issue.

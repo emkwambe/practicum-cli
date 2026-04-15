@@ -246,7 +246,7 @@ cmd_day2_menu() {
     read -r choice || return 0
     
     case "$choice" in
-        [1-6])
+        [1-8])
             local lesson_file
             lesson_file=$(get_lesson_file_by_number "day2" "$choice")
             if [ -n "$lesson_file" ]; then
@@ -257,11 +257,13 @@ cmd_day2_menu() {
                     add_completed "$cmd"
                     # Unlock next Day 2 lesson
                     case "$cmd" in
-                        grep) unlock_lesson "cut" ;;
-                        cut)  unlock_lesson "sort" ;;
-                        sort) unlock_lesson "uniq" ;;
-                        uniq) unlock_lesson "wc" ;;
-                        wc)   unlock_lesson "pipes" ;;
+                        grep)      unlock_lesson "cut" ;;
+                        cut)       unlock_lesson "sort" ;;
+                        sort)      unlock_lesson "uniq" ;;
+                        uniq)      unlock_lesson "wc" ;;
+                        wc)        unlock_lesson "pipes" ;;
+                        pipes)     unlock_lesson "sed" ;;
+                        sed)       unlock_lesson "head_tail" ;;
                     esac
                     echo "  ✅ Lesson '$cmd' completed!"
                     show_encouragement "day2"
@@ -493,7 +495,7 @@ cmd_day4_menu() {
     read -r choice || return 0
     
     case "$choice" in
-        [1-6])
+        [1-8])
             local lesson_file
             lesson_file=$(get_lesson_file_by_number "day4" "$choice")
             if [ -n "$lesson_file" ]; then
@@ -508,6 +510,8 @@ cmd_day4_menu() {
                         jobs)  unlock_lesson "env" ;;
                         env)   unlock_lesson "alias" ;;
                         alias) unlock_lesson "path" ;;
+                        path)  unlock_lesson "find" ;;
+                        find)  unlock_lesson "du_df" ;;
                     esac
                     echo "  ✅ Lesson '$cmd' completed!"
                     show_encouragement "day4"

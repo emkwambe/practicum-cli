@@ -39,3 +39,17 @@ B) The full filesystem path to the python executable
 C) The Python documentation
 D) All installed Python packages
 Correct: B
+
+Q7: How do you find all .log files larger than 1MB in the current directory?
+A) ls -la *.log
+B) grep -r ".log" .
+C) find . -name "*.log" -size +1M
+D) du -sh *.log
+Correct: C
+
+Q8: What does df -h show?
+A) Directory files in human format
+B) Disk free space in human-readable format
+C) Downloaded files history
+D) Default file handler
+Correct: B

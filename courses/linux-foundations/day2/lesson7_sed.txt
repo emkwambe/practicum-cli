@@ -1,0 +1,40 @@
+# Lesson: sed — Find and Replace Text in Files
+
+## [WHEN] You need this when:
+1. A config file has a typo and you need to fix it without opening an editor.
+2. You want to replace a value across multiple files at once.
+3. You need to delete specific lines from a file.
+4. You are automating changes to configuration files in a script.
+5. You need to fix a broken port number, hostname, or path in a config.
+
+## [INTENT] "Find this text and replace it with that text."
+
+## [CONTEXT]
+sed (Stream Editor) reads a file line by line and applies transformations.
+The most common use is find-and-replace: s/old/new/.
+By default, sed prints the result to screen without changing the file.
+Use -i to edit the file in place (be careful — this is permanent).
+
+## [ACTION] sed 's/old/new/' file
+Common patterns:
+  sed 's/error/warning/' log.txt          — replace first match per line
+  sed 's/error/warning/g' log.txt         — replace ALL matches per line
+  sed -i 's/old_port/new_port/' config    — edit file in place
+  sed -n '10,20p' file.txt               — print only lines 10-20
+  sed '/^#/d' config.txt                  — delete comment lines
+  sed 's/eighty/80/' app.conf             — fix a typo in a config
+
+## [EXPECTED RESULT]
+The modified text is printed to screen (or file is changed with -i).
+Original file is unchanged unless you use -i flag.
+
+## Try it now:
+  echo "port=eighty" | sed 's/eighty/80/'
+  echo "Hello World" | sed 's/World/Linux/'
+
+## Real-world example:
+A config file has listen_port=eighty instead of listen_port=80.
+Fix it: sed -i 's/listen_port=eighty/listen_port=80/' /etc/app.conf
+
+## Next:
+Type menu to continue. sed + grep together are incredibly powerful.

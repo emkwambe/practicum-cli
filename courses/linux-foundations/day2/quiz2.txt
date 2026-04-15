@@ -39,3 +39,16 @@ B) uniq -c | sort -rn | head -10
 C) sort | uniq -c | sort -rn | head -10
 D) grep -c | sort | head -10
 Correct: C
+Q7: What does sed -i 's/old/new/' file.txt do?
+A) Prints the file with replacements but does not change it
+B) Replaces "old" with "new" in the file permanently
+C) Creates a new file called new.txt
+D) Searches for "old" and deletes the line
+Correct: B
+
+Q8: How do you view the last 20 lines of a file?
+A) head -20 file.txt
+B) tail -20 file.txt
+C) cat -20 file.txt
+D) less -20 file.txt
+Correct: B
