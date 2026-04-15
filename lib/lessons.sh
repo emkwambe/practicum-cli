@@ -57,10 +57,57 @@ load_lesson() {
     fi
     
     echo ""
-    echo "========================================="
-    cat "$filepath"
+    echo -e "${C_PURPLE}=========================================${C_RESET}"
+    
+    while IFS= read -r line; do
+        case "$line" in
+            "# "*)
+                # Main title — bold purple
+                echo -e "${C_PURPLE}${line#\# }${C_RESET}"
+                ;;
+            "## ["*"]"*)
+                # ICAR headers — green bold: [WHEN], [INTENT], [CONTEXT], [ACTION], [EXPECTED RESULT]
+                echo -e ""
+                echo -e "${C_GREEN}${line#\#\# }${C_RESET}"
+                ;;
+            "## "*)
+                # Other H2 headers — cyan
+                echo -e ""
+                echo -e "${C_CYAN}${line#\#\# }${C_RESET}"
+                ;;
+            "### "*)
+                # H3 headers — white bold
+                echo -e "${C_WHITE}${line#\#\#\# }${C_RESET}"
+                ;;
+            "  "*"-"*|"     -"*)
+                # Bullet points — dim
+                echo -e "${C_DIM}${line}${C_RESET}"
+                ;;
+            "WARNING"*|"DANGEROUS"*)
+                # Warnings — red
+                echo -e "${C_RED}${line}${C_RESET}"
+                ;;
+            "  "*"—"*)
+                # Command examples with em-dash — cyan command, dim description
+                local cmd_part="${line%%—*}"
+                local desc_part="${line#*—}"
+                echo -e "${C_CYAN}${cmd_part}${C_DIM}—${desc_part}${C_RESET}"
+                ;;
+            [0-9]". "*)
+                # Numbered items — white
+                echo -e "${C_WHITE}${line}${C_RESET}"
+                ;;
+            "")
+                echo ""
+                ;;
+            *)
+                echo -e "${line}"
+                ;;
+        esac
+    done < "$filepath"
+    
     echo ""
-    echo "========================================="
+    echo -e "${C_PURPLE}=========================================${C_RESET}"
     echo ""
 }
 
