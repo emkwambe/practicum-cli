@@ -5,26 +5,35 @@ You have completed Days 1-4 and want to prove your Linux skills.
 This capstone combines everything: files, text processing, scripting,
 processes, and environment — into one real automation script.
 
-## [INTENT] "Prove I can automate a real Linux task."
+## [INTENT] "Prove I can automate a real Linux task and document it."
 
 ## [CONTEXT]
 System administrators write monitoring scripts every day.
 A good monitor script checks disk usage, scans logs for errors,
 identifies problematic processes, and produces a clean report.
-This is exactly what you will build.
+Equally important: you document what the script does, so the
+next person on your team can understand and maintain it.
+This is exactly what employers expect (85% of job postings
+require documentation skills).
 
-## [ACTION] Write a script called monitor.sh that:
-1. Checks disk usage and warns if any partition exceeds 80%
-2. Counts ERROR lines in a log file (passed as argument)
-3. Finds and reports any process using more than 50% CPU
-4. Outputs a dated report with all findings
+## [ACTION] Write TWO files:
 
+### 1. monitor.sh — The monitoring script
 Your script should:
   - Accept a log file path as $1
-  - Use variables to store results
-  - Use conditionals to check thresholds
-  - Use pipes and grep/awk/cut to extract data
+  - Check disk usage and warn if any partition exceeds 80%
+  - Count ERROR lines in the log file
+  - Find any process using more than 50% CPU
+  - Output a dated report with all findings
+  - Use variables, conditionals, pipes, grep/awk/cut
   - Exit with code 0 on success, 1 on critical findings
+
+### 2. README.txt — Documentation (like a real sysadmin)
+Write a brief README that includes:
+  - What the script does (1-2 sentences)
+  - How to run it (the exact command)
+  - What the output means
+  - When to run it (daily? hourly? on alerts?)
 
 ## [EXPECTED RESULT]
 Running: bash monitor.sh /var/log/syslog
@@ -39,10 +48,11 @@ Produces output like:
   =============================
 
 ## Try it now:
-Create monitor.sh and test it:
-  touch monitor.sh
+Create both files:
+  touch monitor.sh README.txt
   chmod +x monitor.sh
-  nano monitor.sh   (or vi monitor.sh)
+  nano monitor.sh   (or vim monitor.sh)
+  nano README.txt
 
 When ready, run: practicum final
 

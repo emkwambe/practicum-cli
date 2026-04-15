@@ -144,6 +144,43 @@ cmd_status() {
 }
 
 cmd_start() {
+    # Show career overview on first run
+    local first_run_flag="$HOME/.practicum/first_run_done"
+    if [ ! -f "$first_run_flag" ]; then
+        detect_course_dir
+        local overview="$COURSE_DIR/career_overview.txt"
+        if [ -f "$overview" ]; then
+            print_header "Welcome to Practicum CLI"
+            echo ""
+            while IFS= read -r line; do
+                case "$line" in
+                    "## "*)
+                        echo -e "  ${C_PURPLE}${line#\#\# }${C_RESET}"
+                        ;;
+                    "  ✅"*)
+                        echo -e "  ${C_GREEN}${line#  }${C_RESET}"
+                        ;;
+                    "  -"*|"     -"*)
+                        echo -e "  ${C_DIM}${line}${C_RESET}"
+                        ;;
+                    "  Day"*)
+                        echo -e "  ${C_CYAN}${line#  }${C_RESET}"
+                        ;;
+                    "  -"*|"#"*)
+                        : # skip markdown headers and comments
+                        ;;
+                    *)
+                        echo -e "  ${C_WHITE}${line}${C_RESET}"
+                        ;;
+                esac
+            done < "$overview"
+            echo ""
+            printf "  ${C_CYAN}Press Enter to continue...${C_RESET}"
+            read -r
+            touch "$first_run_flag"
+        fi
+    fi
+    
     print_header "Practicum CLI — Linux Foundations"
     echo -e "  ${C_DIM}Intent. Context. Action. Result.${C_RESET}"
     echo ""
