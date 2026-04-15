@@ -1,0 +1,34 @@
+# Lesson: uniq — Remove or Count Duplicate Lines
+
+## [WHEN] You need this when:
+1. You have a sorted list and want to remove duplicate entries.
+2. You need to count how many times each unique value appears.
+3. You are analyzing logs to find the most frequent error message.
+4. You want to find lines that appear only once (unique entries).
+
+## [INTENT] "Remove duplicates" or "Count occurrences."
+
+## [CONTEXT]
+uniq removes consecutive duplicate lines. This means your input
+MUST be sorted first — otherwise duplicates that are not adjacent
+will not be detected. Always use: sort | uniq (not just uniq alone).
+uniq -c adds a count prefix to each line showing how many times it appeared.
+
+## [ACTION] uniq [options]
+Common patterns:
+  sort data.txt | uniq            — remove duplicates
+  sort data.txt | uniq -c         — count occurrences of each line
+  sort data.txt | uniq -d         — show ONLY duplicated lines
+  sort data.txt | uniq -u         — show ONLY unique (non-repeated) lines
+  sort data.txt | uniq -c | sort -rn  — frequency ranking (most common first)
+
+## [EXPECTED RESULT]
+Each unique line appears once (or with a count prefix if using -c).
+Lines are in the same order as the sorted input.
+
+## Try it now:
+Run: echo -e "apple\nbanana\napple\ncherry\nbanana\napple" | sort | uniq -c
+You should see: 3 apple, 2 banana, 1 cherry.
+
+## Next:
+Type menu to continue or combine with sort -rn to rank by frequency.

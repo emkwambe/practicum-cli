@@ -1,0 +1,46 @@
+# Lesson: Pipes — Chaining Commands Together
+
+## [WHEN] You need this when:
+1. A single command cannot solve your problem alone.
+2. You want to filter, transform, and count data in one step.
+3. You are analyzing logs and need a pipeline: find → filter → count.
+4. You want to build reusable data processing workflows.
+5. You need to answer questions like "What are the top 10 error types?"
+
+## [INTENT] "Connect the output of one command to the input of another."
+
+## [CONTEXT]
+The pipe symbol | takes the output of one command and feeds it
+as input to the next command. This is the core of Unix philosophy:
+small tools that do one thing well, connected by pipes.
+A pipeline can chain 2, 3, 5, or more commands together.
+
+## [ACTION] command1 | command2 | command3
+Common pipelines:
+  grep "ERROR" log | wc -l
+    → Count error lines
+
+  cat access.log | cut -d' ' -f1 | sort | uniq -c | sort -rn | head -10
+    → Top 10 IP addresses by request count
+
+  ps aux | grep python | grep -v grep
+    → Find running Python processes
+
+  cat data.csv | cut -d, -f3 | sort -n | tail -1
+    → Find the largest value in column 3
+
+  history | grep "git" | wc -l
+    → Count how many git commands you have used
+
+## [EXPECTED RESULT]
+The final output is the result of all commands working together.
+Each pipe passes text from left to right, one line at a time.
+
+## Try it now:
+In Lab mode, run:
+  cat /var/log/syslog | grep "ERROR" | wc -l
+This counts the number of error lines in the system log.
+
+## Next:
+Type menu to return. You have completed Day 2!
+Congratulations — you can now process text like a Unix power user.
