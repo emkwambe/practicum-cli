@@ -1,0 +1,45 @@
+# Lesson: kill — Terminate Processes
+
+## [WHEN] You need this when:
+1. A process is stuck or frozen and will not respond to normal input.
+2. You need to stop a runaway script that is consuming all CPU.
+3. You want to gracefully restart a service by sending it a signal.
+4. A background job needs to be stopped.
+
+## [INTENT] "Stop that process."
+
+## [CONTEXT]
+kill sends a signal to a process. Despite the name, it does not
+always "kill" — it can send different signals for different purposes.
+The default signal is SIGTERM (15), which asks the process to exit cleanly.
+SIGKILL (9) forces immediate termination — use as last resort.
+You need the PID (from ps) or the job number (from jobs).
+
+## [ACTION] kill [-signal] PID
+Common patterns:
+  kill 1234                      — send SIGTERM (graceful stop)
+  kill -9 1234                   — send SIGKILL (force stop)
+  kill -1 1234                   — send SIGHUP (reload config)
+  kill -0 1234                   — check if process exists (no signal sent)
+  pkill firefox                  — kill by process name
+  killall python                 — kill all processes with that name
+
+Signal reference:
+  SIGTERM (15) — "Please exit." Process can clean up.
+  SIGKILL (9)  — "Exit NOW." No cleanup, no saving.
+  SIGHUP (1)   — "Reload config." Used by daemons.
+  SIGINT (2)   — Same as Ctrl+C.
+
+## [EXPECTED RESULT]
+The process disappears from ps output.
+If using SIGTERM, the process may take a moment to clean up.
+If using SIGKILL, it stops immediately.
+
+## Try it now (in Lab mode):
+  sleep 300 &
+  ps aux | grep sleep
+  kill %1
+  ps aux | grep sleep
+
+## Next:
+Type menu to continue or try: pkill sleep

@@ -1,0 +1,39 @@
+# Lesson: env and export — Environment Variables
+
+## [WHEN] You need this when:
+1. You need to see all variables set in your session (PATH, HOME, etc.).
+2. A program cannot find a dependency and you suspect PATH is wrong.
+3. You want to pass configuration to a script via environment variables.
+4. You need to run a command with a modified environment.
+5. You are setting up a development environment (JAVA_HOME, NODE_PATH).
+
+## [INTENT] "Show me the environment" or "Set a variable for all child processes."
+
+## [CONTEXT]
+Environment variables are key-value pairs available to every process.
+They control how programs behave — PATH tells the shell where to find commands,
+HOME points to your home directory, LANG sets the language.
+export makes a variable available to child processes (scripts you run).
+Without export, a variable exists only in the current shell.
+
+## [ACTION] env / export / echo $VARIABLE
+Common patterns:
+  env                            — list all environment variables
+  echo $PATH                     — show one specific variable
+  export MY_APP_PORT=8080        — set and export a variable
+  env | grep -i proxy            — find proxy settings
+  unset MY_APP_PORT              — remove a variable
+  env -i bash                    — start bash with empty environment
+
+## [EXPECTED RESULT]
+env prints a list of KEY=value pairs.
+echo $VAR prints the value of one variable.
+export makes the variable visible to any command you run afterward.
+
+## Try it now:
+  echo "My home is $HOME"
+  export GREETING="Hello from Practicum"
+  bash -c 'echo $GREETING'
+
+## Next:
+Type menu to continue or try: env | wc -l to count all variables.

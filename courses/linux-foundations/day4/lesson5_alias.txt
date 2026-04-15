@@ -1,0 +1,41 @@
+# Lesson: alias — Create Command Shortcuts
+
+## [WHEN] You need this when:
+1. You type the same long command repeatedly (e.g., ls -la --color=auto).
+2. You want to add safety to dangerous commands (alias rm='rm -i').
+3. You need project-specific shortcuts (alias deploy='git push production').
+4. You want to customize your shell experience.
+
+## [INTENT] "Make a shortcut for this command."
+
+## [CONTEXT]
+An alias is a nickname for a command or command sequence.
+Aliases exist only in your current shell session unless saved in ~/.bashrc.
+They are expanded before the command runs — the shell replaces the alias
+with the full command, then executes it.
+To bypass an alias temporarily, prefix with backslash: \ls
+
+## [ACTION] alias name='command'
+Common patterns:
+  alias ll='ls -la'              — detailed listing shortcut
+  alias gs='git status'          — git shortcut
+  alias rm='rm -i'               — always confirm before deleting
+  alias ..='cd ..'               — quick parent directory
+  alias grep='grep --color=auto' — colorize grep output
+  unalias ll                     — remove an alias
+  alias                          — list all current aliases
+
+To make permanent: add the alias line to ~/.bashrc then run source ~/.bashrc.
+
+## [EXPECTED RESULT]
+Typing the alias name runs the full command.
+alias with no arguments lists all active aliases.
+
+## Try it now:
+  alias hi='echo "Hello from Practicum CLI!"'
+  hi
+  alias
+  unalias hi
+
+## Next:
+Type menu to continue or add aliases to your ~/.bashrc for persistence.

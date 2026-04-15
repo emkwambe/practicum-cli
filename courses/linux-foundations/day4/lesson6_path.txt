@@ -1,0 +1,45 @@
+# Lesson: PATH — Where the Shell Finds Commands
+
+## [WHEN] You need this when:
+1. You installed a program but the shell says "command not found."
+2. You wrote a script and want to run it by name without ./prefix.
+3. You need to understand why one version of python runs instead of another.
+4. You are setting up a development environment with custom tool locations.
+
+## [INTENT] "Where does the shell look for commands?"
+
+## [CONTEXT]
+When you type a command name (like ls, python, git), the shell searches
+through a list of directories called PATH. It checks each directory
+in order and runs the first match it finds.
+PATH is a colon-separated string of directory paths.
+If your script is in a directory not in PATH, you must use ./script.sh.
+Adding a directory to PATH makes all executables in it available by name.
+
+## [ACTION] echo $PATH / export PATH="..."
+Common patterns:
+  echo $PATH                              — see current PATH
+  echo $PATH | tr ':' '\n'                — one directory per line
+  which python                            — which python will run?
+  type ls                                 — how is ls resolved?
+  export PATH="$HOME/bin:$PATH"           — add ~/bin to front
+  export PATH="$PATH:/opt/myapp/bin"      — add to end
+
+Order matters:
+  Directories listed first are searched first.
+  To override a system command, put your directory at the FRONT.
+
+## [EXPECTED RESULT]
+echo $PATH shows a colon-separated list of directories.
+which/type shows the full path of a specific command.
+After modifying PATH, new commands become available.
+
+## Try it now:
+  echo $PATH | tr ':' '\n' | head -5
+  which bash
+  which ls
+  type cd
+
+## Next:
+Type menu to return. You have completed Day 4!
+You now understand processes, signals, jobs, and the shell environment.

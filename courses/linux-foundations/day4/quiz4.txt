@@ -1,0 +1,41 @@
+Q1: What command shows all running processes with full details?
+A) ps
+B) ps aux
+C) jobs
+D) top
+Correct: B
+
+Q2: Which signal forcefully terminates a process without allowing cleanup?
+A) SIGTERM (15)
+B) SIGINT (2)
+C) SIGKILL (9)
+D) SIGHUP (1)
+Correct: C
+
+Q3: How do you bring background job number 1 to the foreground?
+A) bg %1
+B) fg %1
+C) jobs %1
+D) kill %1
+Correct: B
+
+Q4: What command lists all environment variables?
+A) echo $PATH
+B) env
+C) export
+D) set
+Correct: B
+
+Q5: How do you create a shortcut so typing "ll" runs "ls -la"?
+A) shortcut ll='ls -la'
+B) alias ll='ls -la'
+C) ll = 'ls -la'
+D) ln ll 'ls -la'
+Correct: B
+
+Q6: What does "which python" show?
+A) The version of Python installed
+B) The full filesystem path to the python executable
+C) The Python documentation
+D) All installed Python packages
+Correct: B

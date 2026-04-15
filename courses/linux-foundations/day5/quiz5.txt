@@ -1,0 +1,34 @@
+Q1: What does "set -e" do at the top of a bash script?
+A) Sets the editor to nano
+B) Enables echo mode
+C) Stops the script on any command failure
+D) Sets environment variables
+Correct: C
+
+Q2: How would you count ERROR lines in a log file using a pipeline?
+A) count ERROR logfile
+B) grep "ERROR" logfile | wc -l
+C) find ERROR logfile
+D) cat logfile | count ERROR
+Correct: B
+
+Q3: What does "df -h" show?
+A) Directory files in human format
+B) Disk free space in human-readable format
+C) Downloaded files history
+D) Default file handler
+Correct: B
+
+Q4: How do you make a script executable?
+A) run script.sh
+B) exec script.sh
+C) chmod +x script.sh
+D) enable script.sh
+Correct: C
+
+Q5: What exit code should a script return on success?
+A) 1
+B) -1
+C) 255
+D) 0
+Correct: D

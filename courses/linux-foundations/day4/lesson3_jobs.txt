@@ -1,0 +1,47 @@
+# Lesson: jobs, bg, fg — Background and Foreground Control
+
+## [WHEN] You need this when:
+1. You started a long-running command and want your terminal back.
+2. You accidentally started something in the foreground and need to background it.
+3. You want to see what background tasks are running in your shell.
+4. You need to bring a background task back to interact with it.
+
+## [INTENT] "Run this in the background" or "Show me my running jobs."
+
+## [CONTEXT]
+By default, commands run in the "foreground" — they block your terminal.
+Adding & at the end runs them in the background immediately.
+Ctrl+Z suspends (pauses) a foreground job — it does not kill it.
+bg resumes a suspended job in the background.
+fg brings a background job to the foreground.
+jobs lists all jobs in the current shell session.
+
+## [ACTION] command & / jobs / fg / bg
+Common patterns:
+  sleep 300 &                    — start in background
+  jobs                           — list all jobs with status
+  fg %1                          — bring job 1 to foreground
+  bg %1                          — resume job 1 in background
+  Ctrl+Z                         — suspend current foreground job
+
+Job states:
+  Running    — executing in background
+  Stopped    — suspended with Ctrl+Z
+  Done       — finished
+
+## [EXPECTED RESULT]
+Background jobs run without blocking your prompt.
+jobs shows a numbered list with status.
+fg/bg change where the job runs.
+
+## Try it now:
+  sleep 100 &
+  sleep 200 &
+  jobs
+  fg %2
+  (then Ctrl+Z)
+  bg %2
+  jobs
+
+## Next:
+Type menu to continue or experiment with multiple background jobs.

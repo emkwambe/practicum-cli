@@ -1,0 +1,50 @@
+# Lesson: Final Assessment — Build a System Monitor
+
+## [WHEN] You need this when:
+You have completed Days 1-4 and want to prove your Linux skills.
+This capstone combines everything: files, text processing, scripting,
+processes, and environment — into one real automation script.
+
+## [INTENT] "Prove I can automate a real Linux task."
+
+## [CONTEXT]
+System administrators write monitoring scripts every day.
+A good monitor script checks disk usage, scans logs for errors,
+identifies problematic processes, and produces a clean report.
+This is exactly what you will build.
+
+## [ACTION] Write a script called monitor.sh that:
+1. Checks disk usage and warns if any partition exceeds 80%
+2. Counts ERROR lines in a log file (passed as argument)
+3. Finds and reports any process using more than 50% CPU
+4. Outputs a dated report with all findings
+
+Your script should:
+  - Accept a log file path as $1
+  - Use variables to store results
+  - Use conditionals to check thresholds
+  - Use pipes and grep/awk/cut to extract data
+  - Exit with code 0 on success, 1 on critical findings
+
+## [EXPECTED RESULT]
+Running: bash monitor.sh /var/log/syslog
+Produces output like:
+
+  === System Monitor Report ===
+  Date: 2026-04-15
+  Disk Usage: /dev/sda1 45% (OK)
+  Error count: 3 errors found
+  High CPU processes: none
+  Status: HEALTHY
+  =============================
+
+## Try it now:
+Create monitor.sh and test it:
+  touch monitor.sh
+  chmod +x monitor.sh
+  nano monitor.sh   (or vi monitor.sh)
+
+When ready, run: practicum final
+
+## Next:
+Type 'practicum final' to submit your script for grading.
