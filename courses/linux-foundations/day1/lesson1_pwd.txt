@@ -1,0 +1,29 @@
+# Lesson: pwd — Print Working Directory
+
+## [WHEN] You need this when:
+1. You just logged into a server and forgot where you are.
+2. A script says "file not found" and you need to confirm the path.
+3. You have used cd several times and are lost.
+4. You want to verify you are in the right folder before running a command.
+
+## [INTENT] "Where am I?"
+
+## [CONTEXT]
+Every file and folder on Linux has an absolute path starting from /.
+When you open a terminal, you start in your home directory (usually /home/yourname).
+But after navigating with cd, you may lose track.
+
+## [ACTION] pwd
+
+## [EXPECTED RESULT]
+Shows the absolute path of the current directory.
+Example output: /home/student
+
+## Try it now:
+Type pwd and press Enter.
+
+After running, you will see a path like /home/student.
+Nothing changes — pwd only reads, it never modifies anything.
+
+## Next:
+Type menu to continue or ls to see what files are here.

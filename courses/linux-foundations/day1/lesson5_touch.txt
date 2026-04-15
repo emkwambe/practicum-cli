@@ -1,0 +1,30 @@
+# Lesson: touch — Create Empty Files
+
+## [WHEN] You need this when:
+1. You need to create an empty file quickly (placeholder, config, log).
+2. A program expects a file to exist before it runs.
+3. You want to update a file's timestamp without changing its contents.
+4. You are setting up a project and need README.md, .gitignore, etc.
+
+## [INTENT] "Create a new file."
+
+## [CONTEXT]
+On Linux, files do not appear by themselves — you create them.
+touch creates an empty file, or updates the timestamp of an existing one.
+It never overwrites or deletes content.
+
+## [ACTION] touch <filename>
+Common patterns:
+  touch readme.txt         — create one file
+  touch a.txt b.txt c.txt  — create multiple files
+  touch .hidden            — create a hidden file (starts with .)
+
+## [EXPECTED RESULT]
+An empty file appears. Verify with ls -la.
+If the file already exists, only its timestamp changes.
+
+## Try it now:
+Type touch hello.txt then ls -la to see it.
+
+## Next:
+Type menu to continue or learn about rm (removing files safely).

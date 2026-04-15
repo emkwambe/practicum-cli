@@ -1,0 +1,32 @@
+# Lesson: ls — List Directory Contents
+
+## [WHEN] You need this when:
+1. You just entered a folder and want to see what files exist.
+2. You created or downloaded a file and want to verify it is there.
+3. You are looking for a file but forgot its exact name.
+4. You want to check if a folder is empty before deleting it.
+5. You need to see file permissions or sizes.
+
+## [INTENT] "What is in this folder?"
+
+## [CONTEXT]
+Directories (folders) contain files and other directories.
+Without ls, you are working blind — you cannot see what is around you.
+Think of ls as turning on the lights in a dark room.
+
+## [ACTION] ls
+Common variations:
+  ls        — simple list (names only)
+  ls -l     — long format (permissions, size, date)
+  ls -a     — include hidden files (starting with .)
+  ls -la    — long format + hidden files (most common)
+
+## [EXPECTED RESULT]
+A list of file and directory names.
+If the directory is empty, you see nothing (or only . and ..).
+
+## Try it now:
+Type ls and press Enter. Then try ls -la.
+
+## Next:
+Type menu to continue or cd to navigate into a folder.

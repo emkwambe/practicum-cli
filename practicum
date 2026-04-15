@@ -1,25 +1,278 @@
 #!/bin/bash
-# Practicum CLI - Linux terminal courses
+# Practicum CLI — Intent. Context. Action. Result.
+# Version: 0.2.0
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Source all libraries
+source "$SCRIPT_DIR/lib/state.sh"
+source "$SCRIPT_DIR/lib/lessons.sh"
+source "$SCRIPT_DIR/lib/quiz_engine.sh"
+source "$SCRIPT_DIR/lib/modes.sh"
+source "$SCRIPT_DIR/lib/sandbox.sh"
+source "$SCRIPT_DIR/lib/wrappers.sh"
+
+# Initialize state on every run
+init_state
+
+# --- Command Implementations ---
 
 show_help() {
-    cat << EOF
-Practicum CLI – Linux terminal courses
-Usage: practicum {start|status|quiz|lab|field|wizard|activate}
+    cat << 'EOF'
+Practicum CLI — Linux terminal courses
+Intent. Context. Action. Result.
+
+Usage: practicum <command>
 
 Commands:
-  start     Begin or resume a course
-  status    Show progress
-  quiz      Take a quiz
-  lab       Enter sandbox mode
-  field     Enter real system mode
-  wizard    Enter guided mode
-  activate  Activate license key
+  start       Begin or resume a course
+  status      Show your progress
+  quiz        Take the current quiz
+  wizard      Enter Wizard mode (guided lessons)
+  lab         Enter Lab mode (safe sandbox)
+  field       Enter Field mode (real system)
+  snapshot    Save/restore lab state
+  activate    Activate a license key
+  help        Show this help message
+
+Navigation (available anytime):
+  menu        Return to main menu
+  back        Go back one step
+  status      Show progress
+
+Version: 0.2.0
 EOF
 }
 
+cmd_status() {
+    local mode
+    mode=$(get_mode)
+    local completed
+    completed=$(count_completed)
+    local unlocked
+    unlocked=$(count_unlocked)
+    local day1_score
+    day1_score=$(get_score "day1_quiz")
+    
+    echo ""
+    echo "========================================="
+    echo "  📊 Practicum CLI — Status"
+    echo "========================================="
+    echo ""
+    echo "  Course:    Linux Foundations for IT & DevOps"
+    echo "  Mode:      $mode"
+    echo "  Completed: $completed lessons"
+    echo "  Unlocked:  $unlocked lessons"
+    echo ""
+    if [ -n "$day1_score" ]; then
+        echo "  Day 1 Quiz: ${day1_score}%"
+    else
+        echo "  Day 1 Quiz: not taken"
+    fi
+    echo ""
+    echo "  Unlocked lessons:"
+    if [ -f "$UNLOCKED_FILE" ]; then
+        while IFS= read -r lesson; do
+            local mark="🔓"
+            is_completed "$lesson" && mark="✅"
+            echo "    $mark $lesson"
+        done < "$UNLOCKED_FILE"
+    fi
+    echo ""
+    echo "========================================="
+    echo ""
+}
+
+cmd_start() {
+    echo ""
+    echo "========================================="
+    echo "  Practicum CLI — Linux Foundations"
+    echo "  Intent. Context. Action. Result."
+    echo "========================================="
+    echo ""
+    echo "  Main Menu:"
+    echo ""
+    echo "  [1] Day 1 — Navigation & Files"
+    echo "  [2] Day 2 — Text Processing & Pipes (coming soon)"
+    echo "  [3] Day 3 — Scripting Basics (coming soon)"
+    echo "  [4] Day 4 — Process & Environment (coming soon)"
+    echo "  [5] Day 5 — Final Assessment (coming soon)"
+    echo ""
+    echo "  [6] View progress"
+    echo "  [7] Take quiz"
+    echo "  [0] Exit"
+    echo ""
+    printf "  Your choice: "
+    read -r choice || return 0
+    
+    case "$choice" in
+        1)
+            cmd_day1_menu
+            ;;
+        6)
+            cmd_status
+            ;;
+        7)
+            cmd_quiz
+            ;;
+        0)
+            echo "  Goodbye!"
+            return 0
+            ;;
+        *)
+            echo "  Invalid choice."
+            cmd_start
+            ;;
+    esac
+}
+
+cmd_day1_menu() {
+    list_lessons "day1"
+    printf "  Your choice: "
+    read -r choice || return 0
+    
+    case "$choice" in
+        [1-6])
+            local lesson_file
+            lesson_file=$(get_lesson_file_by_number "day1" "$choice")
+            if [ -n "$lesson_file" ]; then
+                local cmd
+                cmd=$(get_lesson_command "$lesson_file")
+                if is_unlocked "$cmd" || [ "$choice" -le 3 ]; then
+                    load_lesson "day1" "$lesson_file"
+                    add_completed "$cmd"
+                    # Unlock next lesson
+                    case "$cmd" in
+                        pwd) unlock_lesson "ls" ;;
+                        ls)  unlock_lesson "cd" ;;
+                        cd)  unlock_lesson "mkdir" ;;
+                        mkdir) unlock_lesson "touch" ;;
+                        touch) unlock_lesson "rm" ;;
+                    esac
+                    echo "  ✅ Lesson '$cmd' completed!"
+                    echo ""
+                    echo "  [1] Next lesson"
+                    echo "  [2] Repeat this lesson"
+                    echo "  [9] Back to Day 1 menu"
+                    echo "  [0] Main menu"
+                    echo ""
+                    printf "  Your choice: "
+                    read -r next || return 0
+                    case "$next" in
+                        1) cmd_day1_menu ;;
+                        2) load_lesson "day1" "$lesson_file" ;;
+                        9) cmd_day1_menu ;;
+                        0) cmd_start ;;
+                    esac
+                else
+                    echo "  🔒 This lesson is locked. Complete previous lessons first."
+                    cmd_day1_menu
+                fi
+            else
+                echo "  Invalid lesson number."
+                cmd_day1_menu
+            fi
+            ;;
+        9)
+            cmd_start
+            ;;
+        0)
+            return 0
+            ;;
+        *)
+            echo "  Invalid choice."
+            cmd_day1_menu
+            ;;
+    esac
+}
+
+cmd_quiz() {
+    detect_course_dir
+    local quiz_file="$COURSE_DIR/day1/quiz1.txt"
+    
+    if run_quiz "$quiz_file"; then
+        save_score "day1_quiz" "passed"
+        unlock_lesson "mkdir"
+        unlock_lesson "touch"
+        unlock_lesson "rm"
+        echo "  🎓 Day 1 quiz passed! All Day 1 lessons unlocked."
+    else
+        echo "  Try again after reviewing the lessons."
+    fi
+}
+
+cmd_wizard() {
+    enter_mode "WIZARD"
+    echo "  Starting guided lesson flow..."
+    echo ""
+    cmd_start
+}
+
+cmd_lab() {
+    enter_mode "LAB"
+    init_sandbox
+    echo "  Sandbox initialized at: ~/.practicum/sandbox/"
+    echo "  Type 'exit' to leave LAB mode."
+    echo ""
+    cd "$SANDBOX_DIR" || true
+    export PS1="🔬 [LAB] \w\$ "
+    exec bash --norc --noprofile -i
+}
+
+cmd_field() {
+    enter_mode "FIELD"
+    echo "  Type 'exit' to leave FIELD mode."
+    echo ""
+    export PS1="🌍 [FIELD] \w\$ "
+    exec bash --norc --noprofile -i
+}
+
+cmd_snapshot() {
+    case "$2" in
+        save)
+            snapshot_save "$3"
+            ;;
+        restore)
+            snapshot_restore "$3"
+            ;;
+        list)
+            snapshot_list
+            ;;
+        *)
+            echo "Usage: practicum snapshot {save|restore|list} [name]"
+            ;;
+    esac
+}
+
+# --- Main Entry Point ---
 case "$1" in
-    start|status|quiz|lab|field|wizard|activate)
-        echo "Command: $1 (not yet implemented)"
+    start)
+        cmd_start
+        ;;
+    status)
+        cmd_status
+        ;;
+    quiz)
+        cmd_quiz
+        ;;
+    wizard)
+        cmd_wizard
+        ;;
+    lab)
+        cmd_lab
+        ;;
+    field)
+        cmd_field
+        ;;
+    snapshot)
+        cmd_snapshot "$@"
+        ;;
+    activate)
+        echo "License activation not yet implemented."
+        echo "Contact: support@practicum-cli.dev"
+        ;;
+    --help|-h|help)
+        show_help
         ;;
     *)
         show_help

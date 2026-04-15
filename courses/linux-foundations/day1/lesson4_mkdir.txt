@@ -1,0 +1,30 @@
+# Lesson: mkdir — Make Directory
+
+## [WHEN] You need this when:
+1. You want to organize files into categories (photos/, docs/, backups/).
+2. You are setting up a project structure (src/, bin/, logs/).
+3. You want to separate original files from modified ones.
+4. A script or program expects a specific folder to exist.
+
+## [INTENT] "Create a new folder."
+
+## [CONTEXT]
+Directories are how Linux organizes files into a hierarchy.
+Before you can put files somewhere, the directory must exist.
+mkdir creates one or more new directories.
+
+## [ACTION] mkdir <name>
+Common patterns:
+  mkdir projects           — create one folder
+  mkdir -p a/b/c           — create nested folders (parents too)
+  mkdir docs logs tmp      — create multiple folders at once
+
+## [EXPECTED RESULT]
+A new empty directory appears. Verify with ls.
+If the directory already exists, you get an error (use -p to avoid).
+
+## Try it now:
+Type mkdir myproject then ls to verify it was created.
+
+## Next:
+Type menu to continue or touch to create a file inside your new folder.

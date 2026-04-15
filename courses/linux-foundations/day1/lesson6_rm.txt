@@ -1,0 +1,36 @@
+# Lesson: rm — Remove Files (Safely)
+
+## [WHEN] You need this when:
+1. A file is no longer needed and wastes disk space.
+2. You created a temporary file during testing.
+3. You want to clean up before committing code to Git.
+4. A corrupt file needs to be replaced with a fresh copy.
+
+## [INTENT] "Delete this file."
+
+## [CONTEXT]
+WARNING: On Linux, rm is permanent. There is no Recycle Bin by default.
+Once deleted, the file is gone forever (unless you have backups).
+Always double-check what you are deleting.
+
+## [ACTION] rm <filename>
+Safe patterns:
+  rm -i file.txt          — ask for confirmation before each delete
+  rm file.txt             — delete immediately (no confirmation)
+  rm -r folder/           — delete a folder and everything inside
+
+DANGEROUS patterns (be careful):
+  rm -rf /                — deletes EVERYTHING (never run this)
+  rm -rf *                — deletes all files in current directory
+  rm -rf .                — attempts to delete current directory contents
+
+## [EXPECTED RESULT]
+The file disappears. Verify with ls.
+No output means success. An error means the file was not found.
+
+## Try it now (in LAB mode only):
+Type touch deleteme.txt to create a test file.
+Then type rm -i deleteme.txt and confirm with y.
+
+## Next:
+Type menu to return to Day 1 menu. You have completed all Day 1 lessons!

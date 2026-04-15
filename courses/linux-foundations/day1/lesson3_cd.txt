@@ -1,0 +1,34 @@
+# Lesson: cd — Change Directory
+
+## [WHEN] You need this when:
+1. You created a folder and want to work inside it.
+2. A file you need is in a different folder.
+3. A command (git, npm, python) expects to run from a specific directory.
+4. You want to avoid typing full paths repeatedly.
+5. You received a path like /var/log and need to go there.
+
+## [INTENT] "Go to that folder."
+
+## [CONTEXT]
+Your terminal always has a "current working directory" (shown by pwd).
+When you run commands, they act on the current directory by default.
+cd changes where you are standing.
+
+## [ACTION] cd <target>
+Common patterns:
+  cd foldername    — go into a subfolder
+  cd ..            — go up one level (parent folder)
+  cd ~             — go to your home directory
+  cd -             — go back to the previous directory
+  cd /var/log      — go to an absolute path
+
+## [EXPECTED RESULT]
+Your prompt changes to reflect the new location.
+No output is printed (silence means success).
+Run pwd to confirm where you ended up.
+
+## Try it now:
+Type cd / then pwd. Then type cd ~ to return home.
+
+## Next:
+Type menu to continue or mkdir to create a new folder.

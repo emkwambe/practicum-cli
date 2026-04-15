@@ -1,0 +1,34 @@
+Q1: What command shows your current directory?
+A) ls
+B) pwd
+C) cd
+D) whoami
+Correct: B
+
+Q2: Which command lists files including hidden ones?
+A) ls
+B) ls -a
+C) ls -l
+D) list --all
+Correct: B
+
+Q3: How do you go to the parent directory?
+A) cd parent
+B) cd ..
+C) cd back
+D) cd -p
+Correct: B
+
+Q4: What does mkdir -p a/b/c do?
+A) Creates only folder c
+B) Creates a, then b inside a, then c inside b
+C) Moves a into b into c
+D) Prints the path a/b/c
+Correct: B
+
+Q5: What happens when you run touch on an existing file?
+A) The file is deleted
+B) The file contents are erased
+C) The file timestamp is updated
+D) An error occurs
+Correct: C
