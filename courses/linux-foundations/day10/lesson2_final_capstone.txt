@@ -1,0 +1,66 @@
+# Final Capstone: The Sysadmin Shift
+
+## [WHEN] You need this when:
+This is it. Your final assessment. One realistic scenario that
+tests every skill you have learned across all 8 days.
+
+## [INTENT] "Handle a complete sysadmin shift from start to finish."
+
+## [CONTEXT]
+It's Monday morning. You're the on-call sysadmin. The weekend team
+left notes about issues. Your job: assess the situation, fix problems,
+secure the system, set up automation, and document everything.
+
+This is exactly what a real first day looks like.
+
+## [ACTION] Complete ALL of these tasks:
+
+### Phase 1: Morning Health Check (Days 1, 4, 8)
+  - Check disk usage (df -h)
+  - Check for failed services (systemctl --failed)
+  - Review today's error logs (journalctl -p err --since today)
+  - Check top CPU/memory consumers (ps aux --sort=-%cpu | head)
+  - Write findings to /tmp/morning_report.txt
+
+### Phase 2: Fix the Problems (Days 2, 4, 8)
+  - A log file at /tmp/app_errors.log has errors — find and count them
+  - A service called "practicum-app" may need restarting
+  - Old log files in /tmp/old_logs/ are wasting disk space — clean them
+  - Document what you fixed in /tmp/fix_report.txt
+
+### Phase 3: Secure the System (Day 6)
+  - Create a user account for the new intern: "intern1"
+  - Create a group called "readonly" and add intern1
+  - Create /tmp/shared_docs/ owned by readonly group, permissions 750
+  - Verify with ls -la
+
+### Phase 4: Set Up Automation (Days 3, 8)
+  - Write /tmp/daily_check.sh that runs your morning health check
+  - Make it executable (chmod +x)
+  - Show how you would schedule it with cron (write the crontab line
+    to /tmp/cron_entry.txt — e.g., "0 8 * * * /tmp/daily_check.sh")
+
+### Phase 5: Document Everything (Professional skill)
+  - Create /tmp/shift_handoff.txt with:
+    - What you found when you arrived
+    - What you fixed and how
+    - What automation you set up
+    - Anything the next person should know
+
+## [EXPECTED RESULT]
+Five files in /tmp/:
+  1. morning_report.txt — health check findings
+  2. fix_report.txt — what you fixed
+  3. daily_check.sh — automation script (executable)
+  4. cron_entry.txt — cron schedule line
+  5. shift_handoff.txt — handoff documentation
+
+## When ready:
+Run: practicum final-capstone
+This will verify all 5 deliverables.
+
+## Grading:
+  - Phase 1-5 each worth 20 points (100 total)
+  - Pass: 60+ points
+  - Distinction: 80+ points
+  - Perfect: 100 points

@@ -184,19 +184,23 @@ cmd_start() {
     print_header "Practicum CLI — Linux Foundations"
     echo -e "  ${C_DIM}Intent. Context. Action. Result.${C_RESET}"
     echo ""
-    echo -e "  ${C_PURPLE}Course Days:${C_RESET}"
-    echo ""
+    echo -e "  ${C_PURPLE}Foundation:${C_RESET}"
     print_menu_item "1" "Day 1 — Navigation & Files"
     print_menu_item "2" "Day 2 — Text Processing & Pipes"
     print_menu_item "3" "Day 3 — Scripting Basics"
     print_menu_item "4" "Day 4 — Process & Environment"
-    print_menu_item "5" "Day 5 — Final Assessment"
+    print_menu_item "5" "Day 5 — Assessment 1 (Midpoint)"
+    echo ""
+    echo -e "  ${C_PURPLE}Advanced:${C_RESET}"
     print_menu_item "6" "Day 6 — Permissions & Security"
     print_menu_item "7" "Day 7 — Networking, SSH & Packages"
     print_menu_item "8" "Day 8 — Services, Scheduling & Editors"
+    print_menu_item "9" "Day 9 — Assessment 2 (Advanced)"
+    echo ""
+    echo -e "  ${C_PURPLE}Capstone:${C_RESET}"
+    print_menu_item "10" "Day 10 — Final Review & Capstone"
     echo ""
     echo -e "  ${C_PURPLE}Tools:${C_RESET}"
-    echo ""
     print_menu_item "p" "View progress"
     print_menu_item "q" "Take quiz"
     print_menu_item "c" "Generate certificate"
@@ -216,6 +220,8 @@ cmd_start() {
         6) cmd_day6_menu ;;
         7) cmd_day7_menu ;;
         8) cmd_day8_menu ;;
+        9) cmd_day9_menu ;;
+        10) cmd_day10_menu ;;
         p|P) cmd_status ;;
         q|Q) cmd_quiz_select ;;
         c|C) cmd_certificate ;;
@@ -504,7 +510,9 @@ cmd_quiz_select() {
     echo "  [6] Day 6 — Permissions & Security"
     echo "  [7] Day 7 — Networking & SSH"
     echo "  [8] Day 8 — Services & Scheduling"
-    echo "  [9] Back to main menu"
+    echo "  [9] Day 9 — Assessment 2 Review"
+    echo "  [10] Day 10 — Final Review"
+    echo "  [0] Back to main menu"
     echo ""
     printf "  Your choice: "
     read -r qchoice || return 0
@@ -517,7 +525,9 @@ cmd_quiz_select() {
         6) cmd_quiz_day6 ;;
         7) cmd_quiz_day7 ;;
         8) cmd_quiz_day8 ;;
-        9) cmd_start ;;
+        9) cmd_quiz_day9 ;;
+        10) cmd_quiz_day10 ;;
+        0) cmd_start ;;
         *) echo "  Invalid choice." ;;
     esac
 }
@@ -930,6 +940,113 @@ cmd_quiz_day8() {
     fi
 }
 
+cmd_day9_menu() {
+    list_lessons "day9"
+    printf "  Your choice: "
+    read -r choice || return 0
+    case "$choice" in
+        1)
+            local lesson_file
+            lesson_file=$(get_lesson_file_by_number "day9" "1")
+            if [ -n "$lesson_file" ]; then
+                show_lesson_with_context "day9" "$lesson_file" "assess2"
+                echo "  ✅ Assessment 2 instructions read."
+                echo ""
+                echo "  Write your three scripts, then run: practicum assess2"
+            fi
+            ;;
+        9) cmd_start ;; 0) return 0 ;;
+        *) echo "  Invalid."; cmd_day9_menu ;;
+    esac
+}
+
+cmd_assess2() {
+    detect_course_dir
+    local test_script="$COURSE_DIR/day9/assess2_test.sh"
+    echo ""
+    echo -e "${C_PURPLE}=========================================${C_RESET}"
+    echo -e "${C_PURPLE}  📝 Assessment 2 — Advanced Skills${C_RESET}"
+    echo -e "${C_PURPLE}=========================================${C_RESET}"
+    echo ""
+    
+    if bash "$test_script"; then
+        save_score "assess2" "passed"
+        unlock_lesson "review"
+        echo ""
+        echo -e "  ${C_GREEN}🎓 Assessment 2 PASSED!${C_RESET}"
+        echo -e "  ${C_GREEN}  Day 10 (Final Review & Capstone) is unlocked!${C_RESET}"
+    else
+        echo ""
+        echo -e "  ${C_YELLOW}  Review Days 6-8 and try again.${C_RESET}"
+    fi
+    echo ""
+}
+
+cmd_quiz_day9() {
+    detect_course_dir
+    if run_quiz "$COURSE_DIR/day9/quiz9.txt"; then
+        save_score "day9_quiz" "passed"
+        echo ""
+        echo -e "  ${C_GREEN}🎓 Day 9 Quiz — PASSED!${C_RESET}"
+    else
+        echo "  📖 Review Days 6-8 and try again."
+    fi
+}
+
+cmd_quiz_day10() {
+    detect_course_dir
+    if run_quiz "$COURSE_DIR/day10/quiz10.txt"; then
+        save_score "day10_quiz" "passed"
+        echo ""
+        echo -e "  ${C_GREEN}🎓 Day 10 Quiz — PASSED!${C_RESET}"
+        echo -e "  ${C_GREEN}  Now complete the Final Capstone: practicum final-capstone${C_RESET}"
+    else
+        echo "  📖 Review all days and try again."
+    fi
+}
+
+cmd_day10_menu() {
+    list_lessons "day10"
+    printf "  Your choice: "
+    read -r choice || return 0
+    case "$choice" in
+        1)
+            local lesson_file
+            lesson_file=$(get_lesson_file_by_number "day10" "1")
+            [ -n "$lesson_file" ] && show_lesson_with_context "day10" "$lesson_file" "review"
+            echo ""
+            echo "  [1] Continue to Final Capstone"
+            echo "  [9] Back"
+            printf "  Your choice: "
+            read -r next || return 0
+            case "$next" in 1) cmd_day10_menu ;; *) cmd_start ;; esac
+            ;;
+        2)
+            local lesson_file
+            lesson_file=$(get_lesson_file_by_number "day10" "2")
+            [ -n "$lesson_file" ] && show_lesson_with_context "day10" "$lesson_file" "capstone"
+            echo ""
+            echo "  When ready, run: practicum final-capstone"
+            ;;
+        9) cmd_start ;; 0) return 0 ;;
+        *) echo "  Invalid."; cmd_day10_menu ;;
+    esac
+}
+
+cmd_final_capstone() {
+    detect_course_dir
+    local test_script="$COURSE_DIR/day10/final_capstone_test.sh"
+    
+    if bash "$test_script"; then
+        save_score "final_capstone" "passed"
+        echo ""
+        echo -e "  ${C_GREEN}🏆 CONGRATULATIONS!${C_RESET}"
+        echo -e "  ${C_GREEN}  You have completed Linux Foundations.${C_RESET}"
+        echo -e "  ${C_GREEN}  Run 'practicum certificate' for your credential.${C_RESET}"
+        echo ""
+    fi
+}
+
 cmd_final() {
     echo ""
     echo "========================================="
@@ -1101,6 +1218,12 @@ case "$1" in
         ;;
     final)
         cmd_final
+        ;;
+    assess2)
+        cmd_assess2
+        ;;
+    final-capstone)
+        cmd_final_capstone
         ;;
     scenarios|scenario)
         cmd_scenarios

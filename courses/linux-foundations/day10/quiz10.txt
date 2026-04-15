@@ -1,0 +1,55 @@
+Q1: You see "-rwxr-x---" on a file. Who can execute it?
+A) Only the owner
+B) Owner and group members
+C) Everyone
+D) Nobody
+Correct: B
+
+Q2: A service won't start. What TWO commands give you the most information?
+A) ps aux and top
+B) systemctl status service and journalctl -u service
+C) ping localhost and curl localhost
+D) df -h and du -sh
+Correct: B
+
+Q3: Which pipeline counts how many unique IPs appear in an access log?
+A) cat access.log | sort | uniq
+B) grep IP access.log | wc -l
+C) cut -d' ' -f1 access.log | sort | uniq | wc -l
+D) awk access.log | count
+Correct: C
+
+Q4: You need a backup script to run every Sunday at 3 AM. What's the cron entry?
+A) 0 3 * * 0 /path/to/backup.sh
+B) 3 0 * * 7 /path/to/backup.sh
+C) * 3 * * sun /path/to/backup.sh
+D) 0 3 0 0 0 /path/to/backup.sh
+Correct: A
+
+Q5: A developer says "permission denied" when running deploy.sh. What do you check first?
+A) Run it as root immediately
+B) Check file permissions with ls -la deploy.sh
+C) Delete and recreate the file
+D) Restart the server
+Correct: B
+
+Q6: Server disk is 95% full. Which command finds the biggest files?
+A) ls -la /
+B) df -h
+C) du -sh /* | sort -rh | head -10
+D) find / -name "*.log"
+Correct: C
+
+Q7: What does "rsync -avz" do that "scp" cannot?
+A) Encrypt the transfer
+B) Only transfer files that have changed
+C) Transfer over SSH
+D) Compress files
+Correct: B
+
+Q8: Your script should exit with code 1 if errors are found. Which is correct?
+A) return 1
+B) exit 1
+C) error 1
+D) quit 1
+Correct: B

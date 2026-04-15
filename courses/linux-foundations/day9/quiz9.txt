@@ -1,0 +1,55 @@
+Q1: What chmod number gives read+write to owner, read-only to group and others?
+A) 755
+B) 644
+C) 700
+D) 666
+Correct: B
+
+Q2: How do you add user "alice" to the "developers" group without removing her from other groups?
+A) usermod -G developers alice
+B) usermod -aG developers alice
+C) groupadd alice developers
+D) adduser alice -group developers
+Correct: B
+
+Q3: What does the sticky bit prevent?
+A) Files from being read
+B) Users from deleting other users' files in shared directories
+C) Root from accessing files
+D) Files from being modified
+Correct: B
+
+Q4: Which command shows TCP ports that services are listening on?
+A) ping -t
+B) ss -tlnp
+C) curl --ports
+D) ip show ports
+Correct: B
+
+Q5: What does "sudo apt update" do?
+A) Installs all available packages
+B) Updates the package list from repositories
+C) Upgrades all installed software
+D) Removes outdated packages
+Correct: B
+
+Q6: How do you create a compressed archive of a folder?
+A) tar czf archive.tar.gz folder/
+B) zip folder/ archive.zip
+C) gzip -r folder/
+D) compress folder/ archive
+Correct: A
+
+Q7: What does "systemctl enable nginx" do?
+A) Starts nginx immediately
+B) Configures nginx to start automatically on boot
+C) Installs nginx
+D) Reloads nginx configuration
+Correct: B
+
+Q8: What cron expression means "every day at midnight"?
+A) * * * * *
+B) 0 0 * * *
+C) 0 12 * * *
+D) * 0 * * *
+Correct: B
