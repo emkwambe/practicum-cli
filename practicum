@@ -93,13 +93,14 @@ cmd_start() {
     echo "  Main Menu:"
     echo ""
     echo "  [1] Day 1 — Navigation & Files"
-    echo "  [2] Day 2 — Text Processing & Pipes (coming soon)"
+    echo "  [2] Day 2 — Text Processing & Pipes"
     echo "  [3] Day 3 — Scripting Basics (coming soon)"
     echo "  [4] Day 4 — Process & Environment (coming soon)"
     echo "  [5] Day 5 — Final Assessment (coming soon)"
     echo ""
     echo "  [6] View progress"
-    echo "  [7] Take quiz"
+    echo "  [7] Take quiz (Day 1)"
+    echo "  [8] Take quiz (Day 2)"
     echo "  [0] Exit"
     echo ""
     printf "  Your choice: "
@@ -109,11 +110,17 @@ cmd_start() {
         1)
             cmd_day1_menu
             ;;
+        2)
+            cmd_day2_menu
+            ;;
         6)
             cmd_status
             ;;
         7)
             cmd_quiz
+            ;;
+        8)
+            cmd_quiz_day2
             ;;
         0)
             echo "  Goodbye!"
@@ -150,9 +157,10 @@ cmd_day1_menu() {
                         touch) unlock_lesson "rm" ;;
                     esac
                     echo "  ✅ Lesson '$cmd' completed!"
-                    echo ""
+                    show_encouragement "day1"
                     echo "  [1] Next lesson"
                     echo "  [2] Repeat this lesson"
+                    echo "  [7] Take Day 1 quiz"
                     echo "  [9] Back to Day 1 menu"
                     echo "  [0] Main menu"
                     echo ""
@@ -161,6 +169,7 @@ cmd_day1_menu() {
                     case "$next" in
                         1) cmd_day1_menu ;;
                         2) load_lesson "day1" "$lesson_file" ;;
+                        7) cmd_quiz ;;
                         9) cmd_day1_menu ;;
                         0) cmd_start ;;
                     esac
@@ -195,9 +204,108 @@ cmd_quiz() {
         unlock_lesson "mkdir"
         unlock_lesson "touch"
         unlock_lesson "rm"
-        echo "  🎓 Day 1 quiz passed! All Day 1 lessons unlocked."
+        unlock_lesson "grep"
+        echo ""
+        echo "========================================="
+        echo "  🎓 Day 1 Quiz — PASSED!"
+        echo ""
+        echo "  All Day 1 lessons are now unlocked."
+        echo "  Day 2 (Text Processing & Pipes) is now available!"
+        echo ""
+        echo "  💡 Tip: Try 'practicum lab' to practice"
+        echo "     commands in a safe sandbox."
+        echo "========================================="
+        echo ""
     else
-        echo "  Try again after reviewing the lessons."
+        echo ""
+        echo "  📖 Review the lessons and try again."
+        echo "  Type 'practicum start' to revisit Day 1."
+        echo ""
+    fi
+}
+
+cmd_day2_menu() {
+    list_lessons "day2"
+    printf "  Your choice: "
+    read -r choice || return 0
+    
+    case "$choice" in
+        [1-6])
+            local lesson_file
+            lesson_file=$(get_lesson_file_by_number "day2" "$choice")
+            if [ -n "$lesson_file" ]; then
+                local cmd
+                cmd=$(get_lesson_command "$lesson_file")
+                if is_unlocked "$cmd"; then
+                    load_lesson "day2" "$lesson_file"
+                    add_completed "$cmd"
+                    # Unlock next Day 2 lesson
+                    case "$cmd" in
+                        grep) unlock_lesson "cut" ;;
+                        cut)  unlock_lesson "sort" ;;
+                        sort) unlock_lesson "uniq" ;;
+                        uniq) unlock_lesson "wc" ;;
+                        wc)   unlock_lesson "pipes" ;;
+                    esac
+                    echo "  ✅ Lesson '$cmd' completed!"
+                    show_encouragement "day2"
+                    echo "  [1] Next lesson"
+                    echo "  [2] Repeat this lesson"
+                    echo "  [7] Take Day 2 quiz"
+                    echo "  [9] Back to Day 2 menu"
+                    echo "  [0] Main menu"
+                    echo ""
+                    printf "  Your choice: "
+                    read -r next || return 0
+                    case "$next" in
+                        1) cmd_day2_menu ;;
+                        2) load_lesson "day2" "$lesson_file" ;;
+                        7) cmd_quiz_day2 ;;
+                        9) cmd_day2_menu ;;
+                        0) cmd_start ;;
+                    esac
+                else
+                    echo "  🔒 This lesson is locked. Complete previous lessons or pass the Day 1 quiz first."
+                    cmd_day2_menu
+                fi
+            else
+                echo "  Invalid lesson number."
+                cmd_day2_menu
+            fi
+            ;;
+        9)
+            cmd_start
+            ;;
+        0)
+            return 0
+            ;;
+        *)
+            echo "  Invalid choice."
+            cmd_day2_menu
+            ;;
+    esac
+}
+
+cmd_quiz_day2() {
+    detect_course_dir
+    local quiz_file="$COURSE_DIR/day2/quiz2.txt"
+    
+    if run_quiz "$quiz_file"; then
+        save_score "day2_quiz" "passed"
+        # Unlock Day 3 commands when ready
+        echo ""
+        echo "========================================="
+        echo "  🎓 Day 2 Quiz — PASSED!"
+        echo ""
+        echo "  You can now process text like a Unix power user."
+        echo "  Day 3 (Scripting Basics) coming soon!"
+        echo "========================================="
+        echo ""
+    else
+        echo ""
+        echo "  📖 Review the Day 2 lessons and try again."
+        echo "  Focus on pipes — they connect everything."
+        echo ""
     fi
 }
 

@@ -93,3 +93,54 @@ get_lesson_command() {
     local filename="$1"
     echo "$filename" | sed 's/lesson[0-9]*_//' | sed 's/\.txt//'
 }
+
+count_day_lessons() {
+    detect_course_dir
+    local day="${1:-day1}"
+    local count=0
+    for f in "$COURSE_DIR/$day"/lesson*.txt; do
+        [ -f "$f" ] && count=$((count + 1))
+    done
+    echo "$count"
+}
+
+get_next_lesson_preview() {
+    detect_course_dir
+    local day="${1:-day1}"
+    local completed_count="$2"
+    local next_num=$((completed_count + 1))
+    local i=1
+    for f in "$COURSE_DIR/$day"/lesson*.txt; do
+        [ -f "$f" ] || continue
+        if [ "$i" -eq "$next_num" ]; then
+            head -1 "$f" | sed 's/^# //'
+            return 0
+        fi
+        i=$((i + 1))
+    done
+    echo ""
+}
+
+show_encouragement() {
+    local day="${1:-day1}"
+    local completed
+    completed=$(count_completed)
+    local total
+    total=$(count_day_lessons "$day")
+    local next_name
+    next_name=$(get_next_lesson_preview "$day" "$completed")
+
+    echo ""
+    echo "========================================="
+    echo "  🎉 Great job!"
+    echo "  Progress: $completed of $total lessons completed"
+    echo ""
+    if [ -n "$next_name" ]; then
+        echo "  📚 Next up: $next_name"
+    else
+        echo "  🏆 You've completed all lessons for this day!"
+        echo "  Take the quiz to test your knowledge."
+    fi
+    echo "========================================="
+    echo ""
+}
