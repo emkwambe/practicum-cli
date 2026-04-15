@@ -12,6 +12,7 @@ source "$SCRIPT_DIR/lib/quiz_engine.sh"
 source "$SCRIPT_DIR/lib/modes.sh"
 source "$SCRIPT_DIR/lib/sandbox.sh"
 source "$SCRIPT_DIR/lib/wrappers.sh"
+source "$SCRIPT_DIR/lib/challenges/engine.sh"
 
 # Initialize state on every run
 init_state
@@ -34,6 +35,7 @@ Commands:
   field       Enter Field mode (real system)
   snapshot    Save/restore lab state
   certificate Generate completion certificate
+  challenges  Interactive Linux problem-solving scenarios
   activate    Activate a license key
   help        Show this help message
 
@@ -740,6 +742,9 @@ case "$1" in
         ;;
     final)
         cmd_final
+        ;;
+    challenges|challenge)
+        cmd_challenges
         ;;
     --help|-h|help)
         show_help
