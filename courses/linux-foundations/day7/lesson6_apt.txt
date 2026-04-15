@@ -1,0 +1,34 @@
+# Lesson: apt/yum — Install & Update Software
+
+## [WHEN] You need this when:
+1. You need to install a web server on a new machine.
+2. Security updates are available and must be applied.
+3. You need a tool that is not installed (htop, tree, jq).
+4. You want to remove unused software to reduce attack surface.
+
+## [INTENT] "Install or update software on this server."
+
+## [CONTEXT]
+Linux uses package managers to install, update, and remove software.
+Ubuntu/Debian uses apt. RHEL/CentOS uses yum or dnf.
+Package managers handle dependencies automatically.
+
+## [ACTION] apt / yum
+apt (Ubuntu/Debian):
+  sudo apt update                   — refresh package list
+  sudo apt install nginx            — install a package
+  sudo apt remove nginx             — remove a package
+  sudo apt upgrade                  — upgrade all packages
+  apt search keyword                — find packages
+  apt list --installed              — list installed
+
+yum/dnf (RHEL/CentOS):
+  sudo yum install nginx
+  sudo yum update
+
+## [EXPECTED RESULT]
+The package is installed and ready to use immediately.
+
+## Try it now:
+  apt list --installed | head -10
+  which tree || echo "tree not installed"

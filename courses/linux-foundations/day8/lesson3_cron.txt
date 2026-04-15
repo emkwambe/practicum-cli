@@ -1,0 +1,40 @@
+# Lesson: cron & crontab — Schedule Recurring Tasks
+
+## [WHEN] You need this when:
+1. A backup script needs to run every night at 2 AM.
+2. Log files should be rotated every week.
+3. A health check should run every 5 minutes.
+4. A report should be generated and emailed every Monday morning.
+
+## [INTENT] "Run this command automatically on a schedule."
+
+## [CONTEXT]
+cron is a daemon that runs scheduled tasks (called cron jobs).
+crontab is the command to edit your schedule.
+Each line in a crontab file defines: when to run + what to run.
+The timing uses 5 fields: minute, hour, day-of-month, month, day-of-week.
+
+## [ACTION] crontab -e / crontab -l
+  crontab -l                        — list your cron jobs
+  crontab -e                        — edit your cron jobs
+  sudo crontab -l                   — list root's cron jobs
+
+Cron syntax: minute hour day month weekday command
+  0 2 * * * /home/user/backup.sh    — every day at 2:00 AM
+  */5 * * * * /usr/bin/healthcheck  — every 5 minutes
+  0 9 * * 1 /home/user/report.sh   — every Monday at 9 AM
+  0 0 1 * * /home/user/monthly.sh  — first day of every month
+
+Special strings:
+  @reboot /home/user/startup.sh    — run once at boot
+  @hourly, @daily, @weekly, @monthly
+
+## [EXPECTED RESULT]
+The command runs automatically at the specified time.
+Output goes to email (or /dev/null if redirected).
+
+## Try it now:
+  crontab -l
+  echo "*/1 * * * * echo 'test' >> /tmp/cron_test.log" | crontab -
+  crontab -l
+  crontab -r   # remove all cron jobs (clean up)

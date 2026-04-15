@@ -1,0 +1,33 @@
+# Lesson: systemctl — Manage Services
+
+## [WHEN] You need this when:
+1. You just installed nginx and need to start it.
+2. A service crashed and you need to restart it.
+3. You want a service to start automatically on boot.
+4. You need to check why MySQL will not start.
+
+## [INTENT] "Start, stop, or check the status of a service."
+
+## [CONTEXT]
+systemd manages all services (daemons) on modern Linux.
+systemctl is the command to interact with systemd.
+Services have states: active (running), inactive (stopped), failed.
+"Enabled" means it starts on boot. "Disabled" means manual start only.
+
+## [ACTION] systemctl <action> <service>
+  systemctl status nginx           — check if running + recent logs
+  sudo systemctl start nginx       — start the service
+  sudo systemctl stop nginx        — stop the service
+  sudo systemctl restart nginx     — stop then start
+  sudo systemctl reload nginx      — reload config without stopping
+  sudo systemctl enable nginx      — start on boot
+  sudo systemctl disable nginx     — do not start on boot
+  systemctl list-units --failed    — show all failed services
+  systemctl is-active nginx        — quick check (returns active/inactive)
+
+## [EXPECTED RESULT]
+status shows: active (running) in green, or failed in red with error details.
+
+## Try it now:
+  systemctl list-units --type=service | head -10
+  systemctl --failed

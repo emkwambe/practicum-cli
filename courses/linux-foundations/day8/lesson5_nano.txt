@@ -1,0 +1,34 @@
+# Lesson: nano — The Friendly Editor
+
+## [WHEN] You need this when:
+1. You need a quick edit and vim feels intimidating.
+2. You are editing a crontab and prefer a simpler interface.
+3. You want to make a small change without learning vim first.
+
+## [INTENT] "Edit a file without the vim learning curve."
+
+## [CONTEXT]
+nano is a simple terminal text editor. Unlike vim, it works like a
+normal text editor — you just start typing. Commands are shown at
+the bottom of the screen. The ^ symbol means Ctrl.
+
+## [ACTION] nano <filename>
+  nano file.txt                    — open file
+  (just start typing)             — edit the text
+  Ctrl+O                          — save (write Out)
+  Ctrl+X                          — exit
+  Ctrl+W                          — search (Where is)
+  Ctrl+K                          — cut current line
+  Ctrl+U                          — paste (Uncut)
+  Ctrl+G                          — help
+
+To make nano the default editor:
+  export EDITOR=nano
+  (add to ~/.bashrc for permanent)
+
+## [EXPECTED RESULT]
+The file opens in a full-screen editor. Edit, save, exit.
+
+## Try it now:
+  echo "Hello nano" > /tmp/nano_test.txt
+  nano /tmp/nano_test.txt

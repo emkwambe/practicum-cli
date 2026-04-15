@@ -1,0 +1,55 @@
+Q1: How do you check if nginx is running?
+A) ps aux | grep nginx
+B) systemctl status nginx
+C) service nginx check
+D) Both A and B
+Correct: D
+
+Q2: How do you see only error-level logs since today?
+A) journalctl -p err --since today
+B) cat /var/log/errors
+C) dmesg --errors
+D) tail -f /var/log/syslog
+Correct: A
+
+Q3: What cron syntax runs a job every day at 2:00 AM?
+A) 2 0 * * *
+B) 0 2 * * *
+C) * 2 * * *
+D) 0 0 2 * *
+Correct: B
+
+Q4: In vim, how do you save and quit?
+A) Ctrl+S then Ctrl+Q
+B) :wq
+C) :exit
+D) Ctrl+X
+Correct: B
+
+Q5: In nano, how do you save a file?
+A) :w
+B) Ctrl+S
+C) Ctrl+O
+D) Ctrl+W
+Correct: C
+
+Q6: What does awk '{print $1}' do?
+A) Prints the entire file
+B) Prints the first field of each line
+C) Prints the first line only
+D) Prints line numbers
+Correct: B
+
+Q7: Which directory contains most system log files?
+A) /etc/log/
+B) /var/log/
+C) /home/log/
+D) /tmp/log/
+Correct: B
+
+Q8: What does "uptime" show?
+A) How long since the last reboot, number of users, and load average
+B) Current time only
+C) Disk usage
+D) Network uptime
+Correct: A

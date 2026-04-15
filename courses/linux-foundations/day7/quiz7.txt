@@ -1,0 +1,55 @@
+Q1: How do you quickly find a server's IP address?
+A) ip addr
+B) hostname -I
+C) ifconfig
+D) All of the above
+Correct: D
+
+Q2: What does "ping -c 4 google.com" do?
+A) Downloads the Google homepage
+B) Sends 4 test packets and measures response time
+C) Opens Google in a browser
+D) Checks DNS settings
+Correct: B
+
+Q3: Which command shows TCP services listening on ports?
+A) ps aux
+B) ss -tlnp
+C) top
+D) netstat -a
+Correct: B
+
+Q4: How do you generate an SSH key pair?
+A) ssh-keygen -t ed25519
+B) ssh --generate-key
+C) openssl genrsa
+D) gpg --gen-key
+Correct: A
+
+Q5: What is the advantage of rsync over scp?
+A) rsync is encrypted, scp is not
+B) rsync only transfers changed parts of files
+C) rsync works over SSH, scp does not
+D) There is no difference
+Correct: B
+
+Q6: How do you install nginx on Ubuntu?
+A) yum install nginx
+B) apt install nginx
+C) sudo apt install nginx
+D) install nginx
+Correct: C
+
+Q7: What does "tar czf backup.tar.gz folder/" do?
+A) Extracts an archive
+B) Lists contents of an archive
+C) Creates a compressed archive of the folder
+D) Deletes the folder
+Correct: C
+
+Q8: If ping works but curl fails, what is likely wrong?
+A) The network cable is unplugged
+B) A firewall is blocking the port or the service is not running
+C) DNS is not configured
+D) The server has no IP address
+Correct: B

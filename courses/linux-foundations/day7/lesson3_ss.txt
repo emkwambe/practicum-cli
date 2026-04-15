@@ -1,0 +1,30 @@
+# Lesson: ss — What Services Are Listening?
+
+## [WHEN] You need this when:
+1. You need to check if nginx is actually listening on port 80.
+2. A port conflict error says "address already in use."
+3. A security audit requires listing all open network ports.
+4. You are debugging why a client cannot connect to your service.
+
+## [INTENT] "Which services are running and on what ports?"
+
+## [CONTEXT]
+ss (socket statistics) replaced the older netstat command.
+It shows all network connections and listening ports.
+Use ss -tlnp to see TCP listening ports with process names.
+Flags: t=TCP, l=listening, n=numeric, p=process name
+
+## [ACTION] ss [options]
+  ss -tlnp                         — TCP listening ports with process names
+  ss -ulnp                         — UDP listening ports
+  ss -tlnp | grep :80              — check if anything on port 80
+  ss -tlnp | grep nginx            — check if nginx is listening
+  lsof -i :80                      — which process owns port 80
+  netstat -tlnp                    — legacy equivalent
+
+## [EXPECTED RESULT]
+A table showing: protocol, local address:port, process name.
+
+## Try it now:
+  ss -tlnp
+  ss -tlnp | grep :22

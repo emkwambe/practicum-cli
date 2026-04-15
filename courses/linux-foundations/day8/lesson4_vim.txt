@@ -1,0 +1,46 @@
+# Lesson: vim — Edit Files on Any Server
+
+## [WHEN] You need this when:
+1. You are SSH'd into a server and need to edit a config file.
+2. No graphical editor is available (most servers have no GUI).
+3. You need to quickly fix a typo in a script on a remote machine.
+4. You are editing crontab (which opens vim by default).
+
+## [INTENT] "Edit a file directly on a remote server."
+
+## [CONTEXT]
+vim is installed on virtually every Linux system. It has two main modes:
+  Normal mode — navigate, delete, copy (default when you open vim)
+  Insert mode — type text (press i to enter, Esc to leave)
+The learning curve is steep but the basics take 5 minutes.
+
+## [ACTION] vim <filename>
+Essential commands (all you need to start):
+  vim file.txt                — open file
+  i                           — enter Insert mode (now you can type)
+  Esc                         — return to Normal mode
+  :wq                         — save and quit
+  :q!                         — quit without saving
+  :w                          — save without quitting
+
+Navigation (Normal mode):
+  h/j/k/l                    — left/down/up/right (or use arrow keys)
+  gg                          — go to first line
+  G                           — go to last line
+  /pattern                    — search for text
+  n                           — next search result
+
+Editing (Normal mode):
+  dd                          — delete current line
+  yy                          — copy current line
+  p                           — paste below current line
+  u                           — undo
+  x                           — delete character under cursor
+
+## [EXPECTED RESULT]
+The file is modified and saved. vim exits back to the shell.
+
+## Try it now:
+  echo "Hello vim" > /tmp/vim_test.txt
+  vim /tmp/vim_test.txt
+  (press i, type something, press Esc, type :wq)

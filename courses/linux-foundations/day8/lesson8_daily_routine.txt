@@ -1,0 +1,67 @@
+# Lesson: The Sysadmin Daily Routine — Putting It All Together
+
+## [WHEN] You need this when:
+1. You start your shift and need to check system health.
+2. After a deployment, you want to verify everything is working.
+3. A morning health check script needs to be written.
+4. You want a systematic approach to daily operations.
+
+## [INTENT] "What should I check every day as a sysadmin?"
+
+## [CONTEXT]
+Experienced sysadmins follow a routine. They check the same things
+every day in the same order. This catches problems early before
+users notice. Here is the standard daily health check pipeline.
+
+## [ACTION] The Daily Health Check Pipeline
+1. Disk space:
+   df -h | awk '$5+0 > 80 {print "WARNING:", $0}'
+
+2. Failed services:
+   systemctl --failed
+
+3. Recent errors in logs:
+   journalctl -p err --since today | tail -10
+
+4. Top CPU consumers:
+   ps aux --sort=-%cpu | head -6
+
+5. Top memory consumers:
+   ps aux --sort=-%mem | head -6
+
+6. Recent logins:
+   last -5
+
+7. Failed login attempts:
+   grep "Failed" /var/log/auth.log 2>/dev/null | tail -5
+
+8. System uptime and load:
+   uptime
+
+As a script (save as healthcheck.sh):
+  #!/bin/bash
+  echo "=== Health Check: $(date) ==="
+  echo "--- Disk ---"
+  df -h | awk '$5+0 > 80 {print "WARNING:", $0}'
+  echo "--- Failed Services ---"
+  systemctl --failed 2>/dev/null
+  echo "--- Recent Errors ---"
+  journalctl -p err --since today 2>/dev/null | tail -5
+  echo "--- Top CPU ---"
+  ps aux --sort=-%cpu | head -4
+  echo "--- Uptime ---"
+  uptime
+
+## [EXPECTED RESULT]
+A quick snapshot of system health. Problems are immediately visible.
+Run this every morning or schedule it via cron.
+
+## Try it now:
+  uptime
+  df -h
+  ps aux --sort=-%cpu | head -5
+
+## Next:
+Type menu to return. You have completed Day 8!
+You now have all the skills of an entry-level Linux sysadmin.
+Congratulations on completing Linux Foundations!

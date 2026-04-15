@@ -1,0 +1,38 @@
+# Lesson: Log Management — Keep Logs Under Control
+
+## [WHEN] You need this when:
+1. The /var/log directory is filling up the disk.
+2. You need to find a specific error from last week.
+3. Compliance requires keeping 90 days of logs.
+4. You want to understand the log file structure.
+
+## [INTENT] "Manage logs so they do not eat all disk space."
+
+## [CONTEXT]
+Linux stores logs in /var/log/. Key log files:
+  /var/log/syslog (or /var/log/messages) — general system logs
+  /var/log/auth.log — authentication (login attempts)
+  /var/log/kern.log — kernel messages
+  /var/log/apt/     — package manager logs
+logrotate automatically compresses and rotates old logs.
+
+## [ACTION] Log management commands
+  ls -lh /var/log/                   — see log file sizes
+  du -sh /var/log/                   — total log directory size
+  tail -f /var/log/syslog            — follow live
+  cat /var/log/auth.log | grep Failed — find failed logins
+  dmesg                              — kernel ring buffer
+  dmesg | tail -20                   — recent kernel messages
+
+logrotate (usually auto-configured):
+  cat /etc/logrotate.conf            — global settings
+  ls /etc/logrotate.d/               — per-service configs
+  sudo logrotate -f /etc/logrotate.conf  — force rotation now
+
+## [EXPECTED RESULT]
+Logs stay manageable. Old logs compressed. Disk usage controlled.
+
+## Try it now:
+  ls -lh /var/log/ | head -10
+  du -sh /var/log/
+  dmesg | tail -5
