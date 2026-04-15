@@ -65,7 +65,7 @@ cmd_status() {
     echo "  Unlocked:  $unlocked lessons"
     echo ""
     if [ -n "$day1_score" ]; then
-        echo "  Day 1 Quiz: ${day1_score}%"
+        echo "  Day 1 Quiz: ✅ $day1_score"
     else
         echo "  Day 1 Quiz: not taken"
     fi
