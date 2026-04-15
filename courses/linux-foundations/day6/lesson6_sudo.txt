@@ -1,0 +1,30 @@
+# Lesson: sudo — Temporary Root Powers
+
+## [WHEN] You need this when:
+1. You need to install software (apt install requires root).
+2. You need to edit a system config file in /etc/.
+3. You need to restart a service (systemctl restart).
+4. You need to create a user account.
+
+## [INTENT] "Run this one command as root without staying as root."
+
+## [CONTEXT]
+root is the superuser — it can do anything, including destroying the system.
+sudo lets you run a single command with root privileges, then return to
+your normal user. It logs who ran what, creating an audit trail.
+The sudoers file (/etc/sudoers) controls who can use sudo.
+
+## [ACTION] sudo <command>
+  sudo apt update                     — run apt as root
+  sudo systemctl restart nginx        — restart a service
+  sudo vim /etc/hosts                 — edit a system file
+  sudo su -                           — switch to root shell (sparingly)
+  sudo visudo                         — safely edit sudoers file
+
+## [EXPECTED RESULT]
+The command runs with root privileges. You may be prompted for YOUR
+password (not root's). After the command, you are back to normal user.
+
+## Try it now:
+  sudo whoami                 — should print "root"
+  whoami                      — should print your username

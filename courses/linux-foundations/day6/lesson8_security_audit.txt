@@ -1,0 +1,30 @@
+# Lesson: Security Audit — Who Has Access to What?
+
+## [WHEN] You need this when:
+1. After a security incident, review who accessed the system.
+2. A compliance audit requires listing all users and their access.
+3. You need to find files with dangerous permissions (777).
+4. You suspect an unauthorized account was created.
+
+## [INTENT] "Show me every user and what they can do."
+
+## [CONTEXT]
+A security audit checks: Who has accounts? Who can use sudo?
+Who logged in recently? What files are world-writable?
+
+## [ACTION] Audit commands
+  cat /etc/passwd | cut -d: -f1         — list all usernames
+  cat /etc/group | grep sudo            — who is in sudo group?
+  last -5                               — last 5 logins
+  who                                   — currently logged in
+  w                                     — logged in + activity
+  find / -perm -002 -type f 2>/dev/null — world-writable files
+  find / -perm -4000 2>/dev/null        — setuid binaries
+
+## [EXPECTED RESULT]
+A complete picture of who has access and what they can do.
+
+## Try it now:
+  who
+  last -3
+  cat /etc/passwd | cut -d: -f1 | sort

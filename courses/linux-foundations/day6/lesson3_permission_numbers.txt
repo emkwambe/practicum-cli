@@ -1,0 +1,37 @@
+# Lesson: Permission Numbers — What 755 Actually Means
+
+## [WHEN] You need this when:
+1. Documentation says "set permissions to 644" and you need to know why.
+2. You see -rwxr-xr-x in ls output and want to understand it.
+3. A security team asks you to restrict files to 600.
+4. You need to set umask for new file defaults.
+
+## [INTENT] "Decode and set precise permission numbers."
+
+## [CONTEXT]
+Linux permissions use octal (base-8) numbers. Each digit is the sum of:
+  r=4, w=2, x=1
+
+So: rwx = 4+2+1 = 7, r-x = 4+0+1 = 5, r-- = 4+0+0 = 4
+
+Common sets:
+  777 = rwxrwxrwx (everyone can do everything — DANGEROUS)
+  755 = rwxr-xr-x (scripts, directories)
+  644 = rw-r--r-- (normal files)
+  600 = rw------- (secrets, keys)
+
+umask controls defaults: umask 022 makes new files 644, new dirs 755.
+
+## [ACTION] chmod <number> <file> / stat / umask
+  chmod 755 script.sh
+  stat -c '%a %n' file.txt         — show numeric permissions
+  umask                            — show current umask
+
+## [EXPECTED RESULT]
+stat shows the numeric permission. ls -la shows symbolic form.
+
+## Try it now:
+  touch test.txt
+  stat -c '%a %n' test.txt
+  chmod 600 test.txt
+  stat -c '%a %n' test.txt

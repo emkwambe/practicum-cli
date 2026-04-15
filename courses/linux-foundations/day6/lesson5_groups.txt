@@ -1,0 +1,28 @@
+# Lesson: Groups — Shared Access for Teams
+
+## [WHEN] You need this when:
+1. Multiple developers need write access to the same directory.
+2. You want to restrict database config access to the DBA team only.
+3. A new team member needs the same file access as their colleagues.
+
+## [INTENT] "Give this team shared access to these files."
+
+## [CONTEXT]
+Groups let you manage permissions for sets of users at once.
+Create a group, add users to it, set the file's group ownership.
+A user can belong to many groups but has one primary group.
+
+## [ACTION] groupadd / usermod -aG / chgrp
+  sudo groupadd developers            — create a group
+  sudo usermod -aG developers alice   — add alice to group
+  groups alice                        — show alice's groups
+  sudo chgrp developers /opt/project  — change directory group
+  sudo chmod 775 /opt/project         — group can read+write+execute
+
+## [EXPECTED RESULT]
+Users in the group can access group-owned files. They must log out
+and back in for group changes to take effect (or use newgrp).
+
+## Try it now:
+  groups
+  cat /etc/group | tail -5

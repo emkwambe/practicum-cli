@@ -12,7 +12,6 @@ source "$SCRIPT_DIR/lib/quiz_engine.sh"
 source "$SCRIPT_DIR/lib/modes.sh"
 source "$SCRIPT_DIR/lib/sandbox.sh"
 source "$SCRIPT_DIR/lib/wrappers.sh"
-source "$SCRIPT_DIR/lib/challenges/engine.sh"
 
 # Initialize state on every run
 init_state
@@ -35,7 +34,6 @@ Commands:
   field       Enter Field mode (real system)
   snapshot    Save/restore lab state
   certificate Generate completion certificate
-  challenges  Interactive Linux problem-solving scenarios
   activate    Activate a license key
   help        Show this help message
 
@@ -102,6 +100,13 @@ cmd_status() {
     if [ -n "$capstone_score" ]; then
         echo -e "  Capstone:   ${C_GREEN}🏆 $capstone_score${C_RESET}"
     fi
+    local day6_score
+    day6_score=$(get_score "day6_quiz")
+    if [ -n "$day6_score" ]; then
+        echo -e "  Day 6 Quiz: ${C_GREEN}✅ $day6_score${C_RESET}"
+    else
+        echo -e "  Day 6 Quiz: ${C_DIM}not taken${C_RESET}"
+    fi
     echo ""
     echo -e "  ${C_PURPLE}Unlocked lessons:${C_RESET}"
     if [ -f "$UNLOCKED_FILE" ]; then
@@ -122,17 +127,21 @@ cmd_start() {
     print_header "Practicum CLI — Linux Foundations"
     echo -e "  ${C_DIM}Intent. Context. Action. Result.${C_RESET}"
     echo ""
-    echo -e "  ${C_PURPLE}Main Menu:${C_RESET}"
+    echo -e "  ${C_PURPLE}Course Days:${C_RESET}"
     echo ""
     print_menu_item "1" "Day 1 — Navigation & Files"
     print_menu_item "2" "Day 2 — Text Processing & Pipes"
     print_menu_item "3" "Day 3 — Scripting Basics"
     print_menu_item "4" "Day 4 — Process & Environment"
     print_menu_item "5" "Day 5 — Final Assessment"
+    print_menu_item "6" "Day 6 — Permissions & Security"
     echo ""
-    print_menu_item "6" "View progress"
-    print_menu_item "7" "Take quiz"
-    print_menu_item "8" "Generate certificate"
+    echo -e "  ${C_PURPLE}Tools:${C_RESET}"
+    echo ""
+    print_menu_item "p" "View progress"
+    print_menu_item "q" "Take quiz"
+    print_menu_item "c" "Generate certificate"
+    print_menu_item "x" "🏋️ Linux Challenges"
     print_menu_item "0" "Exit"
     print_prompt
     read -r choice || return 0
@@ -143,9 +152,11 @@ cmd_start() {
         3) cmd_day3_menu ;;
         4) cmd_day4_menu ;;
         5) cmd_day5_menu ;;
-        6) cmd_status ;;
-        7) cmd_quiz_select ;;
-        8) cmd_certificate ;;
+        6) cmd_day6_menu ;;
+        p|P) cmd_status ;;
+        q|Q) cmd_quiz_select ;;
+        c|C) cmd_certificate ;;
+        x|X) cmd_challenges ;;
         0) echo -e "  ${C_GREEN}Goodbye!${C_RESET}"; return 0 ;;
         *) echo -e "  ${C_RED}Invalid choice.${C_RESET}"; cmd_start ;;
     esac
@@ -399,6 +410,7 @@ cmd_quiz_select() {
     echo "  [3] Day 3 — Scripting Basics"
     echo "  [4] Day 4 — Process & Environment"
     echo "  [5] Day 5 — Final Knowledge Check"
+    echo "  [6] Day 6 — Permissions & Security"
     echo "  [9] Back to main menu"
     echo ""
     printf "  Your choice: "
@@ -409,6 +421,7 @@ cmd_quiz_select() {
         3) cmd_quiz_day3 ;;
         4) cmd_quiz_day4 ;;
         5) cmd_quiz_day5 ;;
+        6) cmd_quiz_day6 ;;
         9) cmd_start ;;
         *) echo "  Invalid choice." ;;
     esac
@@ -554,12 +567,13 @@ cmd_quiz_day4() {
     if run_quiz "$quiz_file"; then
         save_score "day4_quiz" "passed"
         unlock_lesson "capstone_intro"
+        unlock_lesson "chmod"
         echo ""
         echo "========================================="
         echo "  🎓 Day 4 Quiz — PASSED!"
         echo ""
         echo "  You now understand processes and the shell environment."
-        echo "  Day 5 (Final Assessment) is unlocked!"
+        echo "  Day 5 (Final Assessment) and Day 6 (Permissions) are unlocked!"
         echo "========================================="
         echo ""
     else
@@ -618,6 +632,83 @@ cmd_quiz_day5() {
     else
         echo ""
         echo "  📖 Review all 5 days and try again."
+        echo ""
+    fi
+}
+
+cmd_day6_menu() {
+    list_lessons "day6"
+    printf "  Your choice: "
+    read -r choice || return 0
+    
+    case "$choice" in
+        [1-8])
+            local lesson_file
+            lesson_file=$(get_lesson_file_by_number "day6" "$choice")
+            if [ -n "$lesson_file" ]; then
+                local cmd
+                cmd=$(get_lesson_command "$lesson_file")
+                if is_unlocked "$cmd"; then
+                    load_lesson "day6" "$lesson_file"
+                    add_completed "$cmd"
+                    case "$cmd" in
+                        chmod)              unlock_lesson "chown" ;;
+                        chown)              unlock_lesson "permission_numbers" ;;
+                        permission_numbers) unlock_lesson "useradd" ;;
+                        useradd)            unlock_lesson "groups" ;;
+                        groups)             unlock_lesson "sudo" ;;
+                        sudo)               unlock_lesson "special_permissions" ;;
+                        special_permissions) unlock_lesson "security_audit" ;;
+                    esac
+                    echo "  ✅ Lesson '$cmd' completed!"
+                    show_encouragement "day6"
+                    echo "  [1] Next lesson"
+                    echo "  [2] Repeat this lesson"
+                    echo "  [7] Take Day 6 quiz"
+                    echo "  [9] Back to Day 6 menu"
+                    echo "  [0] Main menu"
+                    echo ""
+                    printf "  Your choice: "
+                    read -r next || return 0
+                    case "$next" in
+                        1) cmd_day6_menu ;;
+                        2) load_lesson "day6" "$lesson_file" ;;
+                        7) cmd_quiz_day6 ;;
+                        9) cmd_day6_menu ;;
+                        0) cmd_start ;;
+                    esac
+                else
+                    echo "  🔒 This lesson is locked. Pass the Day 4 quiz first."
+                    cmd_day6_menu
+                fi
+            else
+                echo "  Invalid lesson number."
+                cmd_day6_menu
+            fi
+            ;;
+        9) cmd_start ;;
+        0) return 0 ;;
+        *) echo "  Invalid choice."; cmd_day6_menu ;;
+    esac
+}
+
+cmd_quiz_day6() {
+    detect_course_dir
+    local quiz_file="$COURSE_DIR/day6/quiz6.txt"
+    
+    if run_quiz "$quiz_file"; then
+        save_score "day6_quiz" "passed"
+        echo ""
+        echo "========================================="
+        echo "  🎓 Day 6 Quiz — PASSED!"
+        echo ""
+        echo "  You now control permissions, users, and groups."
+        echo "  Day 7 (Networking & SSH) coming soon!"
+        echo "========================================="
+        echo ""
+    else
+        echo ""
+        echo "  📖 Review the Day 6 lessons and try again."
         echo ""
     fi
 }
@@ -742,9 +833,6 @@ case "$1" in
         ;;
     final)
         cmd_final
-        ;;
-    challenges|challenge)
-        cmd_challenges
         ;;
     --help|-h|help)
         show_help

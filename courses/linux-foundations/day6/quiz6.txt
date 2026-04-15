@@ -1,0 +1,55 @@
+Q1: What does chmod 600 file.txt do?
+A) Makes the file executable for everyone
+B) Gives only the owner read and write access
+C) Deletes the file
+D) Makes the file read-only for everyone
+Correct: B
+
+Q2: How do you change the owner of a file to "alice"?
+A) chmod alice file.txt
+B) chown alice file.txt
+C) usermod alice file.txt
+D) owner alice file.txt
+Correct: B
+
+Q3: What does the number 7 mean in chmod 755?
+A) Read only
+B) Write only
+C) Read + write + execute
+D) No access
+Correct: C
+
+Q4: How do you create a new user with a home directory?
+A) useradd alice
+B) useradd -m alice
+C) adduser alice -home
+D) create user alice
+Correct: B
+
+Q5: How do you add user "bob" to the "developers" group?
+A) groupadd bob developers
+B) usermod -aG developers bob
+C) chgrp bob developers
+D) addgroup bob developers
+Correct: B
+
+Q6: What does sudo do?
+A) Switches to root permanently
+B) Runs one command with root privileges
+C) Creates a new user
+D) Changes file permissions
+Correct: B
+
+Q7: What is the sticky bit used for?
+A) Making files executable
+B) Preventing users from deleting other users files in shared directories
+C) Encrypting files
+D) Compressing files
+Correct: B
+
+Q8: Which command shows who is currently logged into the system?
+A) last
+B) who
+C) users
+D) Both B and C
+Correct: D
