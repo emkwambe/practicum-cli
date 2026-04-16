@@ -192,8 +192,11 @@ diag_memory() {
 
     # Check for OOM kills
     local oom_count
-    oom_count=$(dmesg 2>/dev/null | grep -ci "oom" || echo "0")
-    if [ "$oom_count" -gt 0 ]; then
+    oom_count=$(dmesg 2>/dev/null | grep -ci "oom" 2>/dev/null)
+    oom_count="${oom_count:-0}"
+    oom_count=$(echo "$oom_count" | head -1 | tr -dc '0-9')
+    oom_count="${oom_count:-0}"
+    if [ "$oom_count" -gt 0 ] 2>/dev/null; then
         diag_verdict "warn" "Found $oom_count OOM-related kernel messages"
         diag_run "Recent OOM events" "dmesg 2>/dev/null | grep -i 'oom' | tail -5"
     fi
