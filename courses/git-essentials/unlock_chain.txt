@@ -1,0 +1,44 @@
+# Unlock chains: completed_command -> next_unlocked_command
+# Format: <current>|<next>
+# Day 1: init, status, add, commit, log, diff
+init|status
+status|add
+add|commit
+commit|log
+log|diff
+# Day 2: branch, switch, merge, conflicts, branch_strategies, delete_branches
+branch|switch
+switch|merge
+merge|conflicts
+conflicts|branch_strategies
+branch_strategies|delete_branches
+# Day 3: clone, remote, push, pull_fetch, gitignore, daily_workflow
+clone|remote
+remote|push
+push|pull_fetch
+pull_fetch|gitignore
+gitignore|daily_workflow
+# Day 4: forks, pull_requests, code_review, pr_conflicts, issues, open_source
+forks|pull_requests
+pull_requests|code_review
+code_review|pr_conflicts
+pr_conflicts|issues
+issues|open_source
+# Day 6: stash, rebase, cherry_pick, bisect, reflog, amend
+stash|rebase
+rebase|cherry_pick
+cherry_pick|bisect
+bisect|reflog
+reflog|amend
+# Day 7: tags, releases, actions_intro, actions_workflows, github_pages, secrets
+tags|releases
+releases|actions_intro
+actions_intro|actions_workflows
+actions_workflows|github_pages
+github_pages|secrets
+# Day 8: gitignore_deep, branch_protection, projects, signed_commits, git_hooks, professional_repo
+gitignore_deep|branch_protection
+branch_protection|projects
+projects|signed_commits
+signed_commits|git_hooks
+git_hooks|professional_repo

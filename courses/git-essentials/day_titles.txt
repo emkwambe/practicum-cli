@@ -1,0 +1,10 @@
+Day 1 — First Commits
+Day 2 — Branches & Merging
+Day 3 — Remotes & Collaboration
+Day 4 — Pull Requests & Open Source
+Day 5 — Assessment 1 (Midpoint)
+Day 6 — Advanced Git (Stash, Rebase, Bisect)
+Day 7 — GitHub Workflows & Actions
+Day 8 — Repository Administration
+Day 9 — Assessment 2 (Advanced)
+Day 10 — Final Review & Capstone

@@ -20,6 +20,7 @@ source "$SCRIPT_DIR/lib/license.sh"
 init_state
 init_mastery
 init_license
+seed_course_unlocks
 
 # --- Command Implementations ---
 
@@ -69,7 +70,9 @@ cmd_status() {
     day3_score=$(get_score "day3_quiz")
     
     print_header "📊 Practicum CLI — Status"
-    echo -e "  ${C_WHITE}Course:${C_RESET}    Linux Foundations for IT & DevOps"
+    local course_name
+    course_name=$(get_course_name)
+    echo -e "  ${C_WHITE}Course:${C_RESET}    $course_name"
     echo -e "  ${C_WHITE}Mode:${C_RESET}      ${C_CYAN}$mode${C_RESET}"
     echo -e "  ${C_WHITE}Completed:${C_RESET} ${C_GREEN}$completed lessons${C_RESET}"
     echo -e "  ${C_WHITE}Unlocked:${C_RESET}  $unlocked lessons"
@@ -185,32 +188,35 @@ cmd_start() {
         fi
     fi
     
-    print_header "Practicum CLI — Linux Foundations"
+    local course_name
+    course_name=$(get_course_name)
+    print_header "Practicum CLI — $course_name"
     echo -e "  ${C_DIM}Intent. Context. Action. Result.${C_RESET}"
     echo ""
     echo -e "  ${C_PURPLE}Foundation:${C_RESET}"
-    print_menu_item "1" "Day 1 — Navigation & Files"
-    print_menu_item "2" "Day 2 — Text Processing & Pipes"
-    print_menu_item "3" "Day 3 — Scripting Basics"
-    print_menu_item "4" "Day 4 — Process & Environment"
-    print_menu_item "5" "Day 5 — Assessment 1 (Midpoint)"
+    print_menu_item "1" "$(get_day_title 1)"
+    print_menu_item "2" "$(get_day_title 2)"
+    print_menu_item "3" "$(get_day_title 3)"
+    print_menu_item "4" "$(get_day_title 4)"
+    print_menu_item "5" "$(get_day_title 5)"
     echo ""
     echo -e "  ${C_PURPLE}Advanced:${C_RESET}"
-    print_menu_item "6" "Day 6 — Permissions & Security"
-    print_menu_item "7" "Day 7 — Networking, SSH & Packages"
-    print_menu_item "8" "Day 8 — Services, Scheduling & Editors"
-    print_menu_item "9" "Day 9 — Assessment 2 (Advanced)"
+    print_menu_item "6" "$(get_day_title 6)"
+    print_menu_item "7" "$(get_day_title 7)"
+    print_menu_item "8" "$(get_day_title 8)"
+    print_menu_item "9" "$(get_day_title 9)"
     echo ""
     echo -e "  ${C_PURPLE}Capstone:${C_RESET}"
-    print_menu_item "10" "Day 10 — Final Review & Capstone"
+    print_menu_item "10" "$(get_day_title 10)"
     echo ""
     echo -e "  ${C_PURPLE}Tools:${C_RESET}"
     print_menu_item "p" "View progress"
     print_menu_item "q" "Take quiz"
     print_menu_item "c" "Generate certificate"
-    print_menu_item "x" "🏋️ Linux Challenges"
+    print_menu_item "x" "🏋️ Challenges"
     print_menu_item "s" "🏢 Work Scenarios"
     print_menu_item "m" "🎯 Skill Mastery"
+    print_menu_item "k" "📚 Switch course"
     print_menu_item "0" "Exit"
     print_prompt
     read -r choice || return 0
@@ -232,9 +238,58 @@ cmd_start() {
         x|X) cmd_challenges ;;
         s|S) cmd_scenarios; cmd_start ;;
         m|M) show_mastery_dashboard; cmd_start ;;
+        k|K) cmd_course_switch; cmd_start ;;
         0) echo -e "  ${C_GREEN}Goodbye!${C_RESET}"; return 0 ;;
         *) echo -e "  ${C_RED}Invalid choice.${C_RESET}"; cmd_start ;;
     esac
+}
+
+cmd_course_switch() {
+    print_header "Switch Course"
+    echo ""
+    echo -e "  ${C_WHITE}Available courses:${C_RESET}"
+    echo ""
+
+    local current
+    current=$(get_active_course)
+
+    local i=1
+    local courses=()
+    while IFS= read -r course; do
+        courses+=("$course")
+        local name
+        name=$(get_course_name "$course")
+        if [ "$course" = "$current" ]; then
+            echo -e "  ${C_GREEN}[$i] $name ← currently active${C_RESET}"
+        else
+            echo -e "  ${C_CYAN}[$i] $name${C_RESET}"
+        fi
+        i=$((i + 1))
+    done < <(list_available_courses)
+
+    echo ""
+    print_menu_item "0" "Cancel"
+    print_prompt
+    read -r choice || return 0
+
+    if [ "$choice" = "0" ]; then
+        return 0
+    fi
+
+    if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -le "${#courses[@]}" ]; then
+        local selected="${courses[$((choice - 1))]}"
+        set_active_course "$selected"
+        # Reset first-run flag so career overview shows for new course
+        rm -f "$HOME/.practicum/first_run_done"
+        local name
+        name=$(get_course_name "$selected")
+        echo ""
+        echo -e "  ${C_GREEN}✅ Switched to: $name${C_RESET}"
+        echo -e "  ${C_DIM}   Restart with: practicum start${C_RESET}"
+        echo ""
+    else
+        echo -e "  ${C_RED}Invalid choice.${C_RESET}"
+    fi
 }
 
 # --- Apprenticeship-Aware Lesson Display ---
@@ -286,6 +341,7 @@ cmd_day1_menu() {
                         mkdir) unlock_lesson "touch" ;;
                         touch) unlock_lesson "rm" ;;
                     esac
+                    unlock_next_from_chain "$cmd"
                     echo "  ✅ Lesson '$cmd' completed!"
                     show_encouragement "day1"
                     echo "  [1] Next lesson"
@@ -379,6 +435,7 @@ cmd_day2_menu() {
                         pipes)     unlock_lesson "sed" ;;
                         sed)       unlock_lesson "head_tail" ;;
                     esac
+                    unlock_next_from_chain "$cmd"
                     echo "  ✅ Lesson '$cmd' completed!"
                     show_encouragement "day2"
                     echo "  [1] Next lesson"
@@ -463,6 +520,7 @@ cmd_day3_menu() {
                         loops_while)  unlock_lesson "functions" ;;
                         functions)    unlock_lesson "exit_codes" ;;
                     esac
+                    unlock_next_from_chain "$cmd"
                     echo "  ✅ Lesson '$cmd' completed!"
                     show_encouragement "day3"
                     echo "  [1] Next lesson"
@@ -637,6 +695,7 @@ cmd_day4_menu() {
                         path)  unlock_lesson "find" ;;
                         find)  unlock_lesson "du_df" ;;
                     esac
+                    unlock_next_from_chain "$cmd"
                     echo "  ✅ Lesson '$cmd' completed!"
                     show_encouragement "day4"
                     echo "  [1] Next lesson"
@@ -769,6 +828,7 @@ cmd_day6_menu() {
                         sudo)               unlock_lesson "special_permissions" ;;
                         special_permissions) unlock_lesson "security_audit" ;;
                     esac
+                    unlock_next_from_chain "$cmd"
                     echo "  ✅ Lesson '$cmd' completed!"
                     show_encouragement "day6"
                     echo "  [1] Next lesson"
@@ -846,6 +906,7 @@ cmd_day7_menu() {
                         apt)         unlock_lesson "tar" ;;
                         tar)         unlock_lesson "network_troubleshooting" ;;
                     esac
+                    unlock_next_from_chain "$cmd"
                     echo "  ✅ Lesson '$cmd' completed!"
                     show_encouragement "day7"
                     echo "  [1] Next lesson  [2] Repeat  [7] Quiz  [9] Back  [0] Menu"
@@ -906,6 +967,7 @@ cmd_day8_menu() {
                         awk)            unlock_lesson "log_management" ;;
                         log_management) unlock_lesson "daily_routine" ;;
                     esac
+                    unlock_next_from_chain "$cmd"
                     echo "  ✅ Lesson '$cmd' completed!"
                     show_encouragement "day8"
                     echo "  [1] Next lesson  [2] Repeat  [7] Quiz  [9] Back  [0] Menu"
@@ -1239,6 +1301,9 @@ case "$1" in
         ;;
     mastery)
         show_mastery_dashboard
+        ;;
+    course|courses)
+        cmd_course_switch
         ;;
     --help|-h|help)
         show_help

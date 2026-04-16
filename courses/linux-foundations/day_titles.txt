@@ -1,0 +1,10 @@
+Day 1 — Navigation & Files
+Day 2 — Text Processing & Pipes
+Day 3 — Scripting Basics
+Day 4 — Process & Environment
+Day 5 — Assessment 1 (Midpoint)
+Day 6 — Permissions & Security
+Day 7 — Networking, SSH & Packages
+Day 8 — Services, Scheduling & Editors
+Day 9 — Assessment 2 (Advanced)
+Day 10 — Final Review & Capstone
