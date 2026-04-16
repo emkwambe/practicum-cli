@@ -15,6 +15,7 @@ source "$SCRIPT_DIR/lib/wrappers.sh"
 source "$SCRIPT_DIR/lib/apprentice.sh"
 source "$SCRIPT_DIR/lib/license.sh"
 [ -f "$SCRIPT_DIR/lib/challenges/engine.sh" ] && source "$SCRIPT_DIR/lib/challenges/engine.sh"
+[ -f "$SCRIPT_DIR/lib/diagnose.sh" ] && source "$SCRIPT_DIR/lib/diagnose.sh"
 
 # Initialize state on every run
 init_state
@@ -43,6 +44,8 @@ Commands:
   challenges  Interactive problem-solving scenarios
   scenarios   Multi-step work scenarios (apprenticeship)
   mastery     View skill mastery dashboard
+  diagnose    IT Clinic — troubleshoot system issues
+  course      Switch between courses
   activate    Activate a license key
   help        Show this help message
 
@@ -217,6 +220,7 @@ cmd_start() {
     print_menu_item "s" "🏢 Work Scenarios"
     print_menu_item "m" "🎯 Skill Mastery"
     print_menu_item "k" "📚 Switch course"
+    print_menu_item "d" "🩺 IT Clinic (diagnose)"
     print_menu_item "0" "Exit"
     print_prompt
     read -r choice || return 0
@@ -239,6 +243,7 @@ cmd_start() {
         s|S) cmd_scenarios; cmd_start ;;
         m|M) show_mastery_dashboard; cmd_start ;;
         k|K) cmd_course_switch; cmd_start ;;
+        d|D) cmd_diagnose; cmd_start ;;
         0) echo -e "  ${C_GREEN}Goodbye!${C_RESET}"; return 0 ;;
         *) echo -e "  ${C_RED}Invalid choice.${C_RESET}"; cmd_start ;;
     esac
@@ -1304,6 +1309,9 @@ case "$1" in
         ;;
     course|courses)
         cmd_course_switch
+        ;;
+    diagnose|diag|clinic)
+        cmd_diagnose
         ;;
     --help|-h|help)
         show_help
