@@ -11,6 +11,7 @@ cmd_diagnose() {
     print_header "🔍 IT Clinic — Diagnostic Navigator"
     echo ""
     echo -e "  ${C_DIM}Systematic troubleshooting. Narrow down. Fix it.${C_RESET}"
+    echo -e "  ${C_DIM}Ctrl+C to exit anytime.${C_RESET}"
     echo ""
     echo -e "  ${C_WHITE}What type of issue are you experiencing?${C_RESET}"
     echo ""
@@ -332,8 +333,8 @@ diag_ports() {
 
     diag_run "Listening ports" "ss -tlnp 2>/dev/null | head -20 || netstat -tlnp 2>/dev/null | head -20"
 
-    echo -e "  ${C_WHITE}Check a specific port? Enter port number (or Enter to skip):${C_RESET}"
-    printf "  Port: "
+    echo -e "  ${C_WHITE}Check a specific port? Enter port number (or press Enter to skip):${C_RESET}"
+    printf "  Port (or Enter to skip): "
     read -r port
 
     if [ -n "$port" ]; then
@@ -535,12 +536,12 @@ diag_services() {
 diag_service_start() {
     diag_section "Service Startup Failure"
 
-    echo -e "  ${C_WHITE}Which service? (e.g., nginx, postgresql, docker):${C_RESET}"
+    echo -e "  ${C_WHITE}Which service? (e.g., nginx, postgresql, docker — or Enter to go back):${C_RESET}"
     printf "  Service name: "
     read -r svc
 
     if [ -z "$svc" ]; then
-        echo -e "  ${C_RED}No service specified.${C_RESET}"
+        echo -e "  ${C_DIM}Skipped.${C_RESET}"
         return
     fi
 
@@ -574,12 +575,12 @@ diag_service_start() {
 diag_service_crash() {
     diag_section "Service Crash Loop Detection"
 
-    echo -e "  ${C_WHITE}Which service?${C_RESET}"
+    echo -e "  ${C_WHITE}Which service? (or Enter to go back):${C_RESET}"
     printf "  Service name: "
     read -r svc
 
     if [ -z "$svc" ]; then
-        echo -e "  ${C_RED}No service specified.${C_RESET}"
+        echo -e "  ${C_DIM}Skipped.${C_RESET}"
         return
     fi
 
@@ -679,12 +680,12 @@ diag_permissions() {
 diag_file_perms() {
     diag_section "File Permission Analysis"
 
-    echo -e "  ${C_WHITE}Which file or directory? (full path):${C_RESET}"
+    echo -e "  ${C_WHITE}Which file or directory? (full path, or Enter to go back):${C_RESET}"
     printf "  Path: "
     read -r filepath
 
     if [ -z "$filepath" ]; then
-        echo -e "  ${C_RED}No path specified.${C_RESET}"
+        echo -e "  ${C_DIM}Skipped.${C_RESET}"
         return
     fi
 
