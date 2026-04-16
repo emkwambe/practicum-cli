@@ -1,0 +1,55 @@
+Q1: What's the recommended number of swarm managers for high availability?
+A) 1
+B) 2
+C) Odd numbers (3 or 5)
+D) Even numbers (4 or 6)
+Correct: C
+
+Q2: How many manager failures can a 5-manager cluster tolerate?
+A) 1
+B) 2
+C) 3
+D) 5
+Correct: B
+
+Q3: What's the difference between a "replicated" and a "global" service?
+A) Replicated runs N copies; global runs ONE on every node
+B) They are the same
+C) Global is faster
+D) Replicated is for managers; global for workers
+Correct: A
+
+Q4: Which command updates an image to a new version with rolling update?
+A) docker service replace --image nginx:1.25 web
+B) docker service update --image nginx:1.25 web
+C) docker swarm update web
+D) docker stack update web
+Correct: B
+
+Q5: Where are Swarm secrets mounted inside a container by default?
+A) /etc/secrets/<name>
+B) /run/secrets/<name>
+C) /var/secrets/<name>
+D) /tmp/secrets/<name>
+Correct: B
+
+Q6: To take a node offline gracefully (move tasks elsewhere), set availability to:
+A) pause
+B) drain
+C) inactive
+D) offline
+Correct: B
+
+Q7: A Swarm secret in the Raft store is:
+A) Plain text
+B) Encrypted at rest
+C) Stored on each node's filesystem
+D) Stored in environment variables
+Correct: B
+
+Q8: Which command deploys a multi-service compose file to a swarm?
+A) docker compose up -d
+B) docker stack deploy -c compose.yml mystack
+C) docker swarm deploy compose.yml
+D) docker service create -f compose.yml
+Correct: B

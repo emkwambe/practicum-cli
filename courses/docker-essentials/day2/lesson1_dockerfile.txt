@@ -1,0 +1,63 @@
+# Lesson: Dockerfile — Declare How to Build an Image
+
+## [WHEN] You need this when:
+1. Your team has an app and you need to containerize it.
+2. You want the same environment on every developer's machine.
+3. Your CI/CD pipeline needs to build deployable images.
+4. You want to share your app as a portable, runnable container.
+
+## [INTENT] "Write a recipe that builds my application into a Docker image."
+
+## [CONTEXT]
+A Dockerfile is a plain text file with instructions to build an image.
+Each instruction creates a new layer. Docker caches layers, so
+rebuilding is fast if only the last few layers changed.
+
+The file MUST be named "Dockerfile" (capital D) by convention.
+You run docker build in the directory containing it.
+
+Most common instructions:
+  FROM        — base image to start from (ALWAYS first)
+  WORKDIR     — set working directory (like cd)
+  COPY        — copy files from host into image
+  RUN         — execute commands at BUILD time
+  ENV         — set environment variable
+  EXPOSE      — document which port the app uses
+  CMD         — default command when container starts
+
+## [ACTION] A minimal Dockerfile
+Example — a simple Python app:
+
+  FROM python:3.11-slim
+  WORKDIR /app
+  COPY requirements.txt .
+  RUN pip install -r requirements.txt
+  COPY . .
+  EXPOSE 8000
+  CMD ["python", "app.py"]
+
+Save as "Dockerfile" in your project root.
+Then build:
+  docker build -t myapp .
+
+The "." is the build context — current directory.
+
+## [EXPECTED RESULT]
+docker build prints each step as it runs:
+  Step 1/7 : FROM python:3.11-slim
+  Step 2/7 : WORKDIR /app
+  ...
+  Successfully tagged myapp:latest
+
+## Try it now:
+  mkdir my-first-image && cd my-first-image
+  echo "FROM alpine" > Dockerfile
+  echo 'CMD ["echo", "Hello from my image!"]' >> Dockerfile
+  docker build -t hello .
+  docker run --rm hello
+
+## Technician Tip:
+Order your Dockerfile from LEAST CHANGING to MOST CHANGING:
+  FROM → WORKDIR → COPY dependencies → RUN install → COPY code → CMD
+Why? Docker caches each layer. If code changes but dependencies don't,
+Docker reuses the "install dependencies" cache layer. HUGE speed-up.

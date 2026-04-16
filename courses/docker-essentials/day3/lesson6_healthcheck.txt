@@ -1,0 +1,98 @@
+# Lesson: Restart Policies & Healthchecks — Self-Healing Containers
+
+## [WHEN] You need this when:
+1. A container crashed at 3am and nobody restarted it.
+2. You want containers to come back automatically after a host reboot.
+3. Your load balancer needs to know if a container is healthy.
+4. You want production reliability without external monitoring.
+
+## [INTENT] "Make this container restart automatically when it fails."
+
+## [CONTEXT]
+Without a restart policy, a crashed container stays dead until manual
+intervention. Docker offers automatic restart policies + healthchecks
+to detect and recover from failures.
+
+Restart policies:
+  no              — never restart (default)
+  on-failure      — restart if exit code != 0
+  always          — restart no matter what (even if you stop it manually... almost)
+  unless-stopped  — restart unless YOU stopped it (recommended)
+
+Healthchecks let Docker (and orchestrators) know if the app inside is
+actually healthy — not just running.
+
+## [ACTION] Restart and health
+Common patterns:
+  # Restart policies
+  docker run -d --restart=unless-stopped nginx
+  docker run -d --restart=on-failure:5 myapp    — max 5 retries
+
+  # Healthcheck via Dockerfile (best for reusable images):
+  HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost/health || exit 1
+
+  # Healthcheck at runtime:
+  docker run -d \
+    --health-cmd="curl -f http://localhost/ || exit 1" \
+    --health-interval=10s \
+    --health-timeout=5s \
+    --health-retries=3 \
+    nginx
+
+  # Inspect health:
+  docker inspect -f '{{.State.Health.Status}}' web   # healthy / unhealthy / starting
+  docker ps                                           # STATUS shows "(healthy)"
+
+## [EXPECTED RESULT]
+A container with restart=unless-stopped will:
+  - Restart automatically if it crashes
+  - Restart when the host reboots (Docker daemon comes back up)
+  - NOT restart if you manually run docker stop
+
+A healthcheck-equipped container shows:
+  Up 5 minutes (healthy)        ← good
+  Up 5 minutes (unhealthy)      ← bad, but still running
+  Up 5 minutes (health: starting) ← initial grace period
+
+## Try it now:
+  docker run -d --name web --restart=unless-stopped nginx
+  docker kill web                    # simulate crash
+  sleep 2
+  docker ps                          # web is back, restarted
+  docker stop web && docker rm web
+
+  # With healthcheck:
+  docker run -d --name web \
+    --health-cmd="curl -f http://localhost/ || exit 1" \
+    --health-interval=5s \
+    -p 8080:80 nginx
+  sleep 10
+  docker inspect -f '{{.State.Health.Status}}' web   # healthy
+  docker stop web && docker rm web
+
+## Technician Tip:
+For PRODUCTION, ALWAYS use:
+  --restart=unless-stopped + a healthcheck
+
+Why "unless-stopped" not "always"? Because if you intentionally stop
+a container for maintenance, you don't want it coming back on its own.
+
+## Common Pain Point:
+"Container keeps restart-looping forever" → check logs:
+  docker logs --tail 50 <container>
+The app is crashing on startup. Restart policy can't fix a broken app.
+
+"Container says 'unhealthy' but seems fine" → your healthcheck command
+is wrong. Test it manually:
+  docker exec <container> curl -f http://localhost/health
+
+## DCA Exam Note:
+Know all 4 restart policies and what each does.
+Know HEALTHCHECK options: --interval, --timeout, --retries, --start-period.
+Know exit code 0 = healthy, non-zero = unhealthy.
+Know docker ps shows (healthy)/(unhealthy)/(starting) status.
+
+## Next:
+Type menu to return. You have completed Day 3!
+You can now manage volumes, networks, ports, env vars, limits, and self-healing.

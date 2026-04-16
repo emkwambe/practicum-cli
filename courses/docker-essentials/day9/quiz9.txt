@@ -1,0 +1,34 @@
+Q1: Why mount a secret as a file (/run/secrets/x) instead of as an env var?
+A) Faster
+B) File is tmpfs (in-memory only), not visible via inspect, no log leakage
+C) Required by Linux
+D) Env vars don't work
+Correct: B
+
+Q2: Update fails because new tasks crash. With --update-failure-action rollback:
+A) Stack stays broken
+B) Swarm automatically reverts to the previous service spec
+C) All tasks restart
+D) Service is removed
+Correct: B
+
+Q3: Inside a hardened container, why use --read-only filesystem?
+A) Saves disk
+B) Stops most malware from persisting; forces stateless app design
+C) Required for healthchecks
+D) Improves performance
+Correct: B
+
+Q4: Which option provides the best secrets handling?
+A) Hardcode in Dockerfile
+B) Pass via -e at runtime
+C) Mount as Docker secret file
+D) Bake into image layer
+Correct: C
+
+Q5: --update-parallelism 0 means:
+A) Don't update
+B) Update ALL tasks at once (no rolling)
+C) Update one at a time
+D) Pause updates
+Correct: B

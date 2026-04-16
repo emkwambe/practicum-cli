@@ -1,0 +1,74 @@
+# Lesson: Environment Variables — Configure Containers Without Rebuilding
+
+## [WHEN] You need this when:
+1. The same image needs different settings in dev vs production.
+2. You need to pass database credentials to your app.
+3. Your app needs API keys or feature flags.
+4. You want to avoid hardcoding values in your image.
+
+## [INTENT] "Configure this container at runtime, not at build time."
+
+## [CONTEXT]
+Environment variables let you change behavior without rebuilding.
+The same image can be used in dev, staging, and production by passing
+different env vars.
+
+Three ways to set env vars:
+  1. -e flag (single variable, inline)
+  2. --env-file (read from a file)
+  3. ENV in Dockerfile (sets defaults baked into image)
+
+WARNING: Do NOT put secrets in env vars in production. Use Docker
+secrets (covered Day 7). But for local dev, env vars are fine.
+
+## [ACTION] Environment variable patterns
+Common patterns:
+  docker run -e DB_HOST=db -e DB_PORT=5432 myapp      — inline
+  docker run -e DB_PASSWORD myapp                      — inherit from shell
+  docker run --env-file .env myapp                     — from file
+
+  # .env file format (one per line):
+  DB_HOST=db
+  DB_PORT=5432
+  DB_PASSWORD=secret123
+  LOG_LEVEL=debug
+
+  # In Dockerfile (defaults, can be overridden at runtime):
+  ENV DB_PORT=5432
+  ENV LOG_LEVEL=info
+
+  # Inspect env vars of a running container:
+  docker exec web env
+  docker inspect -f '{{.Config.Env}}' web
+
+## [EXPECTED RESULT]
+The app reads these as standard env vars (process.env in Node,
+os.environ in Python, $VAR in bash, etc.).
+
+Override Dockerfile defaults at runtime:
+  # Dockerfile has: ENV LOG_LEVEL=info
+  docker run -e LOG_LEVEL=debug myapp     # uses debug instead
+
+## Try it now:
+  docker run --rm -e GREETING="Hello, World" alpine sh -c 'echo $GREETING'
+  echo "MY_VAR=test" > /tmp/test.env
+  docker run --rm --env-file /tmp/test.env alpine sh -c 'echo $MY_VAR'
+
+## Technician Tip — secrets in env vars are NOT safe:
+  docker inspect <container>           ← shows env vars in plain text
+  ps aux | grep docker                 ← may show env vars in process list
+  docker logs <container>              ← may leak env vars in stack traces
+
+For dev: env vars OK. For production: use docker secrets (Swarm) or
+external secret managers (Vault, AWS Secrets Manager).
+
+## Common Pain Point:
+"My app says env var is undefined" — check:
+  docker exec <container> env | grep MY_VAR
+If it's not there, you didn't pass it. If it's there but app doesn't
+see it, app might be reading from a config file instead.
+
+## DCA Exam Note:
+Know precedence: runtime -e overrides Dockerfile ENV.
+Know --env-file format (KEY=VALUE, one per line, no quotes needed).
+Know that ENV in Dockerfile persists across builds (it's part of the image).

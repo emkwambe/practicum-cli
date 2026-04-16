@@ -1,0 +1,89 @@
+# Assessment 1: Containerize a Real Application
+
+## [WHEN] You need this when:
+You have completed Days 1-4 and are ready to prove your Docker skills.
+
+## [INTENT] "Build, ship, and run a real containerized application stack."
+
+## [CONTEXT]
+This assessment simulates a junior DevOps task: take a small app and
+make it production-shaped. You will write a Dockerfile, compose file,
+and operate the stack with docker commands.
+
+## [ACTION] Complete these tasks:
+
+### Task 1: Build a Dockerfile (from scratch)
+Create a directory called "docker-assessment". Inside it, create:
+
+1. `app.py` — a simple Python script:
+   ```python
+   import os
+   from http.server import BaseHTTPRequestHandler, HTTPServer
+
+   class H(BaseHTTPRequestHandler):
+       def do_GET(self):
+           self.send_response(200)
+           self.send_header('Content-Type', 'text/plain')
+           self.end_headers()
+           name = os.environ.get('GREETING', 'World')
+           self.wfile.write(f'Hello, {name}!\n'.encode())
+
+   HTTPServer(('0.0.0.0', 8000), H).serve_forever()
+   ```
+
+2. `Dockerfile` — must:
+   - Use `python:3.11-slim` as base
+   - Set WORKDIR to /app
+   - COPY app.py
+   - EXPOSE 8000
+   - Run as a non-root user (RUN useradd; USER)
+   - Have CMD that runs the script
+
+3. `.dockerignore` — exclude __pycache__, *.pyc, .git
+
+### Task 2: Build and tag
+  - Build the image with tag: assessment-app:1.0
+  - Also tag it as: assessment-app:latest
+  - Verify both tags exist with: docker images
+
+### Task 3: Run with proper flags
+Run the container with:
+  - Detached mode (-d)
+  - Name: my-app
+  - Port mapping: host 8080 → container 8000
+  - Environment variable: GREETING=Practicum
+  - Restart policy: unless-stopped
+
+Verify it works:
+  curl http://localhost:8080
+  (should return: "Hello, Practicum!")
+
+### Task 4: Operations
+  - View container logs (docker logs)
+  - Get a shell inside (docker exec)
+  - Inspect to find the IP address
+  - Check resource usage (docker stats --no-stream)
+
+### Task 5: Compose file
+Create a docker-compose.yml that defines this same setup.
+Include:
+  - Service "app" using the image (or build from Dockerfile)
+  - Port mapping
+  - Environment variable
+  - Restart policy
+  - A second service "cache" using redis:alpine
+  - Both on the same network
+  - Verify they can ping each other:
+    docker compose exec app python -c "import socket; print(socket.gethostbyname('cache'))"
+
+## [EXPECTED RESULT]
+A working containerized app with:
+  - Custom Dockerfile (under 20 lines)
+  - Image tagged 1.0 and latest
+  - Running container with all required flags
+  - Compose file with 2 services on a shared network
+  - Container responds to curl with the GREETING env var
+
+## [WHEN READY]
+Run: practicum assess1-docker
+The grader checks all deliverables.

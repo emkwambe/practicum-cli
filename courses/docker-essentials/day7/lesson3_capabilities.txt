@@ -1,0 +1,93 @@
+# Lesson: Capabilities — Drop What You Don't Need
+
+## [WHEN] You need this when:
+1. Hardening containers for production.
+2. Compliance requires least-privilege containers.
+3. You want to limit what an attacker can do if they pwn your container.
+4. Your container only needs ONE specific privilege (e.g., bind to port 80).
+
+## [INTENT] "Give my container only the privileges it actually needs."
+
+## [CONTEXT]
+Linux capabilities split root's "do anything" power into ~40 fine-grained
+permissions. By default, Docker grants containers a subset (~14 capabilities).
+
+You can DROP capabilities your app doesn't need (defense in depth) or
+ADD only specific ones (least privilege).
+
+Important capabilities:
+  CAP_NET_BIND_SERVICE   bind to ports < 1024
+  CAP_SYS_ADMIN          dangerous: many admin operations
+  CAP_NET_ADMIN          configure network
+  CAP_CHOWN              change file ownership
+  CAP_SYS_TIME           set system time
+  CAP_KILL               send signals to other processes
+
+## [ACTION] Manage capabilities
+
+### Drop ALL, add only what's needed (best practice):
+  docker run --cap-drop=ALL --cap-add=NET_BIND_SERVICE nginx
+
+### Drop dangerous capabilities:
+  docker run --cap-drop=SYS_ADMIN --cap-drop=NET_ADMIN nginx
+
+### See what a container currently has:
+  docker exec myapp capsh --print
+
+### --privileged is the OPPOSITE — DON'T USE in production:
+  docker run --privileged myapp        # gives ALL caps + access to host devices
+  # Use only for: Docker-in-Docker, certain debugging, hardware access
+
+### --read-only filesystem (extra hardening):
+  docker run --read-only --tmpfs /tmp myapp
+  # Container can't write to disk except /tmp (tmpfs in memory)
+  # Stops most malware that wants to drop files
+
+### no-new-privileges (block setuid escalation):
+  docker run --security-opt=no-new-privileges:true myapp
+
+## [EXPECTED RESULT]
+A hardened container with minimal attack surface. Even if compromised,
+the attacker can't:
+  - Mount filesystems (no SYS_ADMIN)
+  - Change network config (no NET_ADMIN)
+  - Bind to privileged ports (unless you added NET_BIND_SERVICE)
+  - Escalate via setuid binaries (with no-new-privileges)
+  - Write to disk (with read-only)
+
+## Try it now:
+  # See default capabilities:
+  docker run --rm alpine capsh --print | grep -i "current"
+
+  # Run with all dropped:
+  docker run --rm --cap-drop=ALL alpine capsh --print | grep -i "current"
+
+  # Test that dropping CHOWN breaks chown:
+  docker run --rm --cap-drop=CHOWN alpine sh -c 'touch /tmp/x && chown nobody /tmp/x'
+  # Output: "chown: /tmp/x: Operation not permitted"
+
+## Technician Tip — debugging when caps are too restrictive:
+If your app fails after dropping caps, find the missing one:
+  docker run --rm --cap-drop=ALL myapp
+  # See the "Operation not permitted" error
+  # Look up which cap you need (e.g., binding to port 80 → NET_BIND_SERVICE)
+  # Add it back: --cap-add=NET_BIND_SERVICE
+
+Common needed caps for typical apps:
+  Web server (port 80/443):  NET_BIND_SERVICE
+  ICMP / ping:                NET_RAW
+  Change file ownership:      CHOWN, FOWNER
+
+## Common Pain Point:
+"My container needs --privileged or it fails" → almost always wrong.
+Find the SPECIFIC capability needed. --privileged is a foot-gun.
+
+"Container can't bind to port 80 even with NET_BIND_SERVICE" → check that
+the user inside is allowed to bind. Some images run as non-root that
+explicitly can't use this cap. Use a high port + load balancer.
+
+## DCA Exam Note:
+Know --cap-drop and --cap-add (without "CAP_" prefix in flag).
+Know --privileged is dangerous and rarely needed.
+Know --read-only + --tmpfs for stateless apps.
+Know --security-opt=no-new-privileges for setuid hardening.

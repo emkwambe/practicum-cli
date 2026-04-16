@@ -1,0 +1,55 @@
+Q1: What's the default registry when you run "docker pull nginx"?
+A) ghcr.io
+B) docker.io (Docker Hub)
+C) gcr.io
+D) registry.local
+Correct: B
+
+Q2: To push an image to GitHub Container Registry, the tag must start with:
+A) docker.io/
+B) ghcr.io/
+C) github.com/
+D) gh:
+Correct: B
+
+Q3: What's the difference between docker image prune and docker image prune -a?
+A) None
+B) prune removes only dangling images; prune -a removes all unused images
+C) prune is for Linux, -a is for Mac
+D) -a means automatic
+Correct: B
+
+Q4: Which is immutable: a tag or a digest (sha256:...)?
+A) Tag
+B) Digest
+C) Both
+D) Neither
+Correct: B
+
+Q5: docker system prune --volumes does what?
+A) Cleans containers, networks, and volumes that aren't in use
+B) Only volumes
+C) Only containers
+D) Only the build cache
+Correct: A
+
+Q6: How do you fail a CI build when an image has CRITICAL CVEs (using trivy)?
+A) trivy image --fail nginx
+B) trivy image --exit-code 1 --severity CRITICAL nginx
+C) trivy block nginx
+D) trivy reject nginx
+Correct: B
+
+Q7: To build for both amd64 and arm64 in one image, use:
+A) docker build --multi
+B) docker buildx build --platform linux/amd64,linux/arm64
+C) docker build --arch all
+D) docker manifest build
+Correct: B
+
+Q8: A common cause of "docker push denied":
+A) Wrong network
+B) Not logged in to that registry, or tag missing the registry/namespace
+C) Disk full
+D) Image too small
+Correct: B

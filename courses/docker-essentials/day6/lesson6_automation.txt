@@ -1,0 +1,129 @@
+# Lesson: Automating Image Builds with CI/CD
+
+## [WHEN] You need this when:
+1. You're tired of building and pushing manually on every release.
+2. Your team needs every commit to produce a deployable image.
+3. You want builds to fail fast on test/security issues.
+4. You need to support multi-architecture (amd64 + arm64).
+
+## [INTENT] "Automate build, test, scan, and push of my images."
+
+## [CONTEXT]
+A typical CI pipeline for a Docker image:
+  1. Checkout code
+  2. Login to registry
+  3. Build image
+  4. Run tests against the image
+  5. Scan for vulnerabilities
+  6. Push to registry
+  7. (Optional) Trigger deployment
+
+This belongs in a CI/CD pipeline (GitHub Actions, GitLab CI, Jenkins).
+Practicum has a full CI/CD course later — here we focus on Docker-specific
+patterns.
+
+## [ACTION] GitHub Actions example for Docker
+
+  # .github/workflows/docker.yml
+  name: Build and Push Docker Image
+
+  on:
+    push:
+      branches: [main]
+      tags: ['v*']
+
+  jobs:
+    build:
+      runs-on: ubuntu-latest
+      permissions:
+        contents: read
+        packages: write
+      steps:
+        - uses: actions/checkout@v4
+
+        - name: Set up Docker Buildx
+          uses: docker/setup-buildx-action@v3
+
+        - name: Login to GHCR
+          uses: docker/login-action@v3
+          with:
+            registry: ghcr.io
+            username: ${{ github.actor }}
+            password: ${{ secrets.GITHUB_TOKEN }}
+
+        - name: Extract metadata (tags, labels)
+          id: meta
+          uses: docker/metadata-action@v5
+          with:
+            images: ghcr.io/${{ github.repository }}
+            tags: |
+              type=raw,value=latest,enable={{is_default_branch}}
+              type=ref,event=branch
+              type=sha,prefix=
+              type=semver,pattern={{version}}
+
+        - name: Build and push
+          uses: docker/build-push-action@v5
+          with:
+            context: .
+            push: true
+            tags: ${{ steps.meta.outputs.tags }}
+            labels: ${{ steps.meta.outputs.labels }}
+            cache-from: type=gha
+            cache-to: type=gha,mode=max
+            platforms: linux/amd64,linux/arm64
+
+        - name: Scan with Trivy
+          uses: aquasecurity/trivy-action@master
+          with:
+            image-ref: ghcr.io/${{ github.repository }}:${{ github.sha }}
+            severity: 'CRITICAL,HIGH'
+            exit-code: '1'
+
+## [EXPECTED RESULT]
+On every push to main, the pipeline:
+  1. Builds for both amd64 and arm64 (multi-arch manifest)
+  2. Pushes with tags: latest, main, <sha>, and (on tags) v1.2.3
+  3. Caches layers using GitHub Actions cache (faster subsequent builds)
+  4. Fails if CRITICAL or HIGH CVEs found
+
+## Try it now (manual multi-arch build):
+  # Set up buildx (one-time)
+  docker buildx create --use --name multi
+  docker buildx inspect --bootstrap
+
+  # Build for multiple architectures
+  docker buildx build \
+    --platform linux/amd64,linux/arm64 \
+    -t ghcr.io/USER/myapp:1.0 \
+    --push \
+    .
+
+## Technician Tip — buildx cache options:
+Build cache makes repeated builds 10-100x faster.
+
+Cache backends:
+  --cache-from type=registry,ref=user/myapp:cache
+  --cache-from type=gha                        — GitHub Actions
+  --cache-from type=local,src=/tmp/cache       — local directory
+  --cache-from type=s3,region=us-east-1,bucket=my-cache
+
+In CI, ALWAYS use cache. Cold builds waste 10+ minutes per run.
+
+## Common Pain Point:
+"docker build works locally but fails in CI" — usually:
+  1. Missing files (check .dockerignore — overly restrictive?)
+  2. Different platform (Mac M1 builds arm64; CI is amd64)
+  3. Missing build args/secrets in CI environment
+
+Fix #2 with --platform linux/amd64 or buildx multi-arch.
+
+## DCA Exam Note:
+Know that buildx replaces classic docker build for advanced features.
+Know that multi-arch images use a manifest list pointing to per-arch images.
+Know that --cache-from / --cache-to enable distributed build caches.
+Know that docker login is required before push (creds in ~/.docker/config.json).
+
+## Next:
+Type menu to return. You have completed Day 6!
+You can now manage registries, tag for deploys, scan, and automate.

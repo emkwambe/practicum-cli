@@ -1,0 +1,55 @@
+Q1: Your database container restarts and all data is lost. What's the fix?
+A) Use a different database image
+B) Mount a volume for the data directory
+C) Restart Docker
+D) Increase memory limit
+Correct: B
+
+Q2: What's the difference between a named volume and a bind mount?
+A) They are the same
+B) Named volumes are managed by Docker; bind mounts use a specific host path
+C) Named volumes are in memory; bind mounts are on disk
+D) Named volumes are for files; bind mounts are for directories
+Correct: B
+
+Q3: Web container can't reach DB container by name "db". What's most likely wrong?
+A) Both containers are on the default bridge network (no DNS by name)
+B) Docker is broken
+C) DNS is disabled
+D) Firewall issue
+Correct: A
+
+Q4: How do you publish a container's port 80 to the host's port 8080?
+A) -p 80:8080
+B) -p 8080:80
+C) --port 8080
+D) EXPOSE 8080
+Correct: B
+
+Q5: What does EXPOSE in a Dockerfile do?
+A) Publishes the port to the host automatically
+B) Documents which port the container listens on (does NOT publish)
+C) Opens a firewall rule
+D) Maps the port to localhost
+Correct: B
+
+Q6: Inside a container, what does "localhost" refer to?
+A) The Docker host
+B) The container itself
+C) The default gateway
+D) A random container
+Correct: B
+
+Q7: A container exits with code 137. What does it mean?
+A) Permission denied
+B) OOM killed (out of memory)
+C) Network error
+D) Segfault
+Correct: B
+
+Q8: Which restart policy is best for production services?
+A) no
+B) always
+C) unless-stopped
+D) on-failure
+Correct: C

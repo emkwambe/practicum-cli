@@ -1,0 +1,126 @@
+# Lesson: Volumes in Compose — Persistent Data and Bind Mounts
+
+## [WHEN] You need this when:
+1. Your database data needs to survive "compose down".
+2. You want to mount source code from the host (live development).
+3. Multiple services need to share a directory.
+4. You need to provide a config file from the host to a container.
+
+## [INTENT] "Set up persistent storage and shared files for my services."
+
+## [CONTEXT]
+Three volume patterns in Compose:
+
+1. Named volumes — Docker manages, persists across compose down/up
+2. Bind mounts — host path mapped into container
+3. tmpfs mounts — in-memory only
+
+Named volumes survive "compose down" but are removed by "compose down -v".
+
+## [ACTION] Volume patterns
+
+### Named volume (production data):
+  services:
+    db:
+      image: postgres:16
+      volumes:
+        - dbdata:/var/lib/postgresql/data
+
+  volumes:
+    dbdata:
+
+### Bind mount (live dev — code on host):
+  services:
+    api:
+      image: node:20
+      working_dir: /app
+      command: npm run dev
+      volumes:
+        - ./src:/app/src              # host:./src → container:/app/src
+        - ./package.json:/app/package.json
+        - /app/node_modules           # anonymous volume — keeps container's node_modules
+
+### Read-only bind for configs:
+  services:
+    nginx:
+      image: nginx
+      volumes:
+        - ./nginx.conf:/etc/nginx/nginx.conf:ro    # :ro = read-only
+
+### Sharing data between services:
+  services:
+    backup:
+      image: alpine
+      command: cp /data/file.txt /backup/
+      volumes:
+        - shared:/data:ro
+        - ./backups:/backup
+    main:
+      image: myapp
+      volumes:
+        - shared:/data
+
+  volumes:
+    shared:
+
+### External volume (created outside compose):
+  volumes:
+    legacy-data:
+      external: true        # use existing volume, don't create
+
+### Driver options (NFS example):
+  volumes:
+    nfs-data:
+      driver: local
+      driver_opts:
+        type: nfs
+        o: addr=10.0.0.1,rw
+        device: ":/exports/data"
+
+## [EXPECTED RESULT]
+docker volume ls shows volumes prefixed with project name:
+  myproject_dbdata
+
+Inspect to see where data lives:
+  docker volume inspect myproject_dbdata
+
+## Try it now:
+  cat > compose.yml << 'EOF'
+  services:
+    db:
+      image: postgres:16-alpine
+      environment:
+        POSTGRES_PASSWORD: testpass
+      volumes:
+        - pgdata:/var/lib/postgresql/data
+  volumes:
+    pgdata:
+  EOF
+  docker compose up -d
+  docker compose exec db psql -U postgres -c "CREATE TABLE test (id int);"
+  docker compose down                    # data persists in volume
+  docker compose up -d
+  docker compose exec db psql -U postgres -c "\dt"   # table is still there!
+  docker compose down -v                 # NOW data is gone
+
+## Technician Tip — backup a Compose database:
+  docker compose exec db pg_dump -U postgres mydb > backup.sql
+
+For a volume backup (any service):
+  docker run --rm -v myproject_dbdata:/source:ro -v $(pwd):/backup alpine \
+    tar czf /backup/dbdata-$(date +%F).tar.gz -C /source .
+
+## Common Pain Point:
+"My code changes don't appear in the container" → you need a bind mount,
+not a named volume. Bind mounts (./src:/app/src) reflect host changes
+immediately. Named volumes are independent of the host filesystem.
+
+"Permission denied on bind mount" → the container's user (often app or 1000)
+doesn't own the host files. Either chown on host or run container as root
+in dev only.
+
+## DCA Exam Note:
+Know that compose down keeps named volumes; compose down -v removes them.
+Know bind mount syntax (./host:/container[:ro]).
+Know external: true uses pre-existing volume.
+Know that anonymous volumes (no name on left side) are created per container.

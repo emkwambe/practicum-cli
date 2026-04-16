@@ -47,6 +47,7 @@ get_course_name() {
     case "$slug" in
         linux-foundations) echo "Linux Foundations" ;;
         git-essentials)    echo "Git & Version Control" ;;
+        docker-essentials) echo "Docker & Containers" ;;
         *) echo "$slug" ;;
     esac
 }

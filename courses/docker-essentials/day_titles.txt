@@ -1,0 +1,10 @@
+Day 1 — Container Fundamentals
+Day 2 — Building Images with Dockerfile
+Day 3 — Volumes, Networks & Ports
+Day 4 — Docker Compose (Multi-Service Apps)
+Day 5 — Assessment 1 (Midpoint)
+Day 6 — Registries & Image Distribution
+Day 7 — Security & Production Hardening
+Day 8 — Docker Swarm Orchestration
+Day 9 — Assessment 2 (Production Deployment)
+Day 10 — Final Review & Capstone

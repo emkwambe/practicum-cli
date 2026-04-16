@@ -1,0 +1,34 @@
+Q1: What's the correct order in a typical Dockerfile?
+A) CMD, FROM, COPY, RUN
+B) FROM, WORKDIR, COPY deps, RUN install, COPY app, CMD
+C) RUN, FROM, COPY, CMD
+D) WORKDIR, COPY, FROM, CMD
+Correct: B
+
+Q2: A container exits immediately. First diagnostic command?
+A) docker restart
+B) docker logs <container>
+C) docker rm
+D) docker pull
+Correct: B
+
+Q3: Which is the BEST practice for production?
+A) FROM ubuntu, run as root, install everything
+B) FROM language-slim, drop to non-root user, multi-stage if compiling
+C) FROM scratch, no shell
+D) FROM latest, latest tag
+Correct: B
+
+Q4: Two containers on the default bridge network. Can they talk by name?
+A) Yes, always
+B) No — default bridge has no DNS by name. Use a user-defined network.
+C) Only if linked
+D) Only on Linux
+Correct: B
+
+Q5: Your app inside a container needs to reach the database container. What hostname?
+A) localhost
+B) The database service/container name
+C) 127.0.0.1
+D) host.docker.internal
+Correct: B

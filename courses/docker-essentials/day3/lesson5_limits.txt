@@ -1,0 +1,76 @@
+# Lesson: Resource Limits — CPU and Memory Constraints
+
+## [WHEN] You need this when:
+1. One container is hogging all the CPU and starving others.
+2. A memory leak in one app is OOM-killing the host.
+3. You want to right-size containers before deploying.
+4. Production team requires resource limits on every container.
+
+## [INTENT] "Limit how much CPU and memory this container can use."
+
+## [CONTEXT]
+Without limits, a container can consume ALL the host's resources.
+A buggy app could take down everything else on the server.
+
+Set sensible limits to prevent runaway containers from killing the host.
+Resource limits use cgroups under the hood.
+
+Memory:
+  -m 512m           — limit to 512 MB (hard limit, OOM killed if exceeded)
+  --memory-reservation 256m   — soft limit (try to stay under this)
+
+CPU:
+  --cpus 1.5        — use up to 1.5 CPU cores
+  --cpu-shares 512  — relative weight (default 1024)
+  --cpuset-cpus 0,1 — pin to specific cores
+
+## [ACTION] Resource limit patterns
+Common patterns:
+  docker run -d --memory=512m --cpus=1 myapp           — common limits
+  docker run -d -m 1g --memory-reservation 512m myapp  — soft + hard
+  docker run -d --cpus 0.5 myapp                       — half a core
+  docker run -d --cpuset-cpus 0,1 myapp                — pin to cores 0,1
+  docker run -d --pids-limit 100 myapp                 — max processes
+  docker run -d --restart=unless-stopped myapp         — auto-restart
+
+  # Check resource usage:
+  docker stats                          — live CPU/mem of all containers
+  docker stats --no-stream              — single snapshot
+  docker stats web                      — just one container
+
+  # Update limits on a running container:
+  docker update --memory 1g --cpus 2 web
+
+## [EXPECTED RESULT]
+With limits, the container CANNOT exceed them. If it tries to use
+more memory than allowed, the OOM killer terminates it (exit code 137).
+
+## Try it now:
+  docker run -d --name limited --memory=128m --cpus=0.5 nginx
+  docker stats --no-stream limited
+  docker inspect -f '{{.HostConfig.Memory}}' limited
+  docker stop limited && docker rm limited
+
+## Technician Tip:
+ALWAYS set memory limits in production. The default is "use all available."
+A simple OOM test:
+  docker run --rm -m 100m alpine sh -c 'cat /dev/zero | head -c 200m | tail'
+  # Container gets killed with exit code 137 (OOM)
+
+Find OOM-killed containers:
+  docker ps -a --filter "exited=137"
+
+## Common Pain Point:
+"Container exits with code 137" → out of memory. Either:
+  1. Increase the limit (-m 1g)
+  2. Find and fix the memory leak in the app
+  3. Add swap (rarely a good idea for production)
+
+"Exit code 139" = segfault (app bug, not Docker).
+"Exit code 143" = SIGTERM received (graceful shutdown).
+
+## DCA Exam Note:
+Know -m / --memory units (b, k, m, g, e.g., 512m).
+Know --cpus is decimal (0.5 = half a core).
+Know that without limits, containers can use all host resources.
+Know exit code 137 = OOM killed.

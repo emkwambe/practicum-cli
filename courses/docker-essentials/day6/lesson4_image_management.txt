@@ -1,0 +1,80 @@
+# Lesson: Image Management — Pull, Inspect, Clean Up
+
+## [WHEN] You need this when:
+1. Your disk is full of old Docker images.
+2. You need to inspect an image before running it.
+3. You want to update images to their latest version.
+4. You're preparing a server with the right images pre-pulled.
+
+## [INTENT] "Manage local images efficiently."
+
+## [CONTEXT]
+Docker images consume disk fast. A typical dev machine accumulates
+10-50 GB of images quickly. Cleanup is essential for healthy systems.
+
+## [ACTION] Image management commands
+
+### Pull an image:
+  docker pull nginx:1.25.3                — pull specific tag
+  docker pull --platform linux/arm64 alpine  — pull specific architecture
+  docker pull --all-tags myapp            — pull every tag
+
+### Inspect:
+  docker images                            — list all images
+  docker images --filter "dangling=true"  — orphaned (unnamed) images
+  docker images --format "{{.Repository}}:{{.Tag}}\t{{.Size}}"
+  docker image inspect nginx               — full JSON details
+  docker history nginx                     — show layer history
+  docker image inspect nginx --format '{{.Os}}/{{.Architecture}}'
+
+### Cleanup (the big space savers):
+  docker image prune                       — remove dangling images
+  docker image prune -a                    — remove ALL unused images (aggressive!)
+  docker image prune --filter "until=24h"  — only old images
+  docker rmi <image>                       — remove specific image
+  docker rmi -f <image>                    — force remove (even if container uses it)
+
+### See total disk usage:
+  docker system df                         — overview: images, containers, volumes
+  docker system df -v                      — detailed breakdown
+  docker system prune                      — clean stopped containers, dangling images, unused networks
+  docker system prune -a --volumes         — NUKE EVERYTHING unused (data loss possible!)
+
+## [EXPECTED RESULT]
+After pruning, free disk space jumps. docker system df shows what changed.
+
+## Try it now:
+  docker images
+  docker system df
+  docker pull alpine:3.19
+  docker pull alpine:3.18
+  docker history alpine:3.19
+  docker image prune                  # safe cleanup
+  docker images alpine
+
+## Technician Tip — find what's using space:
+  docker system df -v
+This shows:
+  - Images: which are in use, total size
+  - Containers: which are running, total size
+  - Local volumes: total size, links
+  - Build cache: often the biggest culprit
+
+If build cache is huge (>10 GB), clean it:
+  docker builder prune              — clean build cache
+  docker builder prune -a --force   — clean ALL build cache
+
+## Common Pain Point:
+"docker rmi: image is being used by stopped container" → either:
+  1. Remove the container first: docker rm <container>
+  2. Force: docker rmi -f <image>
+
+"Why is my Docker.raw / Docker.qcow2 file 60GB?" → on Mac/Windows,
+Docker uses a single VM disk. Run docker system prune -a --volumes
+to reclaim space.
+
+## DCA Exam Note:
+Know docker image prune (dangling) vs docker image prune -a (all unused).
+Know docker system prune cleans containers + networks + dangling images.
+Know docker system prune --volumes ALSO removes unused volumes (DATA LOSS).
+Know docker history shows layers in REVERSE order (newest first).

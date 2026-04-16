@@ -1,0 +1,109 @@
+# Assessment 2: Production Deployment
+
+## [WHEN] You need this when:
+You have completed Days 1-8 and are ready to demonstrate full
+production-grade Docker skills.
+
+## [INTENT] "Build, harden, and deploy a multi-service application as a Swarm stack."
+
+## [CONTEXT]
+This assessment covers all the production patterns you've learned:
+hardening, secrets, healthchecks, rolling updates, stacks.
+
+## [ACTION] Complete these tasks:
+
+### Task 1: Build a hardened image
+Create a directory called "production-app". Inside, create:
+
+1. `app.py` — same simple Python HTTP server from Assessment 1, but
+   reads its greeting from a SECRET file:
+   ```python
+   import os
+   from http.server import BaseHTTPRequestHandler, HTTPServer
+
+   class H(BaseHTTPRequestHandler):
+       def do_GET(self):
+           self.send_response(200)
+           self.send_header('Content-Type', 'text/plain')
+           self.end_headers()
+           secret_file = '/run/secrets/greeting'
+           if os.path.exists(secret_file):
+               name = open(secret_file).read().strip()
+           else:
+               name = 'Anonymous'
+           self.wfile.write(f'Hello, {name}!\n'.encode())
+       def log_message(self, *a): pass
+
+   HTTPServer(('0.0.0.0', 8000), H).serve_forever()
+   ```
+
+2. `Dockerfile` — production-hardened:
+   - Base: python:3.11-slim
+   - Multi-stage NOT required (small Python app)
+   - Create non-root user (UID 1000)
+   - USER directive to drop to non-root
+   - HEALTHCHECK that hits / (use python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/').read()")
+   - EXPOSE 8000
+
+3. `.dockerignore` — exclude __pycache__, .git, *.pyc
+
+### Task 2: Initialize Swarm and create a secret
+  - Initialize swarm: docker swarm init
+  - Create a secret called "greeting" with value "Production":
+    echo "Production" | docker secret create greeting -
+
+### Task 3: Build the image
+  - Build with tag: production-app:1.0
+  - Verify: docker images production-app
+
+### Task 4: Create a hardened service
+Create a service named "api" with these requirements:
+  - 3 replicas
+  - Image: production-app:1.0
+  - Port: publish 8080:8000
+  - Use the secret "greeting"
+  - Memory limit: 128 MB
+  - CPU limit: 0.5
+  - Restart policy: on-failure
+  - Update config: parallelism 1, delay 5s, failure_action rollback
+  - Run as user 1000
+
+Hint:
+  docker service create \
+    --name api \
+    --replicas 3 \
+    --secret greeting \
+    --publish 8080:8000 \
+    --limit-memory 128m \
+    --limit-cpu 0.5 \
+    --restart-condition on-failure \
+    --update-parallelism 1 \
+    --update-delay 5s \
+    --update-failure-action rollback \
+    --user 1000:1000 \
+    production-app:1.0
+
+### Task 5: Verify it works
+  - curl http://localhost:8080
+  - Should return: "Hello, Production!"
+  - List service: docker service ls
+  - List tasks: docker service ps api
+
+### Task 6: Perform a rolling update
+  - Edit app.py to change something (e.g., add "v2" to the greeting line)
+  - Build a new tag: docker build -t production-app:2.0 .
+  - Update the service: docker service update --image production-app:2.0 api
+  - Watch the rolling update: docker service ps api
+
+## [EXPECTED RESULT]
+A live, hardened, multi-replica service deployed to swarm with
+secret-based config and zero-downtime update capability.
+
+## [WHEN READY]
+Run: practicum assess2-docker
+The grader checks all deliverables.
+
+## Cleanup after assessment:
+  docker service rm api
+  docker secret rm greeting
+  docker swarm leave --force

@@ -1,0 +1,125 @@
+# Lesson: Networks in Compose — Service Discovery
+
+## [WHEN] You need this when:
+1. You want services to find each other by name.
+2. You need to isolate certain services (frontend can't see DB directly).
+3. You want to connect to an existing external network.
+4. You need multiple network tiers (frontend, backend, database).
+
+## [INTENT] "Connect my services and control who can reach whom."
+
+## [CONTEXT]
+By default, Compose creates ONE network and adds all services to it.
+Every service can reach every other service by its service name.
+
+For better security, define multiple networks and put services on
+the ones they need:
+
+  - frontend-net: web ← → api
+  - backend-net:  api ← → db, cache
+
+The web service should NOT be able to reach the database directly.
+Multi-network design enforces this.
+
+## [ACTION] Multi-network compose example
+
+  services:
+    web:
+      image: nginx
+      networks:
+        - frontend
+      ports:
+        - "8080:80"
+
+    api:
+      image: myapi
+      networks:
+        - frontend       # talks to web
+        - backend        # talks to db, cache
+
+    db:
+      image: postgres
+      networks:
+        - backend        # ONLY accessible from api
+      environment:
+        POSTGRES_PASSWORD: secret
+
+    cache:
+      image: redis
+      networks:
+        - backend
+
+  networks:
+    frontend:
+    backend:
+
+In this design: web cannot connect to db. Only api can.
+This is defense in depth — even if web is compromised, db isn't directly exposed.
+
+### Custom network options:
+  networks:
+    backend:
+      driver: bridge
+      internal: true             # no internet access
+      ipam:
+        config:
+          - subnet: 172.20.0.0/24
+
+### Connect to an EXISTING network (created outside compose):
+  networks:
+    shared-net:
+      external: true             # don't create, use existing
+
+### Aliases — a service can have multiple DNS names:
+  services:
+    db:
+      networks:
+        backend:
+          aliases:
+            - postgres
+            - database
+
+Now backend services can reach this container by "db", "postgres", OR "database".
+
+## [EXPECTED RESULT]
+docker network ls after "docker compose up" shows:
+  myproject_frontend
+  myproject_backend
+
+docker network inspect shows which containers are attached.
+
+## Try it now:
+  cat > compose.yml << 'EOF'
+  services:
+    web:
+      image: alpine
+      command: sleep 3600
+      networks: [front]
+    api:
+      image: alpine
+      command: sleep 3600
+      networks: [front, back]
+    db:
+      image: alpine
+      command: sleep 3600
+      networks: [back]
+  networks:
+    front:
+    back:
+  EOF
+  docker compose up -d
+  docker compose exec web ping -c 1 api    # works (both on front)
+  docker compose exec web ping -c 1 db     # FAILS (web not on back)
+  docker compose exec api ping -c 1 db     # works (api on both)
+  docker compose down
+
+## Technician Tip:
+Use "internal: true" for the database network. This prevents the
+database container from making OUTBOUND internet connections — even
+if compromised, attacker can't exfiltrate to external servers.
+
+## DCA Exam Note:
+Know that Compose creates a default network if you don't define one.
+Know "external: true" connects to an existing network (don't create).
+Know "internal: true" blocks internet access for that network.
+Know aliases give services additional DNS names.

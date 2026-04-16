@@ -1,0 +1,55 @@
+Q1: For a 3-service production stack, which orchestrator is built into Docker?
+A) Kubernetes
+B) Docker Swarm
+C) Mesos
+D) Nomad
+Correct: B
+
+Q2: Which is the BIGGEST topic on the Docker Certified Associate exam?
+A) Networking
+B) Orchestration (Swarm) — about 25% of questions
+C) Storage
+D) Installation
+Correct: B
+
+Q3: What's the safest way to provide secrets to a Swarm service?
+A) ENV variable
+B) Hardcoded in image
+C) docker secret + mounted at /run/secrets
+D) URL parameter
+Correct: C
+
+Q4: A 5-manager swarm can tolerate how many manager failures?
+A) 0
+B) 1
+C) 2
+D) 5
+Correct: C
+
+Q5: Which directive in a compose v3 file is used by stacks but ignored by docker compose?
+A) image:
+B) volumes:
+C) deploy:
+D) ports:
+Correct: C
+
+Q6: Which network driver is required for cross-node container communication in Swarm?
+A) bridge
+B) host
+C) overlay
+D) macvlan
+Correct: C
+
+Q7: Multi-stage build's main benefit is:
+A) Faster builds
+B) Smaller production image (compilers/tools left in earlier stage)
+C) Better caching
+D) Multi-platform support
+Correct: B
+
+Q8: What does --update-failure-action rollback do?
+A) Pauses the update
+B) Continues regardless of failures
+C) Automatically reverts the service to its previous spec on failure
+D) Removes the service
+Correct: C

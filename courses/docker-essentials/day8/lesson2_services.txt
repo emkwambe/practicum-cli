@@ -1,0 +1,110 @@
+# Lesson: Services — Replicated Containers Across the Swarm
+
+## [WHEN] You need this when:
+1. You want N copies of your container running, automatically.
+2. A node fails and you need containers to reschedule elsewhere.
+3. You need built-in load balancing across replicas.
+4. You're managing a stateful service (one per node).
+
+## [INTENT] "Run my app as a fault-tolerant, scalable service."
+
+## [CONTEXT]
+A service is a desired state declaration:
+  "Run 5 replicas of nginx, expose port 80, restart on failure"
+
+Swarm enforces this. If a container dies, Swarm starts a new one.
+If a node dies, Swarm reschedules its tasks elsewhere.
+
+Two service types:
+  replicated     — run N copies, distributed across the cluster
+  global         — run ONE on EVERY node (e.g., monitoring agents)
+
+## [ACTION] Service operations
+
+### Create a replicated service:
+  docker service create \
+    --name web \
+    --replicas 3 \
+    --publish 8080:80 \
+    nginx
+
+### Create a global service (one per node):
+  docker service create \
+    --name node-exporter \
+    --mode global \
+    --mount type=bind,source=/proc,target=/host/proc,readonly \
+    prom/node-exporter
+
+### List services:
+  docker service ls
+  # Output: ID  NAME  MODE  REPLICAS  IMAGE  PORTS
+
+### See tasks (individual containers):
+  docker service ps web                 — all tasks for service "web"
+  docker service ps web --no-trunc      — full IDs and errors
+
+### Inspect a service:
+  docker service inspect web --pretty   — readable summary
+  docker service inspect web            — full JSON
+
+### View logs:
+  docker service logs web               — logs from all replicas
+  docker service logs -f web            — follow
+  docker service logs --tail 100 web
+
+### Scale up or down:
+  docker service scale web=10           — change to 10 replicas
+  docker service scale web=2 api=5      — multiple at once
+
+### Update a service:
+  docker service update --image nginx:1.25 web        — new image
+  docker service update --replicas 5 web              — change replicas
+  docker service update --env-add LOG_LEVEL=debug web — add env var
+  docker service update --force web                    — restart all tasks
+
+### Remove a service:
+  docker service rm web
+
+## [EXPECTED RESULT]
+A service with 3 replicas spread across the cluster (or all on one
+node if it's a single-node swarm). Built-in load balancing — requests
+to the published port get distributed across replicas.
+
+## Try it now:
+  docker swarm init
+  docker service create --name web --replicas 3 --publish 8080:80 nginx
+  docker service ls
+  docker service ps web
+
+  # Hit the service multiple times — different replicas serve:
+  for i in 1 2 3 4; do curl -s http://localhost:8080 -o /dev/null -w "%{http_code}\n"; done
+
+  docker service scale web=5
+  docker service ps web
+
+  # Cleanup
+  docker service rm web
+  docker swarm leave --force
+
+## Technician Tip — placement constraints:
+Run only on specific nodes:
+  docker service create --constraint 'node.role == worker' --name web nginx
+  docker service create --constraint 'node.labels.zone == us-east' nginx
+  docker service create --constraint 'node.hostname != db-node' nginx
+
+Spread tasks evenly:
+  --placement-pref 'spread=node.labels.zone'
+
+## Common Pain Point:
+"Service stuck in "preparing" forever" → check docker service ps for
+the actual error in the ERROR column. Often: image pull failed, or
+constraint can't be satisfied (not enough matching nodes).
+
+"All replicas on one node" → no constraint to spread. Add
+--placement-pref or use multiple manager/worker nodes.
+
+## DCA Exam Note:
+Know REPLICATED vs GLOBAL service modes.
+Know docker service ps shows tasks (containers) for a service.
+Know that scale/update changes replicas without recreating the service.
+Know that docker run is for standalone; docker service is for Swarm.

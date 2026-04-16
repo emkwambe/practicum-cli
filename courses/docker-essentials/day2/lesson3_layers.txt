@@ -1,0 +1,64 @@
+# Lesson: Layers & Caching — The Secret to Fast Builds
+
+## [WHEN] You need this when:
+1. Your builds take 10 minutes every time and you're frustrated.
+2. You need to understand why a small code change triggers a full rebuild.
+3. You want your team's CI pipelines to finish quickly.
+4. You're preparing for the DCA exam.
+
+## [INTENT] "Make my builds fast by understanding Docker's caching."
+
+## [CONTEXT]
+Every instruction in a Dockerfile creates a LAYER.
+Layers are cached. When you rebuild, Docker reuses cached layers
+UP TO the first instruction that changed.
+
+Key rule: if an instruction's inputs didn't change, its layer is reused.
+  COPY file.txt /app — cache invalidated when file.txt changes
+  RUN apt install X  — cache invalidated when RUN text changes
+
+ORDER MATTERS. Put stable things (base image, OS packages) BEFORE
+volatile things (your source code).
+
+## [ACTION] Optimize Dockerfile ordering
+BAD (slow rebuilds on code change):
+  FROM node:20
+  WORKDIR /app
+  COPY . .                       ← code changes invalidate everything
+  RUN npm install                ← reruns even if deps didn't change
+  CMD ["npm", "start"]
+
+GOOD (fast rebuilds):
+  FROM node:20
+  WORKDIR /app
+  COPY package.json package-lock.json .  ← deps files only
+  RUN npm install                         ← cached if deps unchanged
+  COPY . .                                ← last, so changes don't invalidate install
+  CMD ["npm", "start"]
+
+When deps don't change, npm install is cached — builds in seconds.
+
+## [EXPECTED RESULT]
+With good ordering, builds go from 5 minutes to 5 seconds when only
+source code changes.
+
+## Try it now:
+  Build twice with good and bad orderings. Time each build.
+  Change a .js file, rebuild, note the difference.
+
+## Technician Tip:
+When debugging slow builds:
+  docker history myapp              # see each layer's size and command
+  docker build --progress=plain .   # see which layer invalidated cache
+
+Common cache busters you might not realize:
+  - Environment variables that change (timestamps, random values)
+  - File modification times (use COPY --chown=user:user to normalize)
+  - RUN apt update (timestamps in package metadata)
+
+## DCA Exam Note:
+The exam LOVES this topic. Expect questions like:
+  "After changing line X, how many layers are rebuilt?"
+  "Which Dockerfile produces smaller/faster builds?"
+
+Memorize: instructions AFTER the first cache miss ALL get rebuilt.

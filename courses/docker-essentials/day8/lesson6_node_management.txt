@@ -1,0 +1,131 @@
+# Lesson: Node Management & Swarm Troubleshooting
+
+## [WHEN] You need this when:
+1. You need to take a node offline for maintenance.
+2. A node failed and you need to remove it from the cluster.
+3. You want to add labels for placement constraints.
+4. The swarm is misbehaving and you need to diagnose.
+
+## [INTENT] "Manage swarm nodes and fix problems."
+
+## [CONTEXT]
+Nodes have:
+  Role:         manager or worker
+  Availability: active, pause, drain
+  Status:       ready, down, unknown
+  Labels:       arbitrary key=value (for placement)
+
+Availability controls scheduling:
+  active   — accepts new tasks (default)
+  pause    — keeps existing tasks, refuses new ones
+  drain    — refuses new tasks AND moves existing to other nodes (graceful)
+
+## [ACTION] Node management
+
+### View nodes:
+  docker node ls
+  docker node inspect <node-id> --pretty
+
+### Drain a node for maintenance:
+  docker node update --availability drain worker-1
+  # All tasks reschedule to other nodes
+  # Wait for: docker node ps worker-1 to show no running tasks
+
+### Bring node back:
+  docker node update --availability active worker-1
+
+### Add labels for placement constraints:
+  docker node update --label-add zone=us-east worker-1
+  docker node update --label-add storage=ssd --label-add role=db worker-2
+
+  # Then services can target:
+  docker service create --constraint 'node.labels.zone == us-east' nginx
+
+### Promote a worker to manager:
+  docker node promote worker-1
+
+### Demote a manager to worker:
+  docker node demote manager-2
+
+### Remove a node:
+  # On the node itself (graceful):
+  docker swarm leave
+
+  # Then on a manager (cleanup):
+  docker node rm worker-1
+  docker node rm --force worker-1       — if node is unreachable
+
+### Force a service to reschedule:
+  docker service update --force <service>
+
+## Diagnostic commands:
+
+### Cluster info:
+  docker info | grep -A 20 -i swarm
+  docker node ls                        — node status
+  docker service ls                     — services overview
+
+### Service troubleshooting:
+  docker service ps <service> --no-trunc            — see all tasks + errors
+  docker service ps <service> --filter 'desired-state=running'
+  docker service logs <service> --since 1h          — recent logs
+
+### Network troubleshooting:
+  docker network ls                                  — see overlay networks
+  docker network inspect <network>                   — peers + DNS
+  docker network rm <network>                        — must remove services first
+
+### When tasks won't start:
+  docker service ps <service> --no-trunc            — ERROR column shows why
+  Common errors:
+    "no suitable node"       — placement constraint can't be satisfied
+    "image pull failed"      — auth or network issue
+    "task: non-zero exit"    — app crashes on startup
+    "rejected"               — node ran out of resources
+
+## [EXPECTED RESULT]
+A clean cluster where you can shift workloads between nodes,
+diagnose failures, and recover from issues.
+
+## Try it now (single-node):
+  docker swarm init
+  docker node ls
+  docker node inspect self --pretty | head -30
+  docker node update --label-add type=demo $(docker node ls -q)
+  docker node inspect self --format '{{.Spec.Labels}}'
+
+  # Test placement constraint
+  docker service create --constraint 'node.labels.type == demo' --name web nginx:alpine
+  docker service ps web
+
+  # Cleanup
+  docker service rm web
+  docker swarm leave --force
+
+## Technician Tip — emergency manager recovery:
+Lost majority of managers? Re-init from backup:
+  docker swarm init --force-new-cluster --advertise-addr <ip>
+
+This recovers a single-manager cluster from the local Raft state.
+You'll lose any in-flight scheduling decisions but services keep running.
+
+## Common Pain Point:
+"Tasks keep restarting" → check `docker service ps <s> --no-trunc` and
+look at ERROR column. Often: out of memory, healthcheck failing, or
+image pull issues.
+
+"Swarm is slow / unresponsive" → check manager load and Raft health:
+  docker info | grep -i "raft\|managers"
+  Manager nodes do real work — don't overload them with workloads.
+  Use placement constraints to keep heavy services on workers.
+
+## DCA Exam Note:
+Know the 3 availability states: active, pause, drain.
+Know docker node promote / demote.
+Know that "drain" is the graceful way to take a node offline.
+Know docker node update --label-add for placement labels.
+Know docker service ps shows tasks (containers) and their status.
+
+## Next:
+Type menu to return. You have completed Day 8 — the biggest topic on the DCA exam!
+You can now operate Docker Swarm: services, updates, secrets, stacks, nodes.

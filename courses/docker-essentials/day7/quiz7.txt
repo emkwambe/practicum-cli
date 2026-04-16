@@ -1,0 +1,55 @@
+Q1: What's the #1 container security best practice?
+A) Use the latest Docker version
+B) Run as a non-root user (--user 1000:1000 or USER directive)
+C) Use Alpine images
+D) Disable networking
+Correct: B
+
+Q2: Why are environment variables a poor place for secrets?
+A) They're slow
+B) They're visible via docker inspect, ps, /proc, and may leak into logs
+C) Docker doesn't allow them
+D) They expire
+Correct: B
+
+Q3: Which is the best way to provide a database password to a container?
+A) ENV in Dockerfile
+B) -e PASSWORD=secret at runtime
+C) Mounted secret file or external secret manager
+D) Hardcoded in source code
+Correct: C
+
+Q4: --cap-drop=ALL combined with --cap-add=NET_BIND_SERVICE allows a container to:
+A) Do anything as root
+B) Bind to ports below 1024 but nothing else privileged
+C) Modify the host kernel
+D) Mount filesystems
+Correct: B
+
+Q5: What does --read-only do?
+A) Makes the container read-only
+B) Makes the root filesystem read-only (writes only allowed in tmpfs/volumes)
+C) Disables logging
+D) Pulls images in read-only mode
+Correct: B
+
+Q6: When should you use --privileged?
+A) Always, for safety
+B) Almost never; it grants ALL capabilities and disables most isolation
+C) For all production containers
+D) For non-root containers
+Correct: B
+
+Q7: What does cosign do?
+A) Builds Docker images
+B) Signs container images so users can verify authenticity (Sigstore project)
+C) Scans for vulnerabilities
+D) Logs container activity
+Correct: B
+
+Q8: Which is the BEST sequence for a hardened container?
+A) Run as root, mount everything, no limits
+B) Non-root user + drop ALL caps + read-only + memory/cpu limits + healthcheck
+C) Privileged mode + bind mount /
+D) Latest tag + no scan
+Correct: B

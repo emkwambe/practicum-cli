@@ -1,0 +1,52 @@
+# Lesson: docker run — Start a Container
+
+## [WHEN] You need this when:
+1. You want to try a new database, webserver, or tool without installing it on your host.
+2. A teammate says "just run the official nginx container to test."
+3. You need a clean, disposable environment for testing.
+4. You want to run the same application the same way on any machine.
+
+## [INTENT] "Run this application in an isolated container."
+
+## [CONTEXT]
+docker run downloads an image (if needed) and starts a container from it.
+A container is a running instance of an image — think of the image as
+a cookie cutter and the container as a cookie.
+
+Real-world value: Instead of "apt install postgresql" (which touches your
+system), you can run "docker run postgres" and get a database instantly,
+with no side effects.
+
+Key flags every technician uses daily:
+  -d          detached (run in background)
+  -p          publish port (host:container)
+  --name      give it a name (easier to stop/remove later)
+  -e          set environment variable
+  -v          mount a volume
+  --rm        auto-remove when it stops
+  -it         interactive + terminal (for shells)
+
+## [ACTION] docker run [options] <image>
+Common patterns:
+  docker run hello-world                  — quickest test — does Docker work?
+  docker run -it ubuntu bash              — get a shell in Ubuntu
+  docker run -d -p 8080:80 nginx          — nginx webserver on port 8080
+  docker run --name mydb -e POSTGRES_PASSWORD=secret -d postgres  — database
+  docker run --rm alpine echo hello       — run and auto-remove
+
+## [EXPECTED RESULT]
+If the image isn't local, Docker downloads ("pulls") it first.
+Then a container starts. With -d, you get back a container ID.
+Without -d, you see the app's output in your terminal.
+
+## Try it now:
+  docker run hello-world
+  docker run -d -p 8080:80 --name web nginx
+  docker ps
+  curl http://localhost:8080      # or open in browser
+  docker stop web && docker rm web
+
+## Technician Tip:
+When something won't start, add -it and try running a shell instead:
+  docker run -it <image> sh
+This lets you explore what's inside the image interactively.

@@ -1,0 +1,101 @@
+# Lesson: Production Container Security Checklist
+
+## [WHEN] You need this when:
+1. You're about to ship a container to production.
+2. Auditors arrive next week.
+3. You need to teach your team consistent standards.
+
+## [INTENT] "Apply every security control before going live."
+
+## [CONTEXT]
+This is the consolidated production checklist. Use it as a code review
+gate or pre-deploy script.
+
+## [ACTION] The Production Container Security Checklist
+
+### Image build (Dockerfile):
+  [ ] Base image pinned to specific tag (NOT :latest)
+  [ ] Base image is slim/alpine where possible
+  [ ] No secrets in ENV or COPY
+  [ ] Multi-stage build to keep production image minimal
+  [ ] Non-root USER directive
+  [ ] No unnecessary tools (curl, wget, vim) in final image
+  [ ] HEALTHCHECK defined
+  [ ] Specific package versions pinned in deps file
+  [ ] .dockerignore excludes secrets, .git, node_modules
+
+### Image registry:
+  [ ] Image scanned for CVEs (CRITICAL/HIGH = blocker)
+  [ ] Image signed (cosign or DCT)
+  [ ] Pushed to private registry (not Docker Hub for proprietary)
+  [ ] Tagged with semantic version + commit SHA
+  [ ] Old/unused images cleaned up regularly
+
+### Runtime configuration:
+  [ ] --user UID:GID (non-root)
+  [ ] --cap-drop=ALL with selective --cap-add
+  [ ] --read-only filesystem with --tmpfs for writable areas
+  [ ] --security-opt=no-new-privileges:true
+  [ ] --memory and --cpus limits set
+  [ ] --pids-limit set (prevents fork bombs)
+  [ ] --restart=unless-stopped
+  [ ] Healthcheck enabled
+  [ ] Log rotation configured (max-size, max-file)
+
+### Networking:
+  [ ] User-defined network (not default bridge)
+  [ ] Internal-only network for backend services (no internet access)
+  [ ] Only necessary ports published
+  [ ] Bind to specific interface (-p 127.0.0.1:8080:8080) for local-only services
+  [ ] TLS terminated at ingress / reverse proxy
+
+### Secrets and configs:
+  [ ] No secrets in environment variables
+  [ ] Use Docker secrets or external secret manager
+  [ ] Config files mounted read-only (:ro)
+  [ ] Secret files have 0400 permissions inside container
+
+### Operational:
+  [ ] Logs going to stdout/stderr (Docker captures)
+  [ ] Centralized logging configured (not just docker logs)
+  [ ] Monitoring/alerting on container health
+  [ ] Image update process documented (how to roll out fixes)
+
+## [EXPECTED RESULT]
+A container that has been hardened along all dimensions: build, registry,
+runtime, network, secrets, operations.
+
+## Try it now:
+Take an existing service in your project and run through the checklist.
+For each unchecked item, decide: fix now, fix soon, or document the risk.
+
+## Technician Tip — automate the checks:
+Tools that audit running containers:
+  docker bench security        — official Docker CIS benchmark check
+  trivy config Dockerfile      — scan Dockerfile for issues
+  hadolint Dockerfile          — Dockerfile linter
+  kube-bench                   — Kubernetes equivalent
+
+Run docker bench security:
+  docker run --rm -it --net host --pid host --userns host --cap-add audit_control \
+    -e DOCKER_CONTENT_TRUST=$DOCKER_CONTENT_TRUST \
+    -v /etc:/etc:ro -v /var/lib:/var/lib:ro -v /var/run/docker.sock:/var/run/docker.sock:ro \
+    --label docker_bench_security \
+    docker/docker-bench-security
+
+## Common Pain Point:
+"Checklist is too long, my team won't follow it" — codify as a CI gate:
+  - Pre-commit hook: hadolint Dockerfile
+  - CI: trivy image scan with --exit-code 1
+  - Deploy: opa/conftest policy checks on compose/k8s manifests
+
+If it's not enforced, it's not done.
+
+## DCA Exam Note:
+Be familiar with: docker bench security, --read-only, --tmpfs,
+--security-opt, secrets, capabilities, multi-stage builds, health checks.
+The DCA exam loves "given this insecure config, identify the issue."
+
+## Next:
+Type menu to return. You have completed Day 7!
+You can now ship secure, production-grade containers.

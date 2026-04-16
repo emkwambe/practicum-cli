@@ -1,0 +1,198 @@
+# Lesson: Final Capstone — Full-Stack Production Deployment
+
+## [WHEN] You need this when:
+You're ready to demonstrate mastery of EVERYTHING. This is the
+"prove you can do this in a real job" challenge.
+
+## [INTENT] "Build, deploy, and operate a complete production-grade application stack."
+
+## [CONTEXT]
+You'll build a full-stack web app with:
+  - A Python web service (your code)
+  - A PostgreSQL database
+  - A Redis cache
+  - All deployed as a hardened Swarm stack
+  - With secrets, healthchecks, rolling updates, and monitoring
+
+This is what a junior DevOps engineer is asked to do in week 1.
+
+## [ACTION] Build the full stack
+
+### Project structure:
+  capstone/
+    app/
+      Dockerfile
+      app.py
+      requirements.txt
+    stack.yml
+    secrets/
+      db_password.txt        (gitignored)
+
+### Step 1: Build the application
+app/app.py:
+  ```python
+  import os, time
+  from http.server import BaseHTTPRequestHandler, HTTPServer
+
+  def get_secret(name, default=''):
+      path = f'/run/secrets/{name}'
+      if os.path.exists(path):
+          return open(path).read().strip()
+      return default
+
+  class H(BaseHTTPRequestHandler):
+      def do_GET(self):
+          if self.path == '/health':
+              self.send_response(200)
+              self.send_header('Content-Type', 'text/plain')
+              self.end_headers()
+              self.wfile.write(b'OK\n')
+              return
+          self.send_response(200)
+          self.send_header('Content-Type', 'text/plain')
+          self.end_headers()
+          db_pass_loaded = bool(get_secret('db_password'))
+          msg = f"Hello from {os.environ.get('HOSTNAME', 'unknown')}!\n"
+          msg += f"DB password loaded: {db_pass_loaded}\n"
+          msg += f"Cache host: {os.environ.get('CACHE_HOST', 'not set')}\n"
+          self.wfile.write(msg.encode())
+      def log_message(self, *a): pass
+
+  HTTPServer(('0.0.0.0', 8000), H).serve_forever()
+  ```
+
+app/Dockerfile:
+  ```
+  FROM python:3.11-slim
+  WORKDIR /app
+  COPY app.py .
+  RUN useradd -m -u 1000 app && chown -R app:app /app
+  USER app
+  EXPOSE 8000
+  HEALTHCHECK --interval=15s --timeout=3s --start-period=5s --retries=3 \
+    CMD python -c "import urllib.request,sys; urllib.request.urlopen('http://localhost:8000/health').read()" || exit 1
+  CMD ["python", "-u", "app.py"]
+  ```
+
+### Step 2: Create the secret
+  echo "supersecret_db_pass" | docker secret create db_password -
+
+### Step 3: Build the image
+  cd app
+  docker build -t capstone-app:1.0 .
+  cd ..
+
+### Step 4: Stack file (stack.yml)
+  ```yaml
+  services:
+    web:
+      image: capstone-app:1.0
+      ports:
+        - "8080:8000"
+      secrets:
+        - db_password
+      environment:
+        CACHE_HOST: cache
+        DB_HOST: db
+      deploy:
+        replicas: 3
+        update_config:
+          parallelism: 1
+          delay: 5s
+          failure_action: rollback
+          monitor: 10s
+        restart_policy:
+          condition: on-failure
+          max_attempts: 3
+        resources:
+          limits:
+            cpus: "0.3"
+            memory: 128M
+      networks:
+        - frontend
+        - backend
+
+    db:
+      image: postgres:16-alpine
+      secrets:
+        - db_password
+      environment:
+        POSTGRES_DB: appdb
+        POSTGRES_USER: app
+        POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+      volumes:
+        - dbdata:/var/lib/postgresql/data
+      deploy:
+        replicas: 1
+        placement:
+          constraints:
+            - node.role == manager
+      networks:
+        - backend
+      healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U app"]
+        interval: 10s
+
+    cache:
+      image: redis:alpine
+      deploy:
+        replicas: 1
+      networks:
+        - backend
+      healthcheck:
+        test: ["CMD", "redis-cli", "ping"]
+        interval: 10s
+
+  secrets:
+    db_password:
+      external: true
+
+  volumes:
+    dbdata:
+
+  networks:
+    frontend:
+    backend:
+      internal: true
+  ```
+
+### Step 5: Deploy
+  docker swarm init                                    # if not already
+  docker stack deploy -c stack.yml capstone
+
+### Step 6: Verify
+  docker stack services capstone                       # all should be 3/3, 1/1, 1/1
+  docker stack ps capstone                              # all running
+  curl http://localhost:8080                           # see different hostnames each time
+  curl http://localhost:8080/health                    # OK
+
+### Step 7: Perform a rolling update
+  # Edit app.py to add v2 marker
+  # Rebuild:
+  cd app && docker build -t capstone-app:2.0 . && cd ..
+  # Update the service:
+  docker service update --image capstone-app:2.0 capstone_web
+  # Watch:
+  docker service ps capstone_web
+
+### Step 8: Cleanup
+  docker stack rm capstone
+  docker secret rm db_password
+  docker volume rm capstone_dbdata
+  docker swarm leave --force
+
+## [EXPECTED RESULT]
+A working 3-service stack with:
+  - 3 web replicas behind the routing mesh
+  - 1 database with persistent volume + secret-based password
+  - 1 redis cache
+  - Backend network internal-only (db/cache can't reach internet)
+  - Frontend network for web access
+  - Healthchecks on every service
+  - Rolling update capability proven
+
+## [COMPLETION]
+When you have completed all 8 steps and everything works, run:
+  practicum final-capstone-docker
+
+This will check your work and grant you the Docker certification!

@@ -1,0 +1,67 @@
+# Lesson: Tagging — Version Your Images Properly
+
+## [WHEN] You need this when:
+1. You need to roll back to a previous working version.
+2. You are deploying to staging vs production.
+3. A teammate asks "which version of the image is running?"
+4. Your CI pipeline builds images with unique tags per commit.
+
+## [INTENT] "Label this image so I can reference a specific version later."
+
+## [CONTEXT]
+An image reference has three parts:
+  registry.example.com/namespace/image:tag
+  └── registry ──┘  └── repo ────┘  └tag┘
+
+If you don't specify a tag, Docker uses "latest" — which is MISLEADING
+because "latest" doesn't mean newest, it just means "default tag."
+Never deploy to production using :latest — use explicit versions.
+
+Good tagging conventions:
+  myapp:1.2.3        — semantic version
+  myapp:v1.2.3       — with v prefix
+  myapp:2026-04-16   — date-based
+  myapp:a3f9c12      — git commit hash
+  myapp:1.2.3-prod   — semver + environment
+
+## [ACTION] Tagging and listing images
+Common patterns:
+  docker build -t myapp:1.0 .                    — tag during build
+  docker tag myapp:1.0 myapp:latest              — add another tag
+  docker tag myapp:1.0 registry.com/myapp:1.0    — tag for registry
+  docker images                                   — list local images
+  docker images myapp                             — filter by name
+  docker images --format "{{.Repository}}:{{.Tag}}\t{{.Size}}"
+  docker rmi myapp:1.0                            — remove image
+  docker image prune -a                           — remove unused images
+
+## [EXPECTED RESULT]
+docker images shows: REPOSITORY | TAG | IMAGE ID | CREATED | SIZE
+Same IMAGE ID can have multiple tags — they point to the same data.
+
+## Try it now:
+  docker build -t myapp:1.0 .
+  docker tag myapp:1.0 myapp:stable
+  docker tag myapp:1.0 myapp:latest
+  docker images myapp
+  # Notice: same IMAGE ID for 3 tags
+  docker rmi myapp:stable
+  docker images myapp
+
+## Technician Tip — the :latest trap:
+  docker pull nginx                 — pulls nginx:latest (today's newest)
+  # Tomorrow they push a new image
+  docker pull nginx                 — pulls the NEW latest (breaking change!)
+
+In production: always pin versions:
+  docker pull nginx:1.25.3          — stable, never changes
+
+## Common Pain Point:
+"Which image is running in production?" If you used :latest and
+rebuilt/redeployed, you don't know. Always use explicit tags with
+commit hashes or semver in production deployments.
+
+## DCA Exam Note:
+Know that tags are MUTABLE — you can retag an image.
+The IMAGE ID (content hash) is immutable.
+In production, pin by digest: nginx@sha256:abcd... for true immutability.

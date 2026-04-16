@@ -1,0 +1,55 @@
+Q1: What does docker run -d do?
+A) Deletes the container
+B) Runs the container in detached (background) mode
+C) Debugs the container
+D) Displays container information
+Correct: B
+
+Q2: A developer says their container crashed immediately. What's the FIRST command to run?
+A) docker restart <container>
+B) docker logs <container>
+C) docker rm <container>
+D) docker build .
+Correct: B
+
+Q3: What's the difference between docker ps and docker ps -a?
+A) ps shows all containers, ps -a shows running only
+B) ps shows running containers only, ps -a shows ALL containers (including stopped)
+C) ps -a shows only aborted containers
+D) No difference
+Correct: B
+
+Q4: You want a shell inside a running nginx container for debugging. Which command?
+A) docker run -it nginx bash
+B) docker exec -it <container> bash
+C) docker shell <container>
+D) docker attach <container>
+Correct: B
+
+Q5: What is the default grace period for docker stop before SIGKILL?
+A) 1 second
+B) 10 seconds
+C) 30 seconds
+D) 60 seconds
+Correct: B
+
+Q6: You need the IP address of a running container. Which command?
+A) docker ip <container>
+B) docker inspect -f '{{.NetworkSettings.IPAddress}}' <container>
+C) docker network <container>
+D) docker ps --ip
+Correct: B
+
+Q7: A container is stuck and won't respond to docker stop. What's the immediate fix?
+A) Reboot the host
+B) docker kill <container>
+C) Delete the image
+D) Wait longer
+Correct: B
+
+Q8: Why should applications in containers write logs to stdout/stderr instead of files?
+A) Files are slower
+B) Docker captures stdout/stderr and makes logs accessible via docker logs
+C) Files corrupt containers
+D) Docker requires it by policy
+Correct: B

@@ -1,0 +1,55 @@
+Q1: What does docker compose down do?
+A) Stops containers but keeps them
+B) Stops AND removes containers + networks (but not volumes by default)
+C) Restarts the stack
+D) Removes images
+Correct: B
+
+Q2: What additional flag removes named volumes when running compose down?
+A) --remove-volumes
+B) -v
+C) --all
+D) --force
+Correct: B
+
+Q3: depends_on (without condition) waits for what?
+A) The upstream service to be HEALTHY
+B) The upstream container to START (not for the app to be ready)
+C) The upstream image to be built
+D) Nothing
+Correct: B
+
+Q4: Which condition makes depends_on wait until the upstream service passes its healthcheck?
+A) condition: service_started
+B) condition: service_healthy
+C) condition: service_ready
+D) condition: ready
+Correct: B
+
+Q5: In a compose file, "external: true" on a network means:
+A) Create a new external-facing network
+B) Use a network that already exists (don't create one)
+C) Allow internet access
+D) Make the network public
+Correct: B
+
+Q6: How do you scale a service to 3 instances with compose?
+A) docker compose up -d --replicas 3
+B) docker compose up -d --scale web=3
+C) docker compose scale web 3
+D) Edit the YAML and add replicas: 3
+Correct: B
+
+Q7: Why use multiple networks in a compose file (frontend/backend)?
+A) Performance
+B) Security — restrict which services can reach each other (e.g., web can't talk directly to db)
+C) Required by Docker
+D) To save memory
+Correct: B
+
+Q8: ${DB_PASSWORD} in compose reads from where?
+A) Hardcoded value
+B) The .env file in the same directory (or shell environment)
+C) Docker daemon
+D) /etc/docker
+Correct: B

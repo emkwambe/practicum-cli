@@ -1,0 +1,55 @@
+Q1: In a Dockerfile, which instruction should be FIRST?
+A) COPY
+B) FROM
+C) RUN
+D) CMD
+Correct: B
+
+Q2: You change line 5 of your Dockerfile. Which layers are rebuilt?
+A) All layers from scratch
+B) Only line 5
+C) Line 5 and all layers AFTER it
+D) None, Docker skips ahead
+Correct: C
+
+Q3: What is the purpose of a multi-stage build?
+A) To build multiple images at once
+B) To separate build-time dependencies from the runtime image (smaller final image)
+C) To parallelize the build
+D) To support multiple OSes
+Correct: B
+
+Q4: Which is the correct way to copy a file from a previous build stage?
+A) COPY file.txt /app
+B) COPY --stage=builder file.txt /app
+C) COPY --from=builder /src/file.txt /app/
+D) FROM builder COPY file.txt
+Correct: C
+
+Q5: Why should you use "nginx:1.25.3" instead of "nginx:latest" in production?
+A) :latest is slower
+B) :latest can change over time (breaking reproducibility), explicit tags are immutable in intent
+C) :latest requires authentication
+D) :latest is deprecated
+Correct: B
+
+Q6: What's the correct order for a Node.js Dockerfile (fastest rebuilds)?
+A) FROM, COPY ., RUN npm install, CMD
+B) FROM, COPY package*.json, RUN npm install, COPY ., CMD
+C) FROM, RUN npm install, COPY ., CMD
+D) COPY ., FROM, RUN npm install, CMD
+Correct: B
+
+Q7: What does .dockerignore do?
+A) Makes Docker ignore errors
+B) Excludes files from the build context (like .gitignore for Git)
+C) Hides the image from docker images
+D) Pauses the build
+Correct: B
+
+Q8: What is the security concern with running containers as root (default)?
+A) Nothing, it's fine
+B) If the container is compromised, attacker has root privileges; use USER to drop to non-root
+C) Root is deprecated
+D) Root makes containers slower
+Correct: B
