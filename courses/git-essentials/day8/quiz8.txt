@@ -1,0 +1,55 @@
+Q1: What does "!important.log" in .gitignore mean?
+A) Delete important.log
+B) Exception: DO track important.log even if other rules would ignore it
+C) Important.log is required
+D) Encrypt important.log
+Correct: B
+
+Q2: You committed secret.env by accident. Why isn't removing it with git rm enough?
+A) It's not enough — the secret is still in the commit history
+B) It is enough, the secret is gone
+C) Git automatically deletes secrets
+D) You need to restart Git
+Correct: A
+
+Q3: What does branch protection on main prevent?
+A) Creating new branches
+B) Direct pushes to main (requires PRs + approvals + passing CI)
+C) Forking the repo
+D) Creating issues
+Correct: B
+
+Q4: What is the benefit of signed commits?
+A) Faster commits
+B) Cryptographically prove the commit came from you (GitHub shows "Verified")
+C) Smaller commits
+D) Automatic backup
+Correct: B
+
+Q5: Where do Git hooks live?
+A) In a central GitHub server
+B) In .git/hooks/ in each repo
+C) In ~/.gitconfig
+D) In the README
+Correct: B
+
+Q6: Which file should ALWAYS be in a professional open source repo?
+A) secrets.txt
+B) LICENSE
+C) node_modules/
+D) .DS_Store
+Correct: B
+
+Q7: What does a pre-commit hook do?
+A) Runs before a commit is created (can reject it)
+B) Runs after a push
+C) Creates a new commit
+D) Signs commits
+Correct: A
+
+Q8: What is the purpose of CONTRIBUTING.md?
+A) Lists all contributors
+B) Explains to new contributors how to submit changes
+C) Required by Git
+D) Tracks commits
+Correct: B

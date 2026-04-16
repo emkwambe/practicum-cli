@@ -1,0 +1,55 @@
+Q1: What is the correct way to release version 2.0.0?
+A) git commit -m "v2.0.0"
+B) git tag -a v2.0.0 -m "Release 2.0.0" && git push origin v2.0.0
+C) git push --tag
+D) Rename the main branch to v2.0.0
+Correct: B
+
+Q2: Which file documents changes between releases?
+A) README.md
+B) CHANGELOG.md
+C) LICENSE
+D) .gitignore
+Correct: B
+
+Q3: What does git merge --no-ff do?
+A) Nothing, same as git merge
+B) Forces a merge commit even if fast-forward is possible (preserves branch history)
+C) Cancels the merge
+D) Merges without conflict checks
+Correct: B
+
+Q4: Your team lead says "submit a PR." What does this require?
+A) Direct push to main
+B) Push your branch, create Pull Request on GitHub, wait for review
+C) Send the files via email
+D) Clone the repo again
+Correct: B
+
+Q5: What is the MIT license's main characteristic?
+A) Copyleft — derivatives must also be MIT
+B) Permissive — anyone can use/modify/distribute with attribution
+C) Closed source
+D) Required for all GitHub repos
+Correct: B
+
+Q6: What is the most important Git recovery tool?
+A) git push --force
+B) git reflog
+C) git clone
+D) git reset --hard
+Correct: B
+
+Q7: Which best describes the "daily workflow" you learned?
+A) Commit, push, add, pull
+B) Pull main, create feature branch, commit often, push, PR, delete branch after merge
+C) Push everything to main directly
+D) Work only on main
+Correct: B
+
+Q8: What is the correct file structure for GitHub Actions?
+A) .actions/workflow.yml
+B) .github/workflows/<name>.yml
+C) github-actions.yml in root
+D) actions.yml in .git/
+Correct: B

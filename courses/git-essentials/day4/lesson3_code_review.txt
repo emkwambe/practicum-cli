@@ -1,0 +1,43 @@
+# Lesson: Code Review — Giving and Receiving Feedback
+
+## [WHEN] You need this when:
+1. A teammate asks you to review their Pull Request.
+2. Your PR received comments and you need to respond.
+3. You want to understand code review best practices.
+
+## [INTENT] "Review someone's code professionally and improve quality."
+
+## [CONTEXT]
+Code review is how teams catch bugs, share knowledge, and maintain
+quality. As a reviewer, you check: correctness, readability, security,
+and whether tests are included. As an author, you respond to feedback
+gracefully and push fixes.
+
+Good review comments:
+  "This could cause a null pointer if user is not found. Consider adding a check."
+  "Nice approach! Minor suggestion: extract this into a helper function."
+
+Bad review comments:
+  "This is wrong." (no explanation)
+  "Why did you do it this way?" (sounds hostile)
+
+## [ACTION] Code review workflow
+As reviewer:
+  1. Read the PR description to understand the goal
+  2. Look at the diff — focus on logic, not style
+  3. Leave specific, constructive comments on lines
+  4. Approve, Request Changes, or Comment
+  5. Check: Does it work? Is it safe? Is it readable?
+
+As author responding to feedback:
+  (make the requested changes locally)
+  git add . && git commit -m "Address review: add null check"
+  git push                          — updates the PR automatically
+
+## [EXPECTED RESULT]
+A conversation on the PR that improves the code.
+After addressing all comments, the reviewer approves and merges.
+
+## Try it now:
+  Review a PR on any public GitHub project.
+  Read the diff, think about what you would comment.

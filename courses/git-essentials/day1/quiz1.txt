@@ -1,0 +1,55 @@
+Q1: What does git init do?
+A) Downloads a repository from GitHub
+B) Creates a new Git repository in the current directory
+C) Commits all files
+D) Pushes code to a server
+Correct: B
+
+Q2: What are the three states a file can be in Git?
+A) New, old, deleted
+B) Untracked, modified, staged
+C) Created, saved, pushed
+D) Local, remote, archived
+Correct: B
+
+Q3: What does git add . do?
+A) Adds a new file called "."
+B) Stages all changes in the current directory
+C) Commits all files
+D) Creates a new branch
+Correct: B
+
+Q4: Which commit message follows best practices?
+A) "stuff"
+B) "Fix login validation for empty email"
+C) "changes"
+D) "Monday work"
+Correct: B
+
+Q5: How do you see the last 5 commits in compact format?
+A) git log -5
+B) git log --oneline -5
+C) git history 5
+D) git show 5
+Correct: B
+
+Q6: What does git diff --staged show?
+A) Differences between your working directory and the last commit
+B) Differences between staged changes and the last commit
+C) Differences between two branches
+D) All uncommitted changes
+Correct: B
+
+Q7: What happens when you run git status on a clean repository?
+A) An error occurs
+B) "nothing to commit, working tree clean"
+C) It shows all files in the directory
+D) It creates a new commit
+Correct: B
+
+Q8: What does the + symbol mean in git diff output?
+A) A line was deleted
+B) A line was added
+C) A file was moved
+D) A conflict occurred
+Correct: B

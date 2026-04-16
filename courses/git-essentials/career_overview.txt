@@ -1,0 +1,75 @@
+# Git & Version Control — What You're Training For
+
+## 🎯 This course prepares you for collaborative software development
+
+After completing all 10 days, you will be able to handle these
+responsibilities that 85-95% of employers require:
+
+  ✅ VERSION CONTROL (95% of developer/DevOps job postings)
+     - Track every change to your code with full history
+     - Create branches for features without breaking production
+     - Merge work from multiple people without conflicts
+
+  ✅ COLLABORATION (90% of job postings)
+     - Clone repositories and contribute to team projects
+     - Create pull requests for code review
+     - Resolve merge conflicts professionally
+
+  ✅ GIT WORKFLOWS (85% of job postings)
+     - Use branching strategies (feature branches, GitFlow)
+     - Manage releases with tags and versioning
+     - Maintain clean commit history
+
+  ✅ GITHUB SKILLS (80% of job postings)
+     - Create and manage repositories
+     - Use Issues, Projects, and Milestones
+     - Configure GitHub Actions for automation
+
+  ✅ RECOVERY & TROUBLESHOOTING (75% of job postings)
+     - Undo mistakes (reset, revert, reflog)
+     - Find when a bug was introduced (bisect)
+     - Recover lost commits and branches
+
+  ✅ PROFESSIONAL PRACTICES (85% of job postings)
+     - Write meaningful commit messages
+     - Structure repos with README, .gitignore, LICENSE
+     - Contribute to open source projects
+
+## 📋 Skills You Will Develop (by day)
+
+  Day 1: git init, add, commit, status, log, diff
+  Day 2: branch, switch, merge, delete branches
+  Day 3: clone, remote, push, pull, fetch
+  Day 4: Pull requests, forks, code review, conflicts
+  Day 5: Assessment 1 — contribute to a team project
+  Day 6: rebase, cherry-pick, stash, bisect, reflog
+  Day 7: GitHub Actions, Issues, Projects, Pages
+  Day 8: .gitignore, tags, releases, repo management
+  Day 9: Assessment 2 — advanced Git workflows
+  Day 10: Final Review & Capstone — manage a team project
+
+## 🏆 By the end, you can:
+
+  - Manage any Git repository with confidence
+  - Collaborate with teams using branches and PRs
+  - Resolve merge conflicts without panic
+  - Recover from any Git mistake
+  - Set up GitHub Actions for automation
+  - Contribute to open source projects
+
+## 💼 Roles this prepares you for:
+
+  - Junior Software Developer
+  - DevOps Engineer
+  - Full-Stack Developer
+  - Open Source Contributor
+  - Technical Writer (docs-as-code)
+
+  Average salary range: $60,000 - $90,000 (entry level)
+
+## 🎓 Certification alignment:
+
+  - GitHub Foundations ($99 exam)
+  - CompTIA Linux+ XK0-006 (Git domain)
+
+## ▶ Ready? Type any key to begin.

@@ -1,0 +1,43 @@
+# Lesson: git pull & git fetch — Get Changes From the Server
+
+## [WHEN] You need this when:
+1. A teammate pushed changes and you need to get them.
+2. You are about to start work and want the latest code.
+3. You see "your branch is behind origin/main by 3 commits."
+4. You want to check for updates without changing your local files.
+
+## [INTENT] "Get the latest changes from the server."
+
+## [CONTEXT]
+Two commands to get remote changes:
+
+git fetch — downloads changes but does NOT apply them.
+  Safe. Just updates your knowledge of what is on the server.
+  You can inspect before merging.
+
+git pull — downloads AND merges changes (fetch + merge).
+  Convenient but can cause merge conflicts.
+  Use when you know there are no conflicts.
+
+Rule of thumb: If unsure, fetch first, then merge manually.
+
+## [ACTION] git pull / git fetch
+Common patterns:
+  git pull                          — fetch + merge from upstream
+  git pull origin main              — pull specific branch
+  git fetch                         — download without merging
+  git fetch --all                   — fetch from all remotes
+  git log origin/main..main         — see what differs after fetch
+
+After fetch, merge manually:
+  git fetch origin
+  git diff main origin/main         — see what changed
+  git merge origin/main             — apply the changes
+
+## [EXPECTED RESULT]
+git pull: "Updating abc123..def456" + file changes listed
+git fetch: "origin/main -> origin/main" (updates tracking, no file changes)
+
+## Try it now:
+  git fetch origin
+  git log --oneline origin/main -3

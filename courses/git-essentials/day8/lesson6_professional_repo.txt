@@ -1,0 +1,76 @@
+# Lesson: Professional Repo Standards — The Complete Checklist
+
+## [WHEN] You need this when:
+1. You are starting a new project and want to do it right.
+2. You inherited a messy repo and want to professionalize it.
+3. You are making a project public for the first time.
+4. You want to attract contributors to your open source project.
+
+## [INTENT] "Set up my repo to professional standards."
+
+## [CONTEXT]
+Every professional repository has a core set of files and settings.
+Together, they make the project usable, contributable, and safe.
+
+## [ACTION] The professional repo checklist
+
+### Required files in the repo root:
+  README.md             — what the project is, how to install, how to use
+  LICENSE               — the legal terms (MIT, Apache-2.0, GPL-3.0, etc.)
+  .gitignore            — language-specific ignores
+  CONTRIBUTING.md       — how to contribute (branching, commits, PRs)
+  CODE_OF_CONDUCT.md    — community standards (contributor-covenant.org)
+
+### Highly recommended:
+  CHANGELOG.md          — version history (keepachangelog.com format)
+  SECURITY.md           — how to report security issues
+  .github/PULL_REQUEST_TEMPLATE.md  — PR description template
+  .github/ISSUE_TEMPLATE/           — issue templates (bug, feature)
+
+### Branch protection on main:
+  - Require PRs
+  - Require at least 1 approval
+  - Require CI to pass
+  - Require branches up to date before merge
+
+### CI workflows (.github/workflows/):
+  - test.yml     — runs tests on every PR
+  - lint.yml     — enforces code style
+  - release.yml  — builds releases on tag push
+
+### Repository settings:
+  - Description (what the project does, 1 sentence)
+  - Website (link to docs or landing page)
+  - Topics (help people find the repo: cli, linux, education)
+  - Social preview image (for when shared on social media)
+
+## Example README.md structure:
+  # Project Name
+  One-sentence description of what it does.
+
+  ## Installation
+  curl -sL install.sh | bash
+
+  ## Quick Start
+  command --flag
+
+  ## Features
+  - Feature 1
+  - Feature 2
+
+  ## Documentation
+  Link to full docs.
+
+  ## Contributing
+  See CONTRIBUTING.md.
+
+  ## License
+  MIT — see LICENSE.
+
+## [EXPECTED RESULT]
+A repo that feels professional. Visitors immediately understand
+what it is, how to use it, and how to contribute.
+
+## Next:
+Type menu to return. You have completed Day 8!
+You can now administer a repo to professional standards.

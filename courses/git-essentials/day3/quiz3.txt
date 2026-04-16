@@ -1,0 +1,55 @@
+Q1: What does git clone do?
+A) Creates a new empty repository
+B) Downloads a complete copy of a remote repository
+C) Uploads your repository to GitHub
+D) Deletes a repository
+Correct: B
+
+Q2: What is the default name for the remote when you clone?
+A) upstream
+B) server
+C) origin
+D) github
+Correct: C
+
+Q3: What does git push -u origin feature-login do?
+A) Deletes the feature-login branch on the server
+B) Pushes the branch and sets up upstream tracking
+C) Pulls the feature-login branch from the server
+D) Merges feature-login into main
+Correct: B
+
+Q4: What is the difference between git fetch and git pull?
+A) They are the same command
+B) fetch downloads without merging, pull downloads and merges
+C) fetch uploads, pull downloads
+D) fetch works offline, pull needs internet
+Correct: B
+
+Q5: Which file tells Git to ignore certain files?
+A) .gitconfig
+B) .gitkeep
+C) .gitignore
+D) .gitexclude
+Correct: C
+
+Q6: You accidentally committed a file with API keys. How do you stop tracking it?
+A) Delete the file and commit
+B) git rm --cached secret.env then add to .gitignore
+C) git reset --hard
+D) git ignore secret.env
+Correct: B
+
+Q7: What is the correct daily workflow order?
+A) commit, push, add, pull
+B) pull, branch, edit, add, commit, push
+C) push, edit, commit, pull
+D) add, edit, commit, push
+Correct: B
+
+Q8: You run git pull and see "CONFLICT". What should you do?
+A) Run git push --force
+B) Delete the repository and clone again
+C) Resolve the conflicts in the files, then add and commit
+D) Run git pull again
+Correct: C

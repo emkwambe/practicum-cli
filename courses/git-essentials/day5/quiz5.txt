@@ -1,0 +1,34 @@
+Q1: What is the correct order for saving changes in Git?
+A) commit, add, push
+B) add, commit, push
+C) push, add, commit
+D) commit, push, add
+Correct: B
+
+Q2: You are on the "main" branch. How do you create and switch to a feature branch?
+A) git branch feature && git merge feature
+B) git switch -c feature/new-thing
+C) git push origin feature
+D) git clone feature
+Correct: B
+
+Q3: What does git commit -am "message" do?
+A) Creates a new branch and commits
+B) Stages all tracked modified files and commits in one step
+C) Amends the previous commit
+D) Commits only new files
+Correct: B
+
+Q4: How do you see which remote servers your repo is connected to?
+A) git remote -v
+B) git server list
+C) git origin
+D) git show remotes
+Correct: A
+
+Q5: What should .gitignore contain?
+A) Files you want to commit
+B) Patterns for files Git should ignore (secrets, build artifacts, etc.)
+C) A list of contributors
+D) Commit messages
+Correct: B

@@ -1,0 +1,55 @@
+Q1: What does git stash do?
+A) Permanently deletes your changes
+B) Temporarily saves uncommitted changes and cleans the working directory
+C) Creates a new branch
+D) Commits all changes
+Correct: B
+
+Q2: When should you NOT rebase?
+A) On your local feature branch
+B) On commits that have been pushed and shared with others
+C) Before merging
+D) Rebasing is always safe
+Correct: B
+
+Q3: What does git cherry-pick do?
+A) Deletes a commit
+B) Copies a specific commit from one branch to another
+C) Merges two branches
+D) Creates a new branch
+Correct: B
+
+Q4: Your test used to pass but now fails. You have 500 commits since then. What tool finds the bad commit fastest?
+A) git log and check each commit manually
+B) git bisect
+C) git diff
+D) git reset
+Correct: B
+
+Q5: You ran git reset --hard and lost a commit. How do you recover it?
+A) The commit is gone forever
+B) Use git reflog to find it, then cherry-pick or reset to it
+C) Clone the repo again
+D) Use git stash pop
+Correct: B
+
+Q6: What does git commit --amend do?
+A) Creates a new branch
+B) Replaces the most recent commit with a new one (new hash)
+C) Undoes the last commit
+D) Pushes to the server
+Correct: B
+
+Q7: You want to update your feature branch with main's latest changes WITHOUT a merge commit. Which command?
+A) git merge main
+B) git rebase main
+C) git pull main
+D) git reset main
+Correct: B
+
+Q8: How many days does Git typically keep lost commits in the reflog?
+A) 1 day
+B) 30-90 days
+C) Forever
+D) They are deleted immediately
+Correct: B

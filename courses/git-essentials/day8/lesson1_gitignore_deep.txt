@@ -1,0 +1,50 @@
+# Lesson: Advanced .gitignore — Patterns and Scoping
+
+## [WHEN] You need this when:
+1. Your .gitignore is not working as expected.
+2. You need to ignore files only in certain directories.
+3. You accidentally committed a secret and need to purge its history.
+4. Different developers use different IDEs and you want personal ignores.
+
+## [INTENT] "Control exactly what Git tracks, with precision."
+
+## [CONTEXT]
+.gitignore uses glob patterns similar to shell globs.
+Levels of ignore (from weakest to strongest):
+  ~/.gitignore_global       — your personal settings (IDE files, etc.)
+  repo/.gitignore           — committed, shared with team
+  repo/.git/info/exclude    — repo-specific, not committed
+
+## [ACTION] Pattern examples
+  # Comment line
+  file.log                  — ignore file.log anywhere in the repo
+  /file.log                 — ignore file.log only in root
+  logs/                     — ignore directory named logs
+  *.log                     — any file ending in .log
+  !important.log            — exception: DO track important.log
+  build/*.o                 — .o files in build only (not subdirs)
+  build/**/*.o              — .o files in build and all subdirs
+  temp?.txt                 — temp1.txt, tempa.txt (single char)
+  [Dd]ebug/                 — Debug/ or debug/
+
+Global gitignore setup:
+  git config --global core.excludesfile ~/.gitignore_global
+  echo ".DS_Store" >> ~/.gitignore_global
+  echo ".idea/" >> ~/.gitignore_global
+  echo ".vscode/" >> ~/.gitignore_global
+
+## Purging a committed secret:
+  git rm --cached secret.env      — stop tracking
+  echo "secret.env" >> .gitignore  — prevent re-adding
+  git commit -m "Remove secret"
+  # WARNING: the file is still in history! Rotate the secret.
+  # To fully remove: use git filter-repo or BFG Repo-Cleaner
+
+## [EXPECTED RESULT]
+Clean git status with no unwanted files. Personal IDE files stay
+out of the team's repo without needing a shared .gitignore entry.
+
+## Try it now:
+  git config --global core.excludesfile ~/.gitignore_global
+  echo ".DS_Store" >> ~/.gitignore_global
+  echo ".idea/" >> ~/.gitignore_global

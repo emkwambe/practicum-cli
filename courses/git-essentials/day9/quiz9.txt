@@ -1,0 +1,55 @@
+Q1: You ran git reset --hard and lost 3 commits. What is your recovery tool?
+A) git stash pop
+B) git reflog to find the lost hashes, then cherry-pick or reset to them
+C) git clone again
+D) The commits are gone forever
+Correct: B
+
+Q2: Your feature branch is behind main by 5 commits. Which gives the cleanest history?
+A) git merge main
+B) git rebase main
+C) git pull main
+D) git reset main
+Correct: B
+
+Q3: What is the format of a semantic version tag?
+A) release-1
+B) v1.0.0 (MAJOR.MINOR.PATCH)
+C) version_1
+D) 2024-01
+Correct: B
+
+Q4: Where do pre-commit hooks live locally?
+A) .github/hooks/
+B) .git/hooks/ in the repo
+C) ~/.gitconfig
+D) In the commit message
+Correct: B
+
+Q5: What file lists what changed in each release of your project?
+A) README.md
+B) CHANGELOG.md
+C) LICENSE
+D) .gitignore
+Correct: B
+
+Q6: Branch protection on main should require at minimum:
+A) Nothing, direct pushes are fine
+B) PRs, approvals, and passing CI checks
+C) Only signed commits
+D) Manual code copy
+Correct: B
+
+Q7: What is the benefit of annotated tags over lightweight tags?
+A) They are faster
+B) They store metadata (author, date, message) and can be signed
+C) They are smaller
+D) They cannot be deleted
+Correct: B
+
+Q8: When is it SAFE to rebase?
+A) Always, on any branch
+B) Only on local branches that have not been pushed and shared
+C) Only on main
+D) Only on tags
+Correct: B

@@ -1,0 +1,40 @@
+# Lesson: git reflog — Recover Lost Commits
+
+## [WHEN] You need this when:
+1. You accidentally deleted a branch that had important commits.
+2. You ran git reset --hard and lost your work.
+3. A rebase went wrong and you need to get back to the original state.
+4. You are panicking because "I lost my work."
+
+## [INTENT] "Undo the undo. Recover anything I lost."
+
+## [CONTEXT]
+reflog (reference log) records EVERY action you perform on HEAD.
+Every commit, checkout, reset, merge, rebase — all of it logged.
+Even "lost" commits stay in the reflog for 30-90 days before garbage
+collection. If you did it in Git, reflog can recover it.
+This is your safety net. Learn it before you need it.
+
+## [ACTION] git reflog
+Common patterns:
+  git reflog                        — show HEAD movement history
+  git reflog show main              — reflog for specific branch
+  git reset --hard HEAD@{2}         — go back to where HEAD was 2 actions ago
+  git checkout -b recovered HEAD@{5} — recover from a specific point
+
+Example output:
+  abc1234 HEAD@{0}: commit: Current work
+  def5678 HEAD@{1}: reset: moving to HEAD~3
+  ghi9012 HEAD@{2}: commit: The commit you thought was lost
+
+## [EXPECTED RESULT]
+A complete history of every action. Each entry shows:
+the commit hash, HEAD@{N} reference, action type, and message.
+
+## Try it now:
+  git reflog -10
+  (You will see every commit, checkout, and action)
+  (To recover a lost commit: git cherry-pick <hash> from reflog)
+
+## Remember:
+When someone says "I lost everything!" — git reflog is usually the answer.

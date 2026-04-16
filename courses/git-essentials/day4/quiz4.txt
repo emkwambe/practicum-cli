@@ -1,0 +1,55 @@
+Q1: What is a fork?
+A) A copy of a branch
+B) A server-side copy of a repository into your own account
+C) A type of merge conflict
+D) A way to delete a repository
+Correct: B
+
+Q2: What is the purpose of a Pull Request?
+A) To download code from GitHub
+B) To propose changes for review before merging
+C) To delete a branch
+D) To create a new repository
+Correct: B
+
+Q3: How do you keep your fork updated with the original project?
+A) Delete and re-fork
+B) git fetch upstream, then merge upstream/main
+C) git push upstream
+D) GitHub does it automatically
+Correct: B
+
+Q4: Which commit message will auto-close GitHub issue #42?
+A) "Related to #42"
+B) "Fixes #42"
+C) "See issue 42"
+D) "Done with 42"
+Correct: B
+
+Q5: Your PR has conflicts with main. What is the correct fix?
+A) Delete the PR and start over
+B) Merge main into your branch, resolve conflicts, push
+C) Run git push --force
+D) Ask someone else to fix it
+Correct: B
+
+Q6: What makes a good code review comment?
+A) "This is wrong"
+B) "This could fail if input is null. Consider adding a check on line 15."
+C) "Why?"
+D) "I would not have done it this way"
+Correct: B
+
+Q7: What should you read before contributing to an open source project?
+A) The README only
+B) CONTRIBUTING.md and existing issues
+C) Nothing, just submit a PR
+D) The source code of every file
+Correct: B
+
+Q8: Which label typically marks beginner-friendly issues?
+A) "critical"
+B) "good first issue"
+C) "wontfix"
+D) "duplicate"
+Correct: B

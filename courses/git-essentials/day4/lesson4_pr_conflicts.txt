@@ -1,0 +1,36 @@
+# Lesson: Resolving PR Conflicts — When Main Changed Under You
+
+## [WHEN] You need this when:
+1. GitHub says "This branch has conflicts that must be resolved."
+2. Someone else merged to main while your PR was open.
+3. You need to update your branch with the latest main changes.
+
+## [INTENT] "My PR has conflicts. Fix them so it can be merged."
+
+## [CONTEXT]
+While you worked on your branch, someone else changed the same
+files on main. GitHub cannot auto-merge. You must update your
+branch with the latest main, resolve conflicts, and push again.
+
+## [ACTION] Update branch and resolve
+  git switch main                   — go to main
+  git pull origin main              — get latest
+  git switch feature/my-branch      — back to your branch
+  git merge main                    — bring main changes into your branch
+  (resolve any conflicts in the files)
+  git add .                         — mark as resolved
+  git commit -m "Merge main into feature branch"
+  git push                          — updates the PR
+
+Alternative (rebase — cleaner history):
+  git switch feature/my-branch
+  git rebase main                   — replay your commits on top of main
+  (resolve conflicts if any)
+  git push --force-with-lease       — update the PR (rewritten history)
+
+## [EXPECTED RESULT]
+After pushing, GitHub shows "No conflicts" and the PR can be merged.
+
+## Try it now:
+  Practice by creating a conflict scenario between two branches,
+  then resolve it using the merge approach above.

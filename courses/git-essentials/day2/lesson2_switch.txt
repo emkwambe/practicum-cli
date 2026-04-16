@@ -1,0 +1,34 @@
+# Lesson: git switch — Move Between Branches
+
+## [WHEN] You need this when:
+1. You need to change which branch you are working on.
+2. A colleague asks you to review their branch.
+3. You finished a feature and want to go back to main.
+4. You need to check what the code looks like on another branch.
+
+## [INTENT] "Move to a different branch."
+
+## [CONTEXT]
+git switch changes your working directory to match a different branch.
+When you switch, Git swaps out all the files to match that branch's
+latest commit. Uncommitted changes can cause conflicts — always commit
+or stash your work before switching.
+git switch replaced git checkout for branch switching (clearer intent).
+
+## [ACTION] git switch <branch>
+Common patterns:
+  git switch main                   — go back to main branch
+  git switch feature-login          — switch to feature branch
+  git switch -c new-branch          — create and switch in one step
+  git switch -                      — switch to previous branch (like cd -)
+
+## [EXPECTED RESULT]
+"Switched to branch 'branch-name'"
+Your files change to match that branch. git status shows the new branch.
+
+## Try it now:
+  git switch -c test-branch
+  echo "test content" > test.txt
+  git add . && git commit -m "Add test file"
+  git switch main
+  ls    (test.txt is gone — it only exists on test-branch)

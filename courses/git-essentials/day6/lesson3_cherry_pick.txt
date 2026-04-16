@@ -1,0 +1,29 @@
+# Lesson: git cherry-pick — Copy a Specific Commit
+
+## [WHEN] You need this when:
+1. A bug fix is on a feature branch but you need it on main now.
+2. You accidentally committed to the wrong branch.
+3. You want one specific commit from another branch, not all of them.
+
+## [INTENT] "Grab just this one commit and apply it here."
+
+## [CONTEXT]
+git cherry-pick copies a single commit from one branch and applies
+it to your current branch. It creates a NEW commit with the same
+changes but a different hash. Use it surgically — for one or two
+commits. For many commits, merge or rebase instead.
+
+## [ACTION] git cherry-pick <commit-hash>
+Common patterns:
+  git cherry-pick abc1234           — apply one commit
+  git cherry-pick abc1234 def5678   — apply multiple commits
+  git cherry-pick --abort           — cancel if conflicts arise
+
+## [EXPECTED RESULT]
+A new commit appears on your current branch with the same changes.
+The original commit on the source branch is unchanged.
+
+## Try it now:
+  git log --oneline --all -10       — find a commit hash to cherry-pick
+  git cherry-pick <hash>
+  git log --oneline -3

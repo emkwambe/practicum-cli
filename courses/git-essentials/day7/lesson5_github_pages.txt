@@ -1,0 +1,45 @@
+# Lesson: GitHub Pages — Free Hosting for Your Docs and Site
+
+## [WHEN] You need this when:
+1. You need a landing page for your open source project.
+2. You want to publish documentation online.
+3. You need a free portfolio website.
+4. Your project has a README but needs a proper site.
+
+## [INTENT] "Publish my repository as a public website."
+
+## [CONTEXT]
+GitHub Pages serves static HTML/CSS/JS files from your repository
+at https://<username>.github.io/<repo>. It's free for public repos.
+Works with plain HTML, Jekyll (built-in), or any static site generator.
+
+Common setups:
+  docs/ folder        — docs for your project (recommended)
+  gh-pages branch    — separate branch with built site
+  root /             — your entire repo is the site
+
+## [ACTION] Enable GitHub Pages
+  1. Put HTML files in /docs folder (or gh-pages branch)
+  2. Commit and push
+  3. GitHub → repo → Settings → Pages
+  4. Source: "Deploy from a branch"
+  5. Branch: main, Folder: /docs
+  6. Save
+  7. Wait 1-2 minutes
+  8. Visit https://<username>.github.io/<repo>/
+
+For custom domain:
+  1. Add CNAME file with your domain: mysite.com
+  2. Configure DNS: CNAME record pointing to <username>.github.io
+  3. Enable HTTPS in Pages settings
+
+Automate with Actions:
+  - Build static site with Jekyll/Hugo/Next.js
+  - Deploy to gh-pages branch on every push to main
+
+## [EXPECTED RESULT]
+Your site is live at a public URL. Every commit to main updates it.
+
+## Try it now:
+  Your Practicum CLI landing page is already served this way
+  at emkwambe.github.io/practicum-cli — from the /docs folder.

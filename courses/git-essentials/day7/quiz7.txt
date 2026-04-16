@@ -1,0 +1,55 @@
+Q1: What is the difference between a branch and a tag?
+A) They are the same
+B) Branches move as you commit, tags stay fixed on a specific commit
+C) Tags are private, branches are public
+D) Tags can be edited, branches cannot
+Correct: B
+
+Q2: What does "v2.0.0 → v2.1.0" indicate in semantic versioning?
+A) Breaking change
+B) New feature (backward compatible)
+C) Bug fix only
+D) No change
+Correct: B
+
+Q3: How do you push tags to the remote?
+A) Tags push automatically with git push
+B) git push origin --tags (or git push origin <tagname>)
+C) git tag push
+D) Tags cannot be pushed
+Correct: B
+
+Q4: Where do GitHub Actions workflow files live?
+A) In the root of the repository
+B) In .github/workflows/ as .yml files
+C) In a separate repo
+D) In GitHub's web UI only
+Correct: B
+
+Q5: Which trigger runs a workflow on every push and pull request?
+A) on: manual
+B) on: [push, pull_request]
+C) on: schedule
+D) on: always
+Correct: B
+
+Q6: Where should API keys be stored for use in GitHub Actions?
+A) In the workflow file
+B) In GitHub Secrets (Settings → Secrets)
+C) In the README
+D) In a .env file in the repo
+Correct: B
+
+Q7: What does GitHub Pages serve from /docs folder require?
+A) A paid GitHub plan
+B) Enabling Pages in Settings with branch=main, folder=/docs
+C) A separate domain
+D) A special build tool
+Correct: B
+
+Q8: Your workflow needs different credentials for staging and production. What feature helps?
+A) Multiple workflow files
+B) GitHub Environments with environment-scoped secrets
+C) Storing secrets in the code
+D) Using the same credentials for both
+Correct: B

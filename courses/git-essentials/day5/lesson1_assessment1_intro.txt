@@ -1,0 +1,48 @@
+# Assessment 1: Git Collaboration Skills
+
+## [WHEN] You need this when:
+You have completed Days 1-4 and are ready to prove your Git skills.
+
+## [INTENT] "Prove I can work with Git in a team environment."
+
+## [CONTEXT]
+This assessment simulates contributing to a team project.
+You will create a repository, make branches, create meaningful
+commits, resolve a conflict, and write a proper README.
+
+## [ACTION] Complete these tasks:
+
+### Task 1: Set up a project repository
+  - Create a directory called "git-assessment"
+  - Initialize a Git repo
+  - Create a README.md with project name and description
+  - Create a .gitignore that excludes *.log and node_modules/
+  - Make an initial commit with both files
+
+### Task 2: Feature branch workflow
+  - Create a branch called "feature/add-config"
+  - Create a config.txt file with at least 3 settings
+  - Commit with a meaningful message
+  - Switch back to main
+  - Create a different change to README.md on main (to cause a conflict later)
+  - Commit on main
+  - Merge feature/add-config into main
+  - Resolve any conflicts
+  - Delete the feature branch
+
+### Task 3: Documentation
+  - Write a CONTRIBUTING.md that explains:
+    - How to clone the repo
+    - How to create a branch
+    - Commit message conventions
+    - How to submit a PR
+  - Commit with message: "Add contribution guidelines"
+
+## [EXPECTED RESULT]
+A clean repository with:
+  - At least 4 commits with meaningful messages
+  - A README.md, .gitignore, config.txt, CONTRIBUTING.md
+  - A merged and deleted feature branch
+  - Clean git log showing the full history
+
+When ready, run: practicum assess1-git

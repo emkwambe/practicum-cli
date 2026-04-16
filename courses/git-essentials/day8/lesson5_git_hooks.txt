@@ -1,0 +1,60 @@
+# Lesson: Git Hooks — Run Scripts on Git Events
+
+## [WHEN] You need this when:
+1. You want to prevent committing code that fails linters.
+2. You want to automatically run tests before push.
+3. You need to enforce commit message format across the team.
+4. You want to automate repetitive pre-commit tasks.
+
+## [INTENT] "Run my script automatically when a Git event happens."
+
+## [CONTEXT]
+Git hooks are shell scripts that run automatically at specific points:
+  pre-commit   — before a commit is created (lint, test)
+  commit-msg   — validate commit message format
+  pre-push     — before pushing to remote (run tests)
+  post-merge   — after merging (reinstall dependencies)
+
+Hooks live in .git/hooks/ in each repo. By default, they are
+per-developer (not shared). For team-wide hooks, use tools like
+pre-commit (python) or husky (node).
+
+## [ACTION] Create a pre-commit hook
+  cd your-repo
+  cat > .git/hooks/pre-commit << 'EOF'
+  #!/bin/bash
+  # Reject commit if any .sh file has syntax errors
+  for file in $(git diff --cached --name-only --diff-filter=ACM | grep "\.sh$"); do
+      if ! bash -n "$file"; then
+          echo "Syntax error in $file"
+          exit 1
+      fi
+  done
+  exit 0
+  EOF
+  chmod +x .git/hooks/pre-commit
+
+Now every git commit runs this check first.
+
+## Team-wide hooks with pre-commit framework:
+  pip install pre-commit
+  # Create .pre-commit-config.yaml:
+  repos:
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v4.5.0
+      hooks:
+        - id: trailing-whitespace
+        - id: end-of-file-fixer
+        - id: check-yaml
+  pre-commit install     — activates hooks for the repo
+
+Now everyone who clones the repo gets the same hooks.
+
+## [EXPECTED RESULT]
+Commits are automatically validated before being created.
+Bad commits are rejected with a clear error message.
+
+## Try it now:
+  Create the pre-commit hook above.
+  Create a .sh file with a syntax error (e.g., unclosed quote).
+  Try to commit — it should be rejected.

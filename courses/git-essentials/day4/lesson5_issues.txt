@@ -1,0 +1,39 @@
+# Lesson: GitHub Issues — Track Bugs and Tasks
+
+## [WHEN] You need this when:
+1. You found a bug and need to report it.
+2. You want to track features, tasks, or improvements.
+3. A teammate needs to know what to work on next.
+4. You want to link your PR to the problem it fixes.
+
+## [INTENT] "Track what needs to be done and who is doing it."
+
+## [CONTEXT]
+GitHub Issues are the standard way teams track work. Each issue
+has a title, description, labels, assignee, and discussion thread.
+Issues are numbered (#1, #2, etc.) and can be referenced in commits
+and PRs. When your commit says "Fixes #42", GitHub automatically
+closes issue #42 when the PR is merged.
+
+## [ACTION] Working with Issues
+On GitHub:
+  1. Click "Issues" tab → "New Issue"
+  2. Title: "Login fails for users with special characters in email"
+  3. Description: steps to reproduce, expected vs actual behavior
+  4. Add labels: "bug", "priority: high"
+  5. Assign to someone
+
+Linking to commits and PRs:
+  git commit -m "Fix email validation — Fixes #42"
+  git commit -m "Add input sanitization — Closes #42"
+  git commit -m "Related to #42 — add tests"
+
+Keywords that close issues: Fixes, Closes, Resolves (+ #number)
+
+## [EXPECTED RESULT]
+A clear list of what needs to be done. When work is merged,
+the related issue is automatically closed.
+
+## Try it now:
+  Create an issue on your practice repository on GitHub.
+  Make a commit that references it: "Fixes #1"

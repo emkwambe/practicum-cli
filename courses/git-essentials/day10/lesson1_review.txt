@@ -1,0 +1,60 @@
+# Day 10 — Final Review: Everything You've Learned
+
+## [WHEN] You need this when:
+You have completed Days 1-9 and are ready for the final capstone.
+
+## [INTENT] "Review all Git skills before the final test."
+
+## [CONTEXT]
+You have learned every major Git concept. Before the capstone,
+make sure each tool is sharp.
+
+## [ACTION] Self-check — can you do all of these?
+
+### Foundation (Days 1-3):
+  - [ ] Initialize a new repository (git init)
+  - [ ] Stage files (git add)
+  - [ ] Commit with meaningful messages (git commit -m)
+  - [ ] View history (git log --oneline)
+  - [ ] See what changed (git diff, git diff --staged)
+  - [ ] Check repo state (git status)
+  - [ ] Create and switch branches (git switch -c)
+  - [ ] Merge branches (git merge)
+  - [ ] Resolve merge conflicts manually
+  - [ ] Clone a remote repo (git clone)
+  - [ ] Push and pull changes (git push, git pull)
+  - [ ] Ignore files (.gitignore)
+
+### Collaboration (Day 4):
+  - [ ] Fork a repository on GitHub
+  - [ ] Create a Pull Request
+  - [ ] Respond to code review feedback
+  - [ ] Link commits to issues ("Fixes #42")
+
+### Advanced (Days 6-8):
+  - [ ] Stash uncommitted work (git stash)
+  - [ ] Rebase a branch (git rebase main)
+  - [ ] Cherry-pick specific commits
+  - [ ] Find bugs with git bisect
+  - [ ] Recover lost commits with git reflog
+  - [ ] Amend the last commit (--amend)
+  - [ ] Tag releases (git tag -a v1.0.0)
+  - [ ] Set up GitHub Actions workflows
+  - [ ] Store secrets securely
+  - [ ] Configure branch protection
+  - [ ] Sign commits (SSH or GPG)
+  - [ ] Use Git hooks
+
+### Professional standards:
+  - [ ] Write a README.md
+  - [ ] Add LICENSE
+  - [ ] Write CONTRIBUTING.md
+  - [ ] Maintain CHANGELOG.md
+  - [ ] Use semantic versioning
+
+## [EXPECTED RESULT]
+If you can check all boxes confidently, you are ready for the
+capstone. If not, review the specific days for gaps.
+
+## Next:
+Type menu and select Day 10 Lesson 2: The Team Simulation Capstone.

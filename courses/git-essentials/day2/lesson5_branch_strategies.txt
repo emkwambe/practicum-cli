@@ -1,0 +1,46 @@
+# Lesson: Branch Strategies — How Teams Organize Work
+
+## [WHEN] You need this when:
+1. You joined a team and need to follow their branching rules.
+2. You are setting up a workflow for a new project.
+3. You need to understand feature branches, release branches, hotfixes.
+
+## [INTENT] "How should my team organize branches?"
+
+## [CONTEXT]
+Teams follow branching strategies to avoid chaos. The most common:
+
+Feature Branch Workflow (most popular):
+  main = always deployable
+  feature/login = one branch per feature
+  Rule: never commit directly to main, always merge via PR
+
+GitHub Flow (simple):
+  main + short-lived feature branches
+  Deploy from main after every merge
+  Best for: web apps, continuous deployment
+
+GitFlow (complex, for releases):
+  main = production releases only
+  develop = integration branch
+  feature/* = features
+  release/* = preparing a release
+  hotfix/* = emergency fixes
+  Best for: software with versioned releases
+
+## [ACTION] Branch naming conventions
+  feature/user-login               — new feature
+  bugfix/fix-header-crash          — bug fix
+  hotfix/security-patch            — urgent production fix
+  release/v2.1.0                   — release preparation
+  docs/update-readme               — documentation change
+
+## [EXPECTED RESULT]
+A clean, organized repository where anyone can understand
+what each branch is for by reading its name.
+
+## Try it now:
+  git branch
+  git switch -c feature/add-footer
+  git switch -c bugfix/fix-typo
+  git branch

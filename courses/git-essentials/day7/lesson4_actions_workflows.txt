@@ -1,0 +1,79 @@
+# Lesson: GitHub Actions — Real Production Workflows
+
+## [WHEN] You need this when:
+1. You need a CI workflow that actually runs tests for your language.
+2. You want to deploy automatically when main is updated.
+3. You need to build Docker images in CI.
+
+## [INTENT] "Copy a production-ready workflow for my project."
+
+## [CONTEXT]
+Most workflows you need already exist as templates. The GitHub
+Actions marketplace has thousands of pre-built actions.
+Here are battle-tested patterns you can adapt.
+
+## [ACTION] Production workflow examples
+
+### Node.js tests:
+  name: Node CI
+  on: [push, pull_request]
+  jobs:
+    test:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - uses: actions/setup-node@v4
+          with:
+            node-version: '20'
+        - run: npm ci
+        - run: npm test
+
+### Python tests with matrix:
+  name: Python CI
+  on: [push, pull_request]
+  jobs:
+    test:
+      runs-on: ubuntu-latest
+      strategy:
+        matrix:
+          python: ['3.10', '3.11', '3.12']
+      steps:
+        - uses: actions/checkout@v4
+        - uses: actions/setup-python@v5
+          with:
+            python-version: ${{ matrix.python }}
+        - run: pip install -r requirements.txt
+        - run: pytest
+
+### Deploy on tag:
+  name: Release
+  on:
+    push:
+      tags: ['v*']
+  jobs:
+    release:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - uses: softprops/action-gh-release@v2
+          with:
+            generate_release_notes: true
+
+### Lint bash scripts:
+  name: Shellcheck
+  on: [push, pull_request]
+  jobs:
+    lint:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - run: sudo apt install shellcheck
+        - run: shellcheck **/*.sh
+
+## [EXPECTED RESULT]
+Workflows run automatically. Pass/fail status appears on commits
+and PRs — blocks merging if tests fail (if configured).
+
+## Try it now:
+  Pick one template above, adapt it for your project, commit it to
+  .github/workflows/ and push. Watch it run.

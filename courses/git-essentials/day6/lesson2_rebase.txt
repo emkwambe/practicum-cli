@@ -1,0 +1,41 @@
+# Lesson: git rebase — Rewrite History for a Clean Timeline
+
+## [WHEN] You need this when:
+1. Your feature branch is behind main and you want a clean history.
+2. You want to avoid merge commits that clutter the log.
+3. A maintainer asks you to "rebase your branch on main."
+4. You want your commits to appear as if they were made on top of main.
+
+## [INTENT] "Replay my commits on top of the latest main."
+
+## [CONTEXT]
+git rebase moves your branch's commits to start from a new base.
+Instead of merging (which creates a merge commit), rebasing replays
+your commits one by one on top of the target branch.
+Result: a straight, clean history with no merge commits.
+WARNING: Never rebase commits that have been pushed and shared.
+Rebase rewrites commit hashes — this confuses other people's repos.
+Rule: Rebase your local feature branch. Merge shared branches.
+
+## [ACTION] git rebase <branch>
+Common patterns:
+  git switch feature/my-work
+  git rebase main                   — replay your commits on top of main
+  git rebase --abort                — cancel if conflicts get messy
+  git rebase --continue             — continue after resolving a conflict
+  git rebase -i HEAD~3              — interactive: squash/edit last 3 commits
+
+## [EXPECTED RESULT]
+Your commits now sit on top of main's latest commit.
+git log shows a clean, linear history.
+
+## Try it now:
+  git switch -c rebase-demo
+  echo "demo" > demo.txt
+  git add . && git commit -m "Add demo file"
+  git switch main
+  echo "main update" >> hello.txt
+  git add . && git commit -m "Update main"
+  git switch rebase-demo
+  git rebase main
+  git log --oneline --graph

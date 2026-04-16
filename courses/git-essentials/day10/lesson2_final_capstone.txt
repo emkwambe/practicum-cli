@@ -1,0 +1,102 @@
+# Final Capstone: Lead a Team Project
+
+## [WHEN] You need this when:
+You have completed Day 10 Lesson 1 review and are ready for the
+final test of all your Git skills.
+
+## [INTENT] "Prove I can run a professional project repository."
+
+## [CONTEXT]
+This capstone simulates your first week as a team lead. You will
+set up a new project repository that is immediately production-ready:
+code, docs, CI, releases, and contribution workflow all in place.
+
+Scoring:
+  60 / 100 = Pass (Git Fundamentals certificate)
+  80 / 100 = Distinction (Advanced Git certificate)
+
+## [ACTION] The Capstone — 5 Phases, 100 Points
+
+### Phase 1: Repository foundation (20 points)
+Create a new directory called "capstone-project" and initialize it.
+Then create these files with real content (not empty):
+
+  - README.md (at least 3 sections: What, Install, Usage)
+  - LICENSE (MIT or Apache-2.0, copy from choosealicense.com)
+  - .gitignore (appropriate for your chosen language)
+  - CONTRIBUTING.md (how to submit PRs to this project)
+  - CHANGELOG.md (in keepachangelog.com format, with [Unreleased])
+
+Commit each file with a meaningful message.
+
+### Phase 2: Feature development with branches (20 points)
+Create and complete 3 feature branches:
+
+  1. feature/add-main-logic — add a script or module (the "product")
+  2. feature/add-tests — add a test file that tests it
+  3. feature/add-docs — add usage documentation
+
+For each branch:
+  - Create the branch off main
+  - Make at least 2 commits with focused messages
+  - Merge back into main (use --no-ff to keep branch history visible)
+  - Delete the feature branch after merging
+
+### Phase 3: Release (20 points)
+  - Update CHANGELOG.md: move items from [Unreleased] to [1.0.0]
+  - Commit: "Prepare v1.0.0 release"
+  - Create an annotated tag: git tag -a v1.0.0 -m "Initial release"
+  - Create RELEASE_NOTES.md with what's in v1.0.0
+
+### Phase 4: Automation (20 points)
+Create a GitHub Actions workflow in .github/workflows/test.yml:
+  - Runs on push and pull_request
+  - Uses ubuntu-latest
+  - Checks out code
+  - Runs at least one test or validation step
+
+Create a pre-commit hook at .git/hooks/pre-commit:
+  - Made executable (chmod +x)
+  - Contains at least one sanity check (e.g., reject empty commit messages)
+
+### Phase 5: Documentation (20 points)
+Create a comprehensive PROJECT_REPORT.md that includes:
+
+  ## Project Overview
+  What this project does, who it's for.
+
+  ## Architecture Decisions
+  Why you chose your approach.
+
+  ## Git Workflow Used
+  How branches were organized, how releases are tagged.
+
+  ## How to Contribute
+  Link to CONTRIBUTING.md and high-level steps.
+
+  ## Release History
+  Link to CHANGELOG.md, list of released versions.
+
+  ## Acknowledgments
+  What you learned across all 10 days of this course.
+
+Commit it with a final message: "Document project complete"
+
+## [EXPECTED RESULT]
+A complete, professional repository with:
+  - 10+ commits across main and merged feature branches
+  - 3 merged feature branches (now deleted)
+  - v1.0.0 tag with release notes
+  - GitHub Actions workflow in .github/workflows/
+  - Pre-commit hook installed
+  - 7+ documentation files (README, LICENSE, CONTRIBUTING, CHANGELOG, etc.)
+
+## [WHEN READY]
+Run: practicum capstone-git
+The grader will check all deliverables and score you out of 100.
+
+  60+ = Pass
+  80+ = Distinction
+  90+ = Perfect execution
+
+Good luck!

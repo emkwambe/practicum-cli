@@ -1,0 +1,55 @@
+Q1: What does git switch -c feature-login do?
+A) Deletes the feature-login branch
+B) Creates a new branch and switches to it
+C) Merges feature-login into main
+D) Lists all branches
+Correct: B
+
+Q2: You are on main and run "git merge feature-login". What happens?
+A) main is merged into feature-login
+B) feature-login changes are brought into main
+C) Both branches are deleted
+D) A new branch is created
+Correct: B
+
+Q3: What do <<<<<<< and >>>>>>> markers in a file mean?
+A) The file is corrupted
+B) A merge conflict needs to be resolved manually
+C) Git deleted part of the file
+D) The file was moved
+Correct: B
+
+Q4: Which branch naming follows best practices?
+A) my-stuff
+B) feature/add-user-authentication
+C) branch1
+D) test
+Correct: B
+
+Q5: How do you safely delete a merged branch?
+A) git branch -D feature
+B) git branch -d feature
+C) git delete feature
+D) git remove feature
+Correct: B
+
+Q6: What is the simplest branching strategy for a small team?
+A) GitFlow with release branches
+B) GitHub Flow (main + feature branches)
+C) One branch for everything
+D) A new repo for each feature
+Correct: B
+
+Q7: Before switching branches, you should:
+A) Delete all files
+B) Commit or stash your changes
+C) Create a new repository
+D) Run git init again
+Correct: B
+
+Q8: What does git branch -a show?
+A) Only the current branch
+B) All branches including remote tracking branches
+C) Only merged branches
+D) Only deleted branches
+Correct: B

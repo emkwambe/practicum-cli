@@ -1,0 +1,40 @@
+# Lesson: Pull Requests — Propose Changes for Review
+
+## [WHEN] You need this when:
+1. Your feature branch is ready and needs team review.
+2. You want to contribute to an open source project.
+3. Your team requires code review before merging to main.
+4. You want to discuss proposed changes before committing them.
+
+## [INTENT] "Ask the team to review and merge my changes."
+
+## [CONTEXT]
+A Pull Request (PR) is a GitHub feature — not a Git command.
+It says: "I have changes on my branch. Please review them and
+merge into main." PRs are where code review happens.
+A good PR includes: clear title, description of what changed and why,
+linked issue number, and small focused changes (not 50 files).
+
+## [ACTION] Creating a Pull Request
+  1. Push your branch: git push -u origin feature/my-change
+  2. Go to GitHub → your repo → "Compare & pull request" button
+  3. Fill in:
+     Title: "Add user email validation"
+     Description: "Fixes #42. Adds server-side validation..."
+  4. Select reviewers
+  5. Click "Create pull request"
+
+PR lifecycle:
+  Open → Review (comments, approvals) → Merge → Delete branch
+
+## [EXPECTED RESULT]
+A PR page on GitHub showing your changes as a diff.
+Reviewers can comment on specific lines, approve, or request changes.
+After approval, click "Merge" to bring changes into main.
+
+## Try it now:
+  git switch -c feature/practice-pr
+  echo "PR practice" > pr-test.txt
+  git add . && git commit -m "Add PR test file"
+  git push -u origin feature/practice-pr
+  (Go to GitHub and create the PR)

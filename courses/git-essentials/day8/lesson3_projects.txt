@@ -1,0 +1,48 @@
+# Lesson: GitHub Projects — Kanban Boards for Your Repo
+
+## [WHEN] You need this when:
+1. You have many issues and need to prioritize them visually.
+2. Your team needs a kanban board (To Do / In Progress / Done).
+3. You want to plan sprints with issue tracking.
+4. You need a roadmap view for features.
+
+## [INTENT] "Organize my issues and PRs visually."
+
+## [CONTEXT]
+GitHub Projects are flexible boards that live alongside your repos.
+Each card in a project represents an issue or pull request.
+Projects can be views: board (kanban), table (spreadsheet), roadmap.
+A single issue can appear in multiple projects.
+
+Projects vs Issues:
+  Issues  = individual tasks (tickets)
+  Projects = collections of issues organized visually
+
+## [ACTION] Create and use a project
+  1. GitHub → your profile or org → Projects → New project
+  2. Pick a template: Board, Table, or Roadmap
+  3. Add columns: To Do, In Progress, In Review, Done
+  4. Add items: issues, PRs, or draft cards
+  5. Drag cards between columns as work progresses
+
+Automate workflow:
+  Project settings → Workflows
+    - Item added to project → move to "To Do"
+    - PR opened → move to "In Review"
+    - PR merged → move to "Done"
+    - Issue closed → move to "Done"
+
+Custom fields:
+  - Priority: High / Medium / Low
+  - Status: To Do / In Progress / Done
+  - Iteration: Sprint 1, Sprint 2
+  - Estimate: story points or hours
+
+## [EXPECTED RESULT]
+A visual board showing everything your team is working on.
+Cards move automatically as you open, review, and merge PRs.
+
+## Try it now:
+  Create a project for your test repo.
+  Add a few issues.
+  Move them through the columns as you work.
