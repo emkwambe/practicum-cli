@@ -65,12 +65,6 @@ cmd_status() {
     completed=$(count_completed)
     local unlocked
     unlocked=$(count_unlocked)
-    local day1_score
-    day1_score=$(get_score "day1_quiz")
-    local day2_score
-    day2_score=$(get_score "day2_quiz")
-    local day3_score
-    day3_score=$(get_score "day3_quiz")
     
     print_header "📊 Practicum CLI — Status"
     local course_name
@@ -85,60 +79,25 @@ cmd_status() {
     echo ""
     license_status
     echo ""
-    if [ -n "$day1_score" ]; then
-        echo -e "  Day 1 Quiz: ${C_GREEN}✅ $day1_score${C_RESET}"
-    else
-        echo -e "  Day 1 Quiz: ${C_DIM}not taken${C_RESET}"
-    fi
-    if [ -n "$day2_score" ]; then
-        echo -e "  Day 2 Quiz: ${C_GREEN}✅ $day2_score${C_RESET}"
-    else
-        echo -e "  Day 2 Quiz: ${C_DIM}not taken${C_RESET}"
-    fi
-    if [ -n "$day3_score" ]; then
-        echo -e "  Day 3 Quiz: ${C_GREEN}✅ $day3_score${C_RESET}"
-    else
-        echo -e "  Day 3 Quiz: ${C_DIM}not taken${C_RESET}"
-    fi
-    local day4_score
-    day4_score=$(get_score "day4_quiz")
-    if [ -n "$day4_score" ]; then
-        echo -e "  Day 4 Quiz: ${C_GREEN}✅ $day4_score${C_RESET}"
-    else
-        echo -e "  Day 4 Quiz: ${C_DIM}not taken${C_RESET}"
-    fi
-    local day5_score
-    day5_score=$(get_score "day5_quiz")
-    if [ -n "$day5_score" ]; then
-        echo -e "  Day 5 Quiz: ${C_GREEN}✅ $day5_score${C_RESET}"
-    else
-        echo -e "  Day 5 Quiz: ${C_DIM}not taken${C_RESET}"
-    fi
+    # Dynamic quiz scores — reads from active course's day count
+    detect_course_dir
+    local day_num
+    for day_num in 1 2 3 4 5 6 7 8 9 10; do
+        local day_title
+        day_title=$(get_day_title "$day_num")
+        [ -z "$day_title" ] && continue  # skip days that don't exist
+        local score_val
+        score_val=$(get_score "day${day_num}_quiz")
+        if [ -n "$score_val" ]; then
+            echo -e "  Day $day_num Quiz: ${C_GREEN}✅ $score_val${C_RESET}"
+        else
+            echo -e "  Day $day_num Quiz: ${C_DIM}not taken${C_RESET}"
+        fi
+    done
     local capstone_score
     capstone_score=$(get_score "capstone")
     if [ -n "$capstone_score" ]; then
         echo -e "  Capstone:   ${C_GREEN}🏆 $capstone_score${C_RESET}"
-    fi
-    local day6_score
-    day6_score=$(get_score "day6_quiz")
-    if [ -n "$day6_score" ]; then
-        echo -e "  Day 6 Quiz: ${C_GREEN}✅ $day6_score${C_RESET}"
-    else
-        echo -e "  Day 6 Quiz: ${C_DIM}not taken${C_RESET}"
-    fi
-    local day7_score
-    day7_score=$(get_score "day7_quiz")
-    if [ -n "$day7_score" ]; then
-        echo -e "  Day 7 Quiz: ${C_GREEN}✅ $day7_score${C_RESET}"
-    else
-        echo -e "  Day 7 Quiz: ${C_DIM}not taken${C_RESET}"
-    fi
-    local day8_score
-    day8_score=$(get_score "day8_quiz")
-    if [ -n "$day8_score" ]; then
-        echo -e "  Day 8 Quiz: ${C_GREEN}✅ $day8_score${C_RESET}"
-    else
-        echo -e "  Day 8 Quiz: ${C_DIM}not taken${C_RESET}"
     fi
     echo ""
     echo -e "  ${C_PURPLE}Unlocked lessons:${C_RESET}"
@@ -200,28 +159,38 @@ cmd_start() {
     echo -e "  ${C_DIM}Intent. Context. Action. Result.${C_RESET}"
     echo ""
     echo -e "  ${C_PURPLE}Foundation:${C_RESET}"
-    print_menu_item "1" "$(get_day_title 1)"
-    print_menu_item "2" "$(get_day_title 2)"
-    print_menu_item "3" "$(get_day_title 3)"
-    print_menu_item "4" "$(get_day_title 4)"
-    print_menu_item "5" "$(get_day_title 5)"
+    local d
+    for d in 1 2 3 4 5; do
+        local title
+        title=$(get_day_title $d)
+        [ -n "$title" ] && print_menu_item "$d" "$title"
+    done
     echo ""
     echo -e "  ${C_PURPLE}Advanced:${C_RESET}"
-    print_menu_item "6" "$(get_day_title 6)"
-    print_menu_item "7" "$(get_day_title 7)"
-    print_menu_item "8" "$(get_day_title 8)"
-    print_menu_item "9" "$(get_day_title 9)"
-    echo ""
-    echo -e "  ${C_PURPLE}Capstone:${C_RESET}"
-    print_menu_item "10" "$(get_day_title 10)"
+    for d in 6 7 8 9; do
+        local title
+        title=$(get_day_title $d)
+        [ -n "$title" ] && print_menu_item "$d" "$title"
+    done
+    local day10_title
+    day10_title=$(get_day_title 10)
+    if [ -n "$day10_title" ]; then
+        echo ""
+        echo -e "  ${C_PURPLE}Capstone:${C_RESET}"
+        print_menu_item "10" "$day10_title"
+    fi
     echo ""
     echo -e "  ${C_PURPLE}Tools:${C_RESET}"
     print_menu_item "p" "View progress"
     print_menu_item "q" "Take quiz"
     print_menu_item "c" "Generate certificate"
-    print_menu_item "x" "🏋️ Challenges"
-    print_menu_item "s" "🏢 Work Scenarios"
-    print_menu_item "m" "🎯 Skill Mastery"
+    local active_slug
+    active_slug=$(get_active_course)
+    if [ "$active_slug" = "linux-foundations" ]; then
+        print_menu_item "x" "🏋️ Challenges"
+        print_menu_item "s" "🏢 Work Scenarios"
+        print_menu_item "m" "🎯 Skill Mastery"
+    fi
     print_menu_item "k" "📚 Switch course"
     print_menu_item "d" "🩺 IT Clinic (diagnose)"
     print_menu_item "0" "Exit"
@@ -242,9 +211,9 @@ cmd_start() {
         p|P) cmd_status ;;
         q|Q) cmd_quiz_select ;;
         c|C) cmd_certificate ;;
-        x|X) cmd_challenges ;;
-        s|S) cmd_scenarios; cmd_start ;;
-        m|M) show_mastery_dashboard; cmd_start ;;
+        x|X) if [ "$active_slug" = "linux-foundations" ]; then cmd_challenges; else echo -e "  ${C_DIM}Challenges available in Linux Foundations course.${C_RESET}"; cmd_start; fi ;;
+        s|S) if [ "$active_slug" = "linux-foundations" ]; then cmd_scenarios; cmd_start; else echo -e "  ${C_DIM}Scenarios available in Linux Foundations course.${C_RESET}"; cmd_start; fi ;;
+        m|M) if [ "$active_slug" = "linux-foundations" ]; then show_mastery_dashboard; cmd_start; else echo -e "  ${C_DIM}Mastery dashboard available in Linux Foundations course.${C_RESET}"; cmd_start; fi ;;
         k|K) cmd_course_switch; cmd_start ;;
         d|D) cmd_diagnose; cmd_start ;;
         0) echo -e "  ${C_GREEN}Goodbye!${C_RESET}"; return 0 ;;
@@ -666,7 +635,7 @@ cmd_certificate() {
     echo "  ║                                                        ║"
     echo "  ║   has successfully completed:                          ║"
     echo "  ║                                                        ║"
-    echo "  ║   ✅ Linux Foundations for IT & DevOps                 ║"
+    echo "  ║   ✅ $(get_course_name)"
     echo "  ║      $days_passed"
     echo "  ║                                                        ║"
     echo "  ║   Lessons completed: $completed                        "
@@ -1005,7 +974,7 @@ cmd_quiz_day8() {
         echo "  🎓 Day 8 Quiz — PASSED!"
         echo ""
         echo "  🏆 COURSE COMPLETE!"
-        echo "  You have finished Linux Foundations."
+        echo "  You have finished $(get_course_name)."
         echo "  Run 'practicum certificate' for your credential."
         echo "========================================="
         echo ""
@@ -1115,7 +1084,7 @@ cmd_final_capstone() {
         save_score "final_capstone" "passed"
         echo ""
         echo -e "  ${C_GREEN}🏆 CONGRATULATIONS!${C_RESET}"
-        echo -e "  ${C_GREEN}  You have completed Linux Foundations.${C_RESET}"
+        echo -e "  ${C_GREEN}  You have completed $(get_course_name).${C_RESET}"
         echo -e "  ${C_GREEN}  Run 'practicum certificate' for your credential.${C_RESET}"
         echo ""
     fi
@@ -1152,7 +1121,7 @@ cmd_final() {
         echo "  🏆 CAPSTONE PASSED!"
         echo ""
         echo "  Congratulations! You have completed the"
-        echo "  Linux Foundations for IT & DevOps course."
+        echo "  $(get_course_name) course."
         echo ""
         echo "  Run 'practicum certificate' to generate"
         echo "  your completion certificate."

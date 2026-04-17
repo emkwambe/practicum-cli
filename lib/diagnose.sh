@@ -1630,7 +1630,11 @@ diag_health_check() {
     if [ "$total" -gt 0 ]; then
         local pct=$((score * 100 / total))
         local grade
-        if [ "$criticals" -gt 0 ]; then
+        if [ "$criticals" -gt 1 ]; then
+            grade="F"
+        elif [ "$criticals" -eq 1 ] && [ "$pct" -ge 70 ]; then
+            grade="D"
+        elif [ "$criticals" -eq 1 ]; then
             grade="F"
         elif [ "$pct" -ge 90 ]; then
             grade="A"
