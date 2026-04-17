@@ -752,8 +752,11 @@ diag_services() {
     echo ""
     print_menu_item "1" "A specific service won't start"
     print_menu_item "2" "Service keeps crashing (restart loop)"
-    print_menu_item "3" "Show all failed services"
-    print_menu_item "4" "Check Docker containers"
+    print_menu_item "3" "Configuration syntax error"
+    print_menu_item "4" "Service dependency failure"
+    print_menu_item "5" "Show all failed services"
+    print_menu_item "6" "Check Docker containers"
+    print_menu_item "7" "Run all service checks"
     echo ""
     print_menu_item "9" "Back"
     print_prompt
@@ -762,8 +765,11 @@ diag_services() {
     case "$choice" in
         1) diag_service_start ;;
         2) diag_service_crash ;;
-        3) diag_failed_services ;;
-        4) diag_docker ;;
+        3) diag_config_syntax ;;
+        4) diag_dependencies ;;
+        5) diag_failed_services ;;
+        6) diag_docker ;;
+        7) diag_failed_services; diag_pause; diag_docker ;;
         9) cmd_diagnose ;;
         *) diag_services ;;
     esac
@@ -887,6 +893,182 @@ diag_docker() {
     diag_run "Docker disk usage" "docker system df 2>/dev/null"
 }
 
+diag_config_syntax() {
+    diag_section "Configuration Syntax Check"
+
+    echo -e "  ${C_WHITE}Which service to check? (or Enter to go back):${C_RESET}"
+    echo ""
+    echo -e "  ${C_DIM}  Common services: nginx, apache2, sshd, named, postfix${C_RESET}"
+    echo -e "  ${C_DIM}  Or enter a config file path to check bash/python syntax${C_RESET}"
+    echo ""
+    printf "  Service or file: "
+    read -r target
+
+    if [ -z "$target" ]; then
+        echo -e "  ${C_DIM}Skipped.${C_RESET}"
+        return
+    fi
+
+    case "$target" in
+        nginx)
+            diag_run "nginx config test" "sudo nginx -t 2>&1"
+            if sudo nginx -t 2>/dev/null; then
+                diag_verdict "ok" "nginx configuration is valid"
+            else
+                diag_verdict "critical" "nginx configuration has errors"
+                diag_fix "Edit the config: sudo nano /etc/nginx/nginx.conf"
+                diag_fix "Check sites-enabled: ls -la /etc/nginx/sites-enabled/"
+                diag_fix "Common issue: duplicate listen directives or missing semicolons"
+            fi
+            ;;
+        apache2|httpd)
+            diag_run "Apache config test" "sudo apache2ctl configtest 2>&1 || sudo httpd -t 2>&1"
+            if sudo apache2ctl configtest 2>/dev/null || sudo httpd -t 2>/dev/null; then
+                diag_verdict "ok" "Apache configuration is valid"
+            else
+                diag_verdict "critical" "Apache configuration has errors"
+                diag_fix "Check: sudo apache2ctl configtest"
+                diag_fix "Common: missing module, bad VirtualHost, typo in path"
+            fi
+            ;;
+        sshd|ssh)
+            diag_run "SSHD config test" "sudo sshd -t 2>&1"
+            if sudo sshd -t 2>/dev/null; then
+                diag_verdict "ok" "SSHD configuration is valid"
+            else
+                diag_verdict "critical" "SSHD configuration has errors"
+                diag_fix "Edit: sudo nano /etc/ssh/sshd_config"
+                diag_fix "Common: invalid keyword, bad permissions on config"
+            fi
+            ;;
+        named|bind)
+            diag_run "BIND/named config check" "sudo named-checkconf 2>&1"
+            if sudo named-checkconf 2>/dev/null; then
+                diag_verdict "ok" "BIND configuration is valid"
+            else
+                diag_verdict "critical" "BIND configuration has errors"
+            fi
+            ;;
+        postfix)
+            diag_run "Postfix config check" "sudo postfix check 2>&1"
+            ;;
+        *.sh)
+            if [ -f "$target" ]; then
+                diag_run "Bash syntax check" "bash -n '$target' 2>&1"
+                if bash -n "$target" 2>/dev/null; then
+                    diag_verdict "ok" "$target has no syntax errors"
+                    if command -v shellcheck >/dev/null 2>&1; then
+                        diag_run "Shellcheck analysis" "shellcheck '$target' 2>&1 | head -20"
+                    else
+                        diag_explain "Install shellcheck for deeper analysis: sudo apt install shellcheck"
+                    fi
+                else
+                    diag_verdict "critical" "$target has bash syntax errors"
+                fi
+            else
+                diag_verdict "critical" "File not found: $target"
+            fi
+            ;;
+        *.py)
+            if [ -f "$target" ]; then
+                diag_run "Python syntax check" "python3 -m py_compile '$target' 2>&1"
+                if python3 -m py_compile "$target" 2>/dev/null; then
+                    diag_verdict "ok" "$target has no Python syntax errors"
+                else
+                    diag_verdict "critical" "$target has Python syntax errors"
+                fi
+            else
+                diag_verdict "critical" "File not found: $target"
+            fi
+            ;;
+        *)
+            # Try systemd config check
+            if systemctl cat "$target" >/dev/null 2>&1; then
+                diag_run "Systemd unit syntax" "systemd-analyze verify ${target}.service 2>&1 | head -10"
+                diag_run "Unit file" "systemctl cat '$target' 2>/dev/null | head -20"
+                diag_verdict "ok" "Checked systemd unit for $target"
+            elif [ -f "$target" ]; then
+                # Try to guess file type
+                local filetype
+                filetype=$(file -b "$target" 2>/dev/null | head -1)
+                diag_explain "File type: $filetype"
+                diag_run "File contents (first 10 lines)" "head -10 '$target'"
+            else
+                diag_verdict "warn" "Unknown service: $target"
+                diag_explain "Supported services: nginx, apache2, sshd, named, postfix"
+                diag_explain "Or provide a file path for bash/python syntax check"
+            fi
+            ;;
+    esac
+}
+
+diag_dependencies() {
+    diag_section "Service Dependency Analysis"
+
+    echo -e "  ${C_WHITE}Which service to check dependencies for? (or Enter to go back):${C_RESET}"
+    printf "  Service name: "
+    read -r svc
+
+    if [ -z "$svc" ]; then
+        echo -e "  ${C_DIM}Skipped.${C_RESET}"
+        return
+    fi
+
+    # Check if service exists
+    if ! systemctl cat "$svc" >/dev/null 2>&1; then
+        diag_verdict "critical" "Service '$svc' not found"
+        diag_fix "List available services: systemctl list-unit-files --type=service | grep '$svc'"
+        return
+    fi
+
+    # Show what this service depends on
+    diag_run "Dependencies of $svc (what it needs)" "systemctl list-dependencies '$svc' 2>/dev/null | head -20"
+
+    # Show what depends on this service
+    diag_run "Reverse dependencies (what needs $svc)" "systemctl list-dependencies '$svc' --reverse 2>/dev/null | head -15"
+
+    # Check if dependencies are running
+    echo ""
+    echo -e "  ${C_WHITE}Checking if dependencies are active:${C_RESET}"
+    echo ""
+
+    local dep_issues=0
+    while IFS= read -r dep; do
+        dep=$(echo "$dep" | sed 's/[│├└─● ]//g' | sed 's/\x1b\[[0-9;]*m//g' | tr -d ' ')
+        [ -z "$dep" ] && continue
+        [[ "$dep" == *".service" ]] || continue
+        local dep_name="${dep%.service}"
+
+        local status
+        status=$(systemctl is-active "$dep_name" 2>/dev/null || echo "unknown")
+        case "$status" in
+            active)
+                echo -e "    ${C_GREEN}✅ $dep_name: active${C_RESET}"
+                ;;
+            inactive|failed)
+                echo -e "    ${C_RED}❌ $dep_name: $status${C_RESET}"
+                dep_issues=$((dep_issues + 1))
+                ;;
+            *)
+                echo -e "    ${C_DIM}── $dep_name: $status${C_RESET}"
+                ;;
+        esac
+    done < <(systemctl list-dependencies "$svc" --plain 2>/dev/null)
+
+    echo ""
+    if [ "$dep_issues" -gt 0 ]; then
+        diag_verdict "critical" "$dep_issues dependency issue(s) found"
+        diag_explain "Fix the failed dependencies first, then restart $svc."
+        diag_fix "Start failed dep: sudo systemctl start <dependency>"
+        diag_fix "Then restart: sudo systemctl restart $svc"
+    else
+        diag_verdict "ok" "All dependencies are active"
+    fi
+
+    # Show service ordering
+    diag_run "Service ordering (After/Before)" "systemctl cat '$svc' 2>/dev/null | grep -iE '^After=|^Before=|^Requires=|^Wants=' || echo 'No explicit ordering found'"
+}
+
 # ══════════════════════════════════════════════
 #  CATEGORY 5: PERMISSIONS & SECURITY
 # ══════════════════════════════════════════════
@@ -898,7 +1080,9 @@ diag_permissions() {
     echo ""
     print_menu_item "1" "Permission denied on a file/directory"
     print_menu_item "2" "Sudo not working"
-    print_menu_item "3" "Security audit (quick scan)"
+    print_menu_item "3" "SELinux or AppArmor blocking something"
+    print_menu_item "4" "Security audit (quick scan)"
+    print_menu_item "5" "Run all security checks"
     echo ""
     print_menu_item "9" "Back"
     print_prompt
@@ -907,7 +1091,9 @@ diag_permissions() {
     case "$choice" in
         1) diag_file_perms ;;
         2) diag_sudo ;;
-        3) diag_security_audit ;;
+        3) diag_mac ;;
+        4) diag_security_audit ;;
+        5) diag_file_perms; diag_pause; diag_sudo; diag_pause; diag_mac; diag_pause; diag_security_audit ;;
         9) cmd_diagnose ;;
         *) diag_permissions ;;
     esac
@@ -1046,6 +1232,101 @@ diag_security_audit() {
     else
         diag_verdict "warn" "Automatic security updates not configured"
         diag_fix "Install: sudo apt install unattended-upgrades"
+    fi
+}
+
+diag_mac() {
+    diag_section "Mandatory Access Control (SELinux / AppArmor)"
+
+    local mac_type="none"
+
+    # Detect which MAC system is in use
+    if command -v getenforce >/dev/null 2>&1; then
+        mac_type="selinux"
+        local se_status
+        se_status=$(getenforce 2>/dev/null || echo "Unknown")
+
+        diag_run "SELinux status" "sestatus 2>/dev/null || getenforce 2>/dev/null"
+
+        case "$se_status" in
+            Enforcing)
+                diag_verdict "ok" "SELinux is Enforcing (active protection)"
+                ;;
+            Permissive)
+                diag_verdict "warn" "SELinux is Permissive (logging only, not blocking)"
+                diag_explain "Permissive mode logs violations but doesn't enforce. Good for debugging."
+                diag_fix "Re-enable: sudo setenforce 1"
+                ;;
+            Disabled)
+                diag_verdict "warn" "SELinux is Disabled"
+                diag_fix "Enable in /etc/selinux/config (requires reboot)"
+                ;;
+        esac
+
+        # Check for recent denials
+        diag_run "Recent SELinux denials" "sudo ausearch -m AVC -ts recent 2>/dev/null | tail -15 || journalctl 2>/dev/null | grep -i 'avc.*denied' | tail -10 || echo 'No denials found (or no access)'"
+
+        local avc_count
+        avc_count=$(sudo ausearch -m AVC -ts recent 2>/dev/null | grep -c "^type=AVC" || echo "0")
+        avc_count=$(echo "$avc_count" | head -1 | tr -dc '0-9')
+        avc_count="${avc_count:-0}"
+        if [ "$avc_count" -gt 0 ] 2>/dev/null; then
+            diag_verdict "warn" "$avc_count recent SELinux denial(s)"
+            diag_explain "Something was blocked by SELinux policy."
+            diag_fix "Generate a fix: sudo audit2allow -a"
+            diag_fix "Temporarily allow: sudo setenforce 0 (test only!)"
+            diag_fix "Create custom policy: sudo audit2allow -a -M mypolicy && sudo semodule -i mypolicy.pp"
+        fi
+
+        # Boolean status
+        if command -v getsebool >/dev/null 2>&1; then
+            diag_run "Key SELinux booleans" "getsebool httpd_can_network_connect httpd_enable_cgi 2>/dev/null || echo 'No httpd booleans (may not be installed)'"
+        fi
+
+    elif command -v aa-status >/dev/null 2>&1 || [ -d /etc/apparmor.d ]; then
+        mac_type="apparmor"
+
+        diag_run "AppArmor status" "sudo aa-status 2>/dev/null || echo 'Need sudo for aa-status'"
+
+        local aa_enforcing
+        aa_enforcing=$(sudo aa-status 2>/dev/null | grep -c "enforce" || echo "0")
+        local aa_complain
+        aa_complain=$(sudo aa-status 2>/dev/null | grep -c "complain" || echo "0")
+
+        if [ "$aa_enforcing" -gt 0 ] 2>/dev/null; then
+            diag_verdict "ok" "AppArmor active: $aa_enforcing profile(s) enforcing"
+        fi
+        if [ "$aa_complain" -gt 0 ] 2>/dev/null; then
+            diag_verdict "warn" "$aa_complain profile(s) in complain mode (logging only)"
+        fi
+
+        # Check for denials
+        diag_run "Recent AppArmor denials" "dmesg 2>/dev/null | grep -i 'apparmor.*denied' | tail -10 || journalctl -k 2>/dev/null | grep -i 'apparmor.*denied' | tail -10 || echo 'No denials found'"
+
+        local aa_denials
+        aa_denials=$(dmesg 2>/dev/null | grep -ci "apparmor.*denied" || echo "0")
+        aa_denials=$(echo "$aa_denials" | head -1 | tr -dc '0-9')
+        aa_denials="${aa_denials:-0}"
+        if [ "$aa_denials" -gt 0 ] 2>/dev/null; then
+            diag_verdict "warn" "$aa_denials AppArmor denial(s) in kernel log"
+            diag_explain "AppArmor is blocking an application. Check which profile is involved."
+            diag_fix "Set profile to complain: sudo aa-complain /path/to/binary"
+            diag_fix "Disable a profile: sudo aa-disable /path/to/binary"
+            diag_fix "After fixing, re-enforce: sudo aa-enforce /path/to/binary"
+        else
+            diag_verdict "ok" "No AppArmor denials detected"
+        fi
+
+        # List profiles
+        diag_run "AppArmor profiles" "ls /etc/apparmor.d/ 2>/dev/null | grep -v 'abstractions\|cache\|force\|local\|tunables' | head -15 || echo 'No profiles directory'"
+    fi
+
+    if [ "$mac_type" = "none" ]; then
+        diag_verdict "warn" "No MAC system detected (neither SELinux nor AppArmor)"
+        diag_explain "Most production Linux distributions use AppArmor (Ubuntu/Debian) or SELinux (RHEL/CentOS)."
+        diag_explain "MAC provides mandatory access control beyond standard file permissions."
+        diag_fix "Ubuntu/Debian: sudo apt install apparmor apparmor-utils"
+        diag_fix "RHEL/CentOS: usually pre-installed, check /etc/selinux/config"
     fi
 }
 
