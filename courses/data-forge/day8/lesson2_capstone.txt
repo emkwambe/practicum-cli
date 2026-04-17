@@ -1,0 +1,117 @@
+# Final Capstone: Build a Complete ETL Pipeline
+
+## [INTENT] "Build a production-grade data pipeline using everything you've learned."
+
+## [ACTION] Build: data-pipeline.sh
+
+### The Scenario:
+You're a data engineer at a startup. Every day you need to:
+  1. Pull latest data from a public API
+  2. Combine it with local sales data (CSV)
+  3. Clean and transform everything
+  4. Store in a local database
+  5. Generate a summary report
+  6. Log every step
+
+### Requirements:
+
+Your script data-pipeline.sh must:
+
+1. **Script structure:**
+   - Shebang + set -euo pipefail
+   - trap for cleanup
+   - Logging function with timestamps
+   - Accept flags: -o (output dir), -v (verbose), -h (help)
+
+2. **Extract stage:**
+   - Pull JSON from a public API using curl
+     (use: https://api.github.com/users/emkwambe/repos)
+   - Save raw response to raw/ directory
+   - Read a local CSV file (create sample sales.csv)
+
+3. **Transform stage:**
+   - Use jq to convert API JSON → CSV (name, stars, language, updated)
+   - Use csvkit or sqlite3 to clean the sales CSV:
+     - Remove duplicates
+     - Lowercase email fields
+     - Fill missing values
+   - Join/aggregate data in sqlite3
+
+4. **Load stage:**
+   - Import all clean data into pipeline.db (sqlite3)
+   - Create indexed tables
+   - Export summary reports as CSV files:
+     - repos_by_language.csv (repos grouped by language)
+     - sales_summary.csv (revenue by product)
+     - daily_report.csv (combined metrics)
+
+5. **Report stage:**
+   - Print a formatted summary to stdout:
+     ═══════════════════════════════════════
+     DATA PIPELINE REPORT — 2026-04-17
+     ═══════════════════════════════════════
+     Repos analyzed: 25
+     Languages found: 8
+     Top language: JavaScript (12 repos)
+
+     Sales processed: 150
+     Total revenue: $12,450.00
+     Top product: Premium ($5,200)
+
+     Pipeline completed in: 3.2 seconds
+     Output: ./output/
+     ═══════════════════════════════════════
+
+6. **Production quality:**
+   - Idempotent (can run multiple times safely)
+   - All functions use local variables
+   - Error handling on every curl/sqlite3 call
+   - Raw data archived with date stamp
+   - Log file written with timestamps
+
+### Directory structure:
+  data-pipeline/
+    data-pipeline.sh      ← main script
+    data/
+      sales.csv           ← sample input data
+    raw/                   ← raw API responses (timestamped)
+    output/                ← clean CSVs and reports
+    logs/                  ← execution logs
+    pipeline.db            ← sqlite3 database
+
+### Grading criteria (12 points):
+  [ ] Script runs without errors (1)
+  [ ] Shebang + strict mode (1)
+  [ ] Trap for cleanup (1)
+  [ ] Logging with timestamps (1)
+  [ ] Flag parsing (-o, -v, -h) (1)
+  [ ] curl extracts API data (1)
+  [ ] jq transforms JSON to CSV (1)
+  [ ] sqlite3 database created with tables (1)
+  [ ] At least 2 report CSVs generated (1)
+  [ ] Formatted summary printed (1)
+  [ ] Idempotent (runs twice without error) (1)
+  [ ] Local variables in functions (1)
+
+  Pass: 9/12
+
+### Sample sales.csv for testing:
+  date,product,quantity,unit_price,customer_email
+  2026-04-01,Widget,5,9.99,alice@gmail.com
+  2026-04-01,Premium,2,49.99,bob@yahoo.com
+  2026-04-02,Widget,3,9.99,charlie@gmail.com
+  2026-04-02,Gadget,7,24.99,alice@gmail.com
+  2026-04-03,Premium,1,49.99,diana@outlook.com
+  2026-04-03,Widget,10,9.99,BOB@YAHOO.COM
+  2026-04-04,Gadget,4,24.99,eve@gmail.com
+  2026-04-04,Premium,3,49.99,alice@gmail.com
+
+## [EXPECTED RESULT]
+A complete, runnable ETL pipeline that extracts from API + CSV,
+transforms with jq + sqlite3, loads into a database, and reports.
+Scheduled with cron, it runs daily and produces fresh reports.
+
+## 🎓 Completion:
+When you pass, generate your certificate: practicum certificate
+You have mastered Data Forge — command-line data engineering.
+"Excel crashes. The command line doesn't."

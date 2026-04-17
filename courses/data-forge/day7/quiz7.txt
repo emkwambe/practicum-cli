@@ -1,0 +1,55 @@
+Q1: tail -F (capital F) differs from tail -f because:
+A) It's faster
+B) It follows the file even after log rotation (reconnects to new file)
+C) It filters output
+D) It formats output
+Correct: B
+
+Q2: Why use --line-buffered with grep in a pipe after tail -f?
+A) Makes grep faster
+B) Forces grep to output each match immediately instead of buffering
+C) Enables regex
+D) Adds line numbers
+Correct: B
+
+Q3: tee errors.log does what in a pipeline?
+A) Creates a tee-shaped pipe
+B) Sends output to BOTH the screen and the file simultaneously
+C) Only writes to file
+D) Filters for "tee" pattern
+Correct: B
+
+Q4: watch -n 5 'df -h' does what?
+A) Watches a file
+B) Re-runs "df -h" every 5 seconds, showing updated output
+C) Waits 5 seconds then exits
+D) Monitors disk for 5 minutes
+Correct: B
+
+Q5: The pipeline tail -f log | grep "ERROR" | awk '{count++}' has a problem:
+A) awk can't count
+B) grep and awk both buffer — you may see nothing for minutes. Use --line-buffered.
+C) tail can't pipe
+D) No problem
+Correct: B
+
+Q6: To monitor multiple log files simultaneously:
+A) Open multiple terminals
+B) tail -f /var/log/*.log (tail accepts multiple files)
+C) cat /var/log/*.log | tail
+D) watch cat /var/log
+Correct: B
+
+Q7: stdbuf -oL command does what?
+A) Sets buffer size to L
+B) Forces line-buffered stdout for the command (each line outputs immediately)
+C) Stores buffer in /dev/null
+D) Limits CPU usage
+Correct: B
+
+Q8: A real-time alert pipeline that watches auth logs for brute force attacks uses:
+A) cron
+B) tail -F /var/log/auth.log | grep --line-buffered "Failed password" | alert_script
+C) cat auth.log | mail
+D) watch grep auth.log
+Correct: B

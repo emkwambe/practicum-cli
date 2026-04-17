@@ -1,0 +1,18 @@
+# Data Forge unlock chain
+# Day 1: pipeline_design, advanced_grep, awk_queries, sed_transform
+pipeline_design|advanced_grep
+advanced_grep|awk_queries
+awk_queries|sed_transform
+# Day 2: jq_basics, jq_filtering, jq_output
+jq_basics|jq_filtering
+jq_filtering|jq_output
+# Day 3: csvkit, xsv, csvsql
+csvkit|xsv
+xsv|csvsql
+# Day 4: sqlite3_basics, sqlite3_advanced
+sqlite3_basics|sqlite3_advanced
+# Day 6: curl, api_pipelines
+curl|api_pipelines
+# Day 7: streams
+# Day 8: etl_review, capstone
+etl_review|capstone

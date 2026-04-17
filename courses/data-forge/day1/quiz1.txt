@@ -1,0 +1,55 @@
+Q1: What does grep -o do differently from plain grep?
+A) Outputs the filename
+B) Outputs ONLY the matching portion of the line, not the full line
+C) Outputs in reverse order
+D) Outputs without color
+Correct: B
+
+Q2: Why must you sort BEFORE uniq?
+A) uniq requires sorted input
+B) uniq only removes CONSECUTIVE duplicates, so unsorted input leaves duplicates
+C) sort is faster after uniq
+D) uniq crashes on unsorted input
+Correct: B
+
+Q3: awk '{count[$2]++} END {for (k in count) print k, count[k]}' does what?
+A) Counts characters in column 2
+B) Groups by column 2 and counts occurrences (like SQL GROUP BY + COUNT)
+C) Sorts column 2
+D) Prints column 2 twice
+Correct: B
+
+Q4: Why use --line-buffered with grep in a pipe after tail -f?
+A) It's faster
+B) Without it, grep buffers output and you don't see results in real time
+C) It enables color
+D) It's required by POSIX
+Correct: B
+
+Q5: Which sed command removes the first line (header) of a CSV?
+A) sed '1d'
+B) sed 's/1//'
+C) sed '/1/d'
+D) sed -n '1p'
+Correct: A
+
+Q6: How do you extract ONLY IP addresses from a log file?
+A) grep "IP" logfile
+B) grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' logfile
+C) awk '{print IP}' logfile
+D) cut -d. -f1 logfile
+Correct: B
+
+Q7: Why does awk -F, fail on CSVs with quoted fields containing commas?
+A) awk doesn't support -F
+B) awk splits on ALL commas, including those inside quoted fields
+C) awk can't read CSV
+D) -F only works with single characters
+Correct: B
+
+Q8: What makes Unix pipes more memory-efficient than Excel for large files?
+A) Pipes use GPU
+B) Pipes stream line-by-line (constant memory); Excel loads the entire file into RAM
+C) Pipes compress the data
+D) No difference
+Correct: B

@@ -1,0 +1,82 @@
+# Assessment 1: Transform a Messy Dataset
+
+## [INTENT] "Prove you can clean, transform, and analyze real data from the CLI."
+
+## [ACTION] Complete these tasks:
+
+### Scenario:
+You received three messy CSV files from a client. Your job:
+clean them, join them, and produce a summary report — all from the CLI.
+
+### Setup — create the test files:
+  mkdir -p ~/data-forge-assess && cd ~/data-forge-assess
+
+  cat > customers.csv << 'EOF'
+  id,name,email,city
+  1,"Alice Johnson",alice@gmail.com,New York
+  2,"Bob Smith",BOB@YAHOO.COM,"San Francisco"
+  3,"Charlie Brown",charlie@gmail.com,Charlotte
+  4,"Diana Prince",,Los Angeles
+  5,"Eve Wilson",eve@outlook.com,Charlotte
+  6,"Alice Johnson",alice@gmail.com,New York
+  EOF
+
+  cat > orders.csv << 'EOF'
+  order_id,customer_id,product,amount,date
+  101,1,Widget,29.99,2026-04-01
+  102,2,Gadget,49.99,2026-04-01
+  103,1,Widget,29.99,2026-04-02
+  104,3,Premium,99.99,2026-04-03
+  105,5,Widget,29.99,2026-04-03
+  106,2,Premium,99.99,2026-04-04
+  107,4,Gadget,49.99,2026-04-04
+  EOF
+
+  cat > products.json << 'EOF'
+  [
+    {"sku": "Widget", "category": "Basic", "cost": 12.00},
+    {"sku": "Gadget", "category": "Standard", "cost": 22.00},
+    {"sku": "Premium", "category": "Pro", "cost": 45.00}
+  ]
+  EOF
+
+### Task 1: Clean the customer data
+Using csvkit, sqlite3, or CLI tools:
+  - Remove duplicate customers (Alice appears twice)
+  - Lowercase all emails
+  - Replace empty emails with "no-email@unknown.com"
+  - Output: clean_customers.csv
+
+### Task 2: Convert JSON to CSV
+  - Convert products.json to products.csv using jq
+  - Add a header row
+  - Output: products.csv
+
+### Task 3: Join and analyze
+Using sqlite3 or csvsql:
+  - Import clean_customers.csv, orders.csv, products.csv
+  - Query: revenue by city (SUM of amount, GROUP BY city)
+  - Query: top customer by total spend
+  - Query: profit per product (amount - cost for each order)
+  - Output each query result as a CSV file
+
+### Task 4: Summary report
+Create a one-liner pipeline that outputs:
+  "Total orders: N | Total revenue: $X | Unique customers: Y"
+
+### Task 5: Automate it
+Write a script called transform.sh that:
+  - Takes an input directory as argument
+  - Runs all the above transformations
+  - Outputs clean files to an output directory
+  - Uses set -euo pipefail
+  - Logs actions with timestamps
+
+## [EXPECTED RESULT]
+Files produced:
+  clean_customers.csv  — deduplicated, cleaned
+  products.csv         — converted from JSON
+  revenue_by_city.csv  — aggregated report
+  top_customer.csv     — top spender
+  profit_by_product.csv — margin analysis
+  transform.sh         — automated pipeline script

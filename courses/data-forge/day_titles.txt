@@ -1,0 +1,8 @@
+Day 1 — Pipes & Text Tools (Fast Review)
+Day 2 — jq: JSON from the Terminal
+Day 3 — CSV at Scale (csvkit, xsv)
+Day 4 — sqlite3: Databases Without Servers
+Day 5 — Assessment 1 (Transform a Dataset)
+Day 6 — curl + jq: API Data Pipelines
+Day 7 — Real-Time Streams & Monitoring
+Day 8 — Capstone: Full ETL Pipeline

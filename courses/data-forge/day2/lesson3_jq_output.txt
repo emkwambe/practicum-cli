@@ -1,0 +1,89 @@
+# Lesson: jq Output — CSV, TSV, and Custom Formats
+
+## [WHEN] You need this when:
+1. You need to convert JSON to CSV for import into a database.
+2. You want tab-separated output for awk processing downstream.
+3. You need to construct new JSON objects from existing data.
+4. You're building the "transform" stage of an ETL pipeline.
+
+## [INTENT] "Convert JSON into any output format I need."
+
+## [CONTEXT]
+jq can output more than JSON. With @csv, @tsv, @text, and string
+interpolation, you can produce any format from JSON input.
+
+## [ACTION] Output formatting
+
+### JSON to CSV:
+  echo '[{"name":"Alice","age":30},{"name":"Bob","age":25}]' | \
+    jq -r '.[] | [.name, .age] | @csv'
+  # "Alice",30
+  # "Bob",25
+
+  # With header:
+  echo '[{"name":"Alice","age":30},{"name":"Bob","age":25}]' | \
+    jq -r '["name","age"], (.[] | [.name, .age]) | @csv'
+  # "name","age"
+  # "Alice",30
+  # "Bob",25
+
+### JSON to TSV:
+  jq -r '.[] | [.name, .age] | @tsv'
+  # Alice	30
+  # Bob	25
+
+### Custom string format:
+  jq -r '.[] | "User: \(.name), Age: \(.age)"'
+  # User: Alice, Age: 30
+  # User: Bob, Age: 25
+
+### String interpolation:
+  jq -r '.[] | "\(.ip)\t\(.status)\t\(.timestamp)"'
+
+### Construct new objects:
+  jq '.[] | {full_name: (.first + " " + .last), email}'
+
+### Flatten nested structures:
+  # From: {"user": {"name": "Alice", "address": {"city": "NYC"}}}
+  # To:   {"name": "Alice", "city": "NYC"}
+  jq '{name: .user.name, city: .user.address.city}'
+
+### Aggregate (reduce):
+  jq '[.[] | .amount] | add'                    # sum
+  jq '[.[] | .amount] | add / length'            # average
+  jq '[.[] | .amount] | min'                      # min
+  jq '[.[] | .amount] | max'                      # max
+
+### Build an array from stream:
+  jq -n '[inputs | .name]' file1.json file2.json  # combine multiple files
+
+### Null handling:
+  jq '.name // "N/A"'                            # default if null
+  jq 'del(.[] | select(.value == null))'         # remove null entries
+
+## [EXPECTED RESULT]
+You can take ANY JSON input and produce CSV, TSV, custom text,
+or restructured JSON as output. This is the bridge between
+JSON APIs and traditional Unix text tools.
+
+## Try it now:
+  # Convert GitHub repos to a clean CSV:
+  curl -s "https://api.github.com/users/emkwambe/repos" | \
+    jq -r '["name","stars","language","updated"], (.[] | [.name, .stargazers_count, (.language // "none"), .updated_at]) | @csv'
+
+## Technician Tip:
+The @csv formatter handles quoting automatically. If a field contains
+a comma, it wraps it in quotes. If it contains a quote, it escapes it.
+Always prefer @csv over manual comma-joining.
+
+  ❌ jq -r '.[] | "\(.name),\(.city)"'      # breaks if name has comma
+  ✅ jq -r '.[] | [.name, .city] | @csv'     # handles commas correctly
+
+## Common Pain Point:
+"@csv produces extra quotes" → that's correct CSV format. The quotes
+are there to protect commas and newlines inside values. If you don't
+want them, use @tsv or string interpolation instead.
+
+## Next:
+Type menu to return. You have completed Day 2!
+You can now parse, filter, transform, and export JSON data from the CLI.

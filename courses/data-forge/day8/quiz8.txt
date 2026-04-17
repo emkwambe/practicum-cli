@@ -1,0 +1,55 @@
+Q1: ETL stands for:
+A) Extract, Transfer, Log
+B) Extract, Transform, Load
+C) Edit, Test, Launch
+D) Evaluate, Train, Learn
+Correct: B
+
+Q2: An idempotent pipeline means:
+A) It runs only once
+B) Running it multiple times produces the same result without side effects
+C) It's faster
+D) It uses no memory
+Correct: B
+
+Q3: The best tool for the "Extract" stage from an API is:
+A) awk
+B) curl
+C) sqlite3
+D) sed
+Correct: B
+
+Q4: The best tool for the "Transform" stage of JSON data is:
+A) grep
+B) jq
+C) curl
+D) tail
+Correct: B
+
+Q5: The best tool for the "Load" stage (structured storage) is:
+A) echo
+B) sqlite3
+C) cat
+D) tee
+Correct: B
+
+Q6: Why save raw API responses before transforming?
+A) APIs charge per request
+B) If your transform logic has a bug, you can fix and reprocess without re-fetching
+C) Raw is smaller
+D) Required by HTTP spec
+Correct: B
+
+Q7: A production pipeline should include all of these EXCEPT:
+A) Logging with timestamps
+B) Error handling and retries
+C) Hardcoded API keys in the script
+D) Idempotent operations
+Correct: C
+
+Q8: cron is used in ETL pipelines for:
+A) Data cleaning
+B) Scheduling automated runs (e.g., daily at 6 AM)
+C) JSON parsing
+D) Database indexing
+Correct: B

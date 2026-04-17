@@ -1,0 +1,72 @@
+# Data Forge — What You're Training For
+
+## 🎯 This course makes you a command-line data engineer
+
+After completing all 8 days, you will be able to:
+
+  ✅ JSON PROCESSING (90% of modern DevOps/data roles)
+     - Parse API responses with jq
+     - Filter, reshape, and flatten nested JSON
+     - Build curl + jq pipelines for live data
+
+  ✅ CSV AT SCALE (85% of data engineering roles)
+     - Process million-row CSVs that crash Excel
+     - Clean, filter, join, and aggregate with csvkit and xsv
+     - Handle encoding, delimiter, and quoting edge cases
+
+  ✅ CLI DATABASES (80% of data/SRE roles)
+     - Query structured data with sqlite3 (no server needed)
+     - Import CSVs, join tables, run SQL from the terminal
+     - Stage and transform data before loading to production
+
+  ✅ API DATA PIPELINES (85% of DevOps roles)
+     - Pull data from REST APIs with curl
+     - Handle authentication, pagination, rate limits
+     - Transform API responses into reports
+
+  ✅ REAL-TIME MONITORING (90% of SRE roles)
+     - Watch logs in real time with tail + awk + grep
+     - Build live alert pipelines
+     - Monitor system metrics from the terminal
+
+  ✅ ETL ENGINEERING (core data engineering skill)
+     - Extract from any source (files, APIs, databases)
+     - Transform with pipes, jq, awk, sqlite3
+     - Load into clean outputs (CSV, JSON, SQLite, reports)
+     - Schedule with cron for automated data pipelines
+
+## 📋 Skills You Will Develop (by day)
+
+  Day 1: Unix pipes, grep, awk, sed — fast review + advanced patterns
+  Day 2: jq — parse, filter, reshape JSON from APIs and logs
+  Day 3: csvkit, xsv — process massive CSVs from the terminal
+  Day 4: sqlite3 — SQL databases without servers
+  Day 5: Assessment 1 — transform a messy dataset
+  Day 6: curl + jq — build API data pipelines
+  Day 7: Real-time streams — tail, watch, tee, live alerting
+  Day 8: Capstone — full ETL pipeline (extract → transform → load → report)
+
+## 🏆 By the end, you can:
+
+  - Process a 10 GB log file in seconds (not hours in Excel)
+  - Pull data from any API and transform it into a report
+  - Build automated data pipelines that run on cron
+  - Query CSV data with SQL — no database server needed
+  - Monitor live systems and trigger alerts from the CLI
+
+## 💼 Roles this prepares you for:
+
+  - Data Engineer
+  - Analytics Engineer
+  - Site Reliability Engineer (SRE)
+  - Platform Engineer
+  - DevOps Engineer (data-heavy)
+
+  Average salary range: $90,000 - $130,000
+
+## 🎓 Certification alignment:
+
+  - LFCS (Scripting & Automation domain)
+  - RHCSA (Shell scripting tasks)
+
+## ▶ Ready? Type any key to begin.

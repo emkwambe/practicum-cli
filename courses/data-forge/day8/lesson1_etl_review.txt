@@ -1,0 +1,79 @@
+# Lesson: The ETL Lifecycle — Review Before the Capstone
+
+## [WHEN] You need this when:
+You're about to build a complete ETL pipeline and need the full picture.
+
+## [INTENT] "Understand the complete Extract → Transform → Load lifecycle."
+
+## [CONTEXT]
+ETL is the backbone of data engineering. Every company that uses data
+has ETL pipelines. You've learned every tool. Now combine them.
+
+## The Data Forge Toolchain:
+
+### Extract (get data from sources):
+  curl        — APIs and web services
+  cat/tail    — local files and logs
+  sqlite3     — existing databases
+  .import     — CSV into sqlite3
+
+### Transform (clean, reshape, aggregate):
+  jq          — JSON transformation
+  awk/sed     — text transformation
+  csvkit/xsv  — CSV transformation
+  sqlite3 SQL — joins, aggregations, cleaning
+
+### Load (deliver clean output):
+  > file.csv       — write to CSV
+  > file.json      — write to JSON
+  sqlite3 .import  — load into database
+  | mail           — email a report
+  | curl -X POST   — push to another API
+
+### Orchestrate (automate and schedule):
+  cron              — schedule runs
+  set -euo pipefail — fail fast on errors
+  trap cleanup EXIT — always clean up
+  Logging           — record what happened
+
+## Production ETL Principles:
+
+  1. IDEMPOTENT — run it twice, get the same result
+     DROP TABLE IF EXISTS; CREATE TABLE AS SELECT ...
+
+  2. LOGGED — know what happened
+     log() { echo "[$(date '+%F %T')] $1" >> "$LOG_FILE"; }
+
+  3. VALIDATED — catch bad data early
+     SELECT COUNT(*) WHERE email NOT LIKE '%@%.%'
+
+  4. RECOVERABLE — save checkpoints
+     Save raw data before transforming (reprocess if jq filter was wrong)
+
+  5. MONITORED — know when it breaks
+     Exit codes + cron MAILTO + log file checks
+
+## The Capstone Pattern:
+
+  #!/bin/bash
+  set -euo pipefail
+  trap cleanup EXIT
+
+  # 1. Extract
+  fetch_api_data
+  load_csv_files
+
+  # 2. Transform
+  clean_data
+  join_sources
+  aggregate_metrics
+
+  # 3. Load
+  export_reports
+  archive_raw_data
+
+  # 4. Report
+  generate_summary
+  send_notification
+
+## Continue to the capstone to build this for real.

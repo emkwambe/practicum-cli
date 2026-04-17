@@ -1,0 +1,91 @@
+# Lesson: csvkit — The CSV Swiss Army Knife
+
+## [WHEN] You need this when:
+1. Your CSV has quoted fields with commas inside (awk breaks).
+2. You need SQL-like queries on a CSV without a database.
+3. You need to convert between CSV, JSON, and Excel formats.
+4. You're analyzing a dataset and need quick column stats.
+
+## [INTENT] "Process CSV files properly — with quoting, types, and SQL."
+
+## [CONTEXT]
+awk -F, breaks on real-world CSVs because commas appear inside quoted
+fields. csvkit handles CSV correctly: quoting, escaping, encodings.
+
+Install: pip install csvkit (or sudo apt install csvkit)
+
+csvkit is a suite of tools, each doing one thing:
+  csvlook    — pretty-print a CSV as a table
+  csvcut     — extract columns by name or number
+  csvgrep    — filter rows by column value
+  csvstat    — column statistics (mean, median, mode, etc.)
+  csvsort    — sort by column
+  csvjoin    — join two CSVs on a shared column
+  csvformat  — convert delimiters (TSV→CSV, etc.)
+  csvstack   — concatenate multiple CSVs
+  csvsql     — run SQL queries on CSV files
+  in2csv     — convert Excel/JSON to CSV
+  csvjson    — convert CSV to JSON
+
+## [ACTION] csvkit essentials
+
+### Inspect a CSV:
+  csvlook data.csv                          # pretty table
+  csvlook data.csv | head -20              # first 20 rows
+  csvcut -n data.csv                        # list column names + numbers
+
+### Extract columns:
+  csvcut -c 1,3,5 data.csv                 # by number
+  csvcut -c name,email,city data.csv       # by name
+  csvcut -C notes,internal data.csv        # EXCLUDE columns
+
+### Filter rows:
+  csvgrep -c status -m "active" data.csv   # WHERE status = "active"
+  csvgrep -c age -r "^[3-4][0-9]$" data.csv  # regex: age 30-49
+  csvgrep -c email -r "@gmail" data.csv    # emails containing @gmail
+  csvgrep -c status -m "inactive" -i data.csv  # NOT inactive
+
+### Statistics:
+  csvstat data.csv                          # full stats for every column
+  csvstat -c revenue data.csv              # stats for one column
+  csvstat --count data.csv                 # row count
+  csvstat --mean -c price data.csv         # mean of price column
+
+### Sort:
+  csvsort -c revenue -r data.csv           # sort by revenue, descending
+  csvsort -c name data.csv                 # sort alphabetically
+
+### Convert formats:
+  in2csv data.xlsx > data.csv              # Excel to CSV
+  in2csv data.json > data.csv              # JSON to CSV
+  csvjson data.csv > data.json             # CSV to JSON
+  csvformat -T data.csv > data.tsv         # CSV to TSV
+
+## [EXPECTED RESULT]
+You can inspect, filter, extract, sort, and convert CSV data
+without opening Excel — and it handles quoting correctly.
+
+## Try it now:
+  # Create a test CSV:
+  cat > /tmp/test.csv << 'EOF'
+  name,age,city,salary
+  "Alice, Jr.",30,New York,85000
+  Bob,25,"San Francisco",72000
+  Charlie,35,Charlotte,95000
+  Diana,28,"Los Angeles",68000
+  EOF
+  csvlook /tmp/test.csv
+  csvcut -c name,salary /tmp/test.csv
+  csvgrep -c salary -r "^[89]" /tmp/test.csv
+  csvstat /tmp/test.csv
+
+## Technician Tip:
+csvkit loads data into memory for some operations (csvstat, csvsql).
+For very large files (10M+ rows), use xsv instead (next lesson).
+csvkit is better for complex operations; xsv is better for speed.
+
+## Common Pain Point:
+"csvkit sniffing error — wrong delimiter detected" → specify explicitly:
+  csvlook -d "|" pipe_file.txt              # pipe-delimited
+  csvlook -d "\t" tsv_file.txt              # tab-delimited
+  csvlook --no-inference data.csv           # disable type guessing

@@ -1,0 +1,55 @@
+Q1: What does jq -r do?
+A) Recursive search
+B) Raw output — strings without quotes (pipeable to other tools)
+C) Reverse order
+D) Read from file
+Correct: B
+
+Q2: How do you access a nested JSON field like {"user":{"name":"Eddy"}}?
+A) jq '.user.name'
+B) jq '.user->name'
+C) jq 'user[name]'
+D) jq '.user/name'
+Correct: A
+
+Q3: select(.role == "admin") does what in a jq pipeline?
+A) Creates a new field called role
+B) Keeps only objects where role equals "admin" (like SQL WHERE)
+C) Selects the role column
+D) Sorts by role
+Correct: B
+
+Q4: How do you convert JSON to CSV with jq?
+A) jq --csv
+B) jq -r '.[] | [.field1, .field2] | @csv'
+C) jq -f csv
+D) jq | csv
+Correct: B
+
+Q5: jq 'map(select(.active)) | sort_by(.name)' does what?
+A) Activates and sorts
+B) Keeps only active items, then sorts by name
+C) Maps active to name
+D) Filters names that are active
+Correct: B
+
+Q6: How do you provide a default value when a JSON field is null?
+A) jq '.name ?? "default"'
+B) jq '.name // "default"'
+C) jq '.name || "default"'
+D) jq 'default(.name)'
+Correct: B
+
+Q7: jq '[.[] | .amount] | add' does what?
+A) Adds a new amount field
+B) Sums all amount values in the array
+C) Counts the amounts
+D) Concatenates amounts
+Correct: B
+
+Q8: Why use @csv instead of manual string interpolation for CSV output?
+A) @csv is faster
+B) @csv handles commas, quotes, and newlines inside values correctly
+C) @csv is required by jq
+D) No difference
+Correct: B

@@ -1,0 +1,88 @@
+# Lesson: jq Filtering — select, map, and Conditions
+
+## [WHEN] You need this when:
+1. You need to filter an array of objects (e.g., only active users).
+2. You want to transform each item in an array.
+3. You need to combine filtering + transformation in one pass.
+
+## [INTENT] "Filter and transform JSON arrays like SQL WHERE + SELECT."
+
+## [CONTEXT]
+jq's power is in select() and map():
+  select(condition) — keep items matching a condition (WHERE)
+  map(filter)       — apply a transformation to each item (SELECT)
+
+## [ACTION] Filter and transform
+
+### select — filter items:
+  # Keep only admin users:
+  echo '[{"name":"Alice","role":"admin"},{"name":"Bob","role":"user"}]' | \
+    jq '.[] | select(.role == "admin")'
+  # {"name":"Alice","role":"admin"}
+
+  # Numeric conditions:
+  echo '[{"name":"A","score":85},{"name":"B","score":42}]' | \
+    jq '.[] | select(.score >= 70)'
+
+  # String contains:
+  echo '[{"msg":"disk full"},{"msg":"all ok"},{"msg":"disk warning"}]' | \
+    jq '.[] | select(.msg | contains("disk"))'
+
+  # Multiple conditions (and / or):
+  jq '.[] | select(.role == "admin" and .active == true)'
+  jq '.[] | select(.status == "error" or .status == "critical")'
+
+  # Negate:
+  jq '.[] | select(.role != "admin")'
+
+### map — transform each item:
+  # Extract just names:
+  echo '[{"name":"Alice","age":30},{"name":"Bob","age":25}]' | \
+    jq '[.[] | .name]'
+  # ["Alice","Bob"]
+
+  # Shorter with map:
+  echo '[{"name":"Alice","age":30},{"name":"Bob","age":25}]' | \
+    jq 'map(.name)'
+  # ["Alice","Bob"]
+
+  # Transform structure:
+  jq 'map({user: .name, years: .age})'
+
+### Combine select + map:
+  # Active admins, extract name and email:
+  jq 'map(select(.role == "admin" and .active)) | map({name, email})'
+
+### sort_by and group_by:
+  jq 'sort_by(.score) | reverse'             # sort descending
+  jq 'sort_by(.date)'                         # sort by date field
+  jq 'group_by(.department)'                   # group into sub-arrays
+  jq 'group_by(.status) | map({status: .[0].status, count: length})'  # group + count
+
+### unique_by:
+  jq 'unique_by(.email)'                      # deduplicate by email
+
+### limit:
+  jq '.[0:10]'                                # first 10 items
+  jq '.[-5:]'                                  # last 5 items
+
+## [EXPECTED RESULT]
+You can filter, sort, group, and transform JSON arrays like SQL —
+but from the command line, on any JSON source.
+
+## Try it now:
+  curl -s "https://api.github.com/users/emkwambe/repos" | \
+    jq 'map(select(.fork == false)) | sort_by(.updated_at) | reverse | .[0:5] | map({name, updated: .updated_at})'
+  # Your 5 most recently updated non-forked repos
+
+## Technician Tip:
+The pattern: jq '[.[] | select(X)]' wraps output back into an array.
+Without the outer [...], you get individual objects (one per line).
+With it, you get a proper JSON array.
+  .[] | select(X)       → individual objects (good for piping)
+  [.[] | select(X)]     → array (good for JSON output)
+  map(select(X))        → same as above (shorter)
+
+## Common Pain Point:
+"Cannot iterate over null" → the field you're iterating isn't an array.
+Check the structure first: jq 'type' or jq '.field | type'

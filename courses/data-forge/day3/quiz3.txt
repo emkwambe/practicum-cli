@@ -1,0 +1,55 @@
+Q1: Why is csvkit better than awk -F, for CSV processing?
+A) csvkit is faster
+B) csvkit handles quoted fields with commas inside correctly; awk breaks on them
+C) csvkit uses less memory
+D) awk can't read CSV at all
+Correct: B
+
+Q2: What does csvcut -c name,email data.csv do?
+A) Cuts the file in half
+B) Extracts only the name and email columns
+C) Removes name and email
+D) Counts names and emails
+Correct: B
+
+Q3: xsv is faster than csvkit because:
+A) It uses more RAM
+B) It's written in Rust and streams data (constant memory for most ops)
+C) It skips validation
+D) It uses the GPU
+Correct: B
+
+Q4: xsv index data.csv creates what?
+A) A search index for grep
+B) An index file (data.csv.idx) for instant random row access and fast counts
+C) A database index
+D) A backup copy
+Correct: B
+
+Q5: csvsql --query "SELECT city, COUNT(*) FROM data GROUP BY city" does what?
+A) Creates a new city column
+B) Runs a SQL GROUP BY query on the CSV file using an in-memory database
+C) Imports into MySQL
+D) Searches for cities
+Correct: B
+
+Q6: xsv frequency -s status data.csv outputs what?
+A) How often the file was accessed
+B) Count of each unique value in the status column
+C) Radio frequency data
+D) File encoding frequency
+Correct: B
+
+Q7: What's the best strategy for a 50M row CSV?
+A) csvstat on the full file
+B) xsv for fast filtering, then csvsql on the filtered subset
+C) Open in Excel
+D) Load into RAM with cat
+Correct: B
+
+Q8: in2csv data.xlsx > data.csv converts what?
+A) CSV to Excel
+B) Excel to CSV
+C) JSON to CSV
+D) XML to CSV
+Correct: B

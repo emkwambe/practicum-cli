@@ -1,0 +1,34 @@
+Q1: To remove duplicate rows from a CSV based on email, the best approach is:
+A) grep -v duplicate
+B) Import into sqlite3, use DELETE with MIN(rowid) GROUP BY email
+C) sort | uniq
+D) sed '/duplicate/d'
+Correct: B
+
+Q2: jq -r '.[] | [.sku, .category, .cost] | @csv' converts what?
+A) CSV to JSON
+B) JSON array of objects to CSV rows
+C) JSON to XML
+D) CSV to TSV
+Correct: B
+
+Q3: A transform.sh script should start with:
+A) echo "hello"
+B) #!/bin/bash and set -euo pipefail
+C) import sys
+D) SELECT *
+Correct: B
+
+Q4: To calculate revenue by city from joined CSV data, the best tool is:
+A) grep
+B) csvsql or sqlite3 with GROUP BY
+C) wc -l
+D) cut
+Correct: B
+
+Q5: Idempotent scripts are important because:
+A) They run faster
+B) They produce the same result every time, even when run multiple times
+C) They use less memory
+D) They're encrypted
+Correct: B

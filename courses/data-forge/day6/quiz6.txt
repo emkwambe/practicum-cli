@@ -1,0 +1,55 @@
+Q1: curl -s does what?
+A) Secure mode
+B) Silent mode — suppresses progress bar and errors
+C) Sort output
+D) Stream mode
+Correct: B
+
+Q2: To check an API's HTTP status code without showing the body:
+A) curl -v url
+B) curl -s -o /dev/null -w "%{http_code}" url
+C) curl --status url
+D) curl -c url
+Correct: B
+
+Q3: API returns paginated results. How do you get all pages?
+A) curl --all-pages
+B) Loop: increment page parameter until response is empty
+C) Use jq --paginate
+D) APIs always return everything
+Correct: B
+
+Q4: Where should API keys be stored in scripts?
+A) Hardcoded in the script
+B) In environment variables or a separate file (not in the script)
+C) In the URL
+D) In comments
+Correct: B
+
+Q5: The pipeline curl -s URL | jq -r '.[] | @csv' >> output.csv does what?
+A) Downloads a webpage
+B) Fetches JSON from API, extracts fields as CSV rows, appends to file
+C) Converts CSV to JSON
+D) Creates an API
+Correct: B
+
+Q6: Why save raw API responses before transforming?
+A) APIs require it
+B) If your jq filter has a bug, you can fix it without re-fetching
+C) Raw is faster
+D) jq can't read from curl directly
+Correct: B
+
+Q7: curl --retry 3 --retry-delay 5 does what?
+A) Retries 3 times with 5-second delays between attempts on failure
+B) Downloads 3 copies
+C) Waits 5 seconds before starting
+D) Limits to 3 seconds
+Correct: A
+
+Q8: Combining curl + jq + sqlite3 creates what?
+A) A web server
+B) A complete Extract-Transform-Load (ETL) pipeline on the CLI
+C) A database server
+D) An API
+Correct: B

@@ -1,0 +1,74 @@
+# Lesson: awk as a Data Query Language
+
+## [WHEN] You need this when:
+1. You need to SUM, AVERAGE, or COUNT values in a text file.
+2. You want to GROUP BY a column (like SQL but on a flat file).
+3. You need conditional formatting based on data values.
+4. You want to reshape data (pivot, aggregate, join).
+
+## [INTENT] "Query structured text files like a database."
+
+## [CONTEXT]
+You learned awk basics in Shell Scripting. Data Forge uses awk
+as a QUERY LANGUAGE — not just column extraction but aggregation,
+grouping, and computation. Think of it as SQL for flat files.
+
+## [ACTION] awk as SQL
+
+### SELECT columns (you know this):
+  awk '{print $1, $3}' file              # SELECT col1, col3
+
+### WHERE clause:
+  awk '$3 > 100 {print $1, $3}' file     # WHERE col3 > 100
+  awk '$2 == "ERROR" {print}' log.txt     # WHERE col2 = 'ERROR'
+
+### SUM:
+  awk '{sum += $3} END {print "Total:", sum}' sales.csv
+
+### AVERAGE:
+  awk '{sum += $3; n++} END {print "Avg:", sum/n}' data.txt
+
+### COUNT:
+  awk '{count[$2]++} END {for (k in count) print k, count[k]}' log.txt
+  # GROUP BY col2, COUNT(*)
+
+### MAX / MIN:
+  awk 'NR==1 || $3 > max {max=$3; line=$0} END {print line}' data.txt   # MAX
+  awk 'NR==1 || $3 < min {min=$3; line=$0} END {print line}' data.txt   # MIN
+
+### GROUP BY with SUM:
+  awk -F, '{revenue[$1] += $3} END {for (dept in revenue) print dept, revenue[dept]}' sales.csv
+  # SUM(revenue) GROUP BY department
+
+### HAVING (filter groups):
+  awk '{count[$1]++} END {for (k in count) if (count[k] > 10) print k, count[k]}' access.log
+  # IPs with more than 10 requests
+
+### Formatted output (report-style):
+  awk -F, 'BEGIN {printf "%-20s %10s %10s\n", "Department", "Revenue", "Count"}
+  {rev[$1] += $3; cnt[$1]++}
+  END {for (d in rev) printf "%-20s %10.2f %10d\n", d, rev[d], cnt[d]}' sales.csv
+
+### Multi-file JOIN (awk as a lookup):
+  # File 1: user_id,name
+  # File 2: user_id,action,timestamp
+  awk -F, 'NR==FNR {name[$1]=$2; next} {print name[$1], $2, $3}' users.csv actions.csv
+  # Joins on user_id — like SQL LEFT JOIN
+
+## [EXPECTED RESULT]
+You can answer business questions from flat files without a database:
+  "Total revenue by department" → one awk command
+  "Top 10 users by request count" → awk + sort + head
+  "Average response time per endpoint" → awk with grouping
+
+## Technician Tip:
+For CSV with quoted fields containing commas, awk -F, breaks.
+Use: FPAT in GNU awk:
+  awk -v FPAT='[^,]*|"[^"]*"' '{print $3}' complex.csv
+
+Or better: use csvkit (Day 3) for proper CSV handling.
+
+## Common Pain Point:
+"awk gives wrong results on CSV" → commas inside quoted fields.
+awk doesn't understand CSV quoting. For simple CSVs it's fine.
+For complex CSVs: csvkit or xsv (covered Day 3).

@@ -1,0 +1,55 @@
+Q1: sqlite3 is different from MySQL/PostgreSQL because:
+A) It can't do JOINs
+B) It's serverless — the entire database is a single file, no daemon needed
+C) It doesn't support SQL
+D) It only works on macOS
+Correct: B
+
+Q2: How do you import a CSV into sqlite3?
+A) sqlite3 db "LOAD data.csv"
+B) .mode csv then .import data.csv tablename
+C) sqlite3 --csv data.csv
+D) cat data.csv | sqlite3
+Correct: B
+
+Q3: Why create an INDEX in sqlite3?
+A) Makes the file smaller
+B) Makes WHERE and JOIN queries dramatically faster on large tables
+C) Required for all tables
+D) Prevents duplicates
+Correct: B
+
+Q4: What does .mode json do in sqlite3?
+A) Imports JSON
+B) Sets output format to JSON for query results
+C) Validates JSON
+D) Creates a JSON column
+Correct: B
+
+Q5: In ETL staging with sqlite3, "idempotent" means:
+A) The script runs only once
+B) The script can run multiple times producing the same result without errors
+C) The data is immutable
+D) The script is encrypted
+Correct: B
+
+Q6: How do you export a sqlite3 query result as CSV?
+A) sqlite3 -csv db "SELECT ..."
+B) sqlite3 db ".export csv"
+C) sqlite3 --format=csv db
+D) sqlite3 db "SELECT ... INTO CSV"
+Correct: A
+
+Q7: sqlite3 handles cleaning like removing duplicate emails with:
+A) DISTINCT keyword or DELETE with subquery on MIN(rowid)
+B) .clean command
+C) DROP DUPLICATES
+D) csvkit
+Correct: A
+
+Q8: Wrapping .import in BEGIN/COMMIT makes it faster because:
+A) It skips validation
+B) It batches disk writes into one transaction instead of per-row commits
+C) It compresses the data
+D) It uses parallel processing
+Correct: B

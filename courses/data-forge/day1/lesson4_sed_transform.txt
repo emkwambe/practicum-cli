@@ -1,0 +1,76 @@
+# Lesson: sed for Data Transformation
+
+## [WHEN] You need this when:
+1. You need to reformat timestamps across 10 million lines.
+2. You're cleaning data before import (strip headers, fix encoding).
+3. You need to normalize inconsistent field formats.
+4. You're building a transform stage in a pipeline.
+
+## [INTENT] "Transform data format without loading it into memory."
+
+## [CONTEXT]
+In Data Forge, sed is a TRANSFORM tool, not an editor.
+It processes data line-by-line in a stream — constant memory,
+any file size. The key patterns for data work:
+
+## [ACTION] sed for data transformation
+
+### Reformat dates:
+  # MM/DD/YYYY → YYYY-MM-DD
+  echo "04/16/2026" | sed -E 's|([0-9]{2})/([0-9]{2})/([0-9]{4})|\3-\1-\2|'
+  # Output: 2026-04-16
+
+### Clean CSV headers:
+  # Remove spaces, lowercase, replace spaces with underscores
+  head -1 data.csv | sed 's/ /_/g' | sed 's/[A-Z]/\L&/g'
+  # "First Name,Last Name" → "first_name,last_name"
+
+### Strip specific lines:
+  sed '1d' data.csv                      # remove header
+  sed '1,5d' data.csv                    # remove first 5 lines
+  sed '/^$/d' data.csv                   # remove empty lines
+  sed '/^#/d' config.txt                 # remove comments
+
+### Normalize whitespace:
+  sed 's/  */ /g' messy.txt              # collapse multiple spaces to one
+  sed 's/[[:space:]]*$//' file.txt       # strip trailing whitespace
+  sed 's/^[[:space:]]*//' file.txt       # strip leading whitespace
+  sed 's/\r$//' windows.txt             # fix Windows line endings
+
+### Replace delimiters:
+  sed 's/\t/,/g' tsv_file.txt           # TSV → CSV
+  sed 's/,/\t/g' csv_file.txt           # CSV → TSV
+  sed 's/|/,/g' pipe_file.txt           # pipe-delimited → CSV
+
+### Insert/append data:
+  sed '1i\id,name,value' data.csv        # add header to headerless CSV
+  sed '$a\--- END OF DATA ---' report    # append footer
+
+### Conditional transform:
+  sed '/ERROR/ s/^/*** /' log.txt        # prefix ERROR lines with ***
+  sed '/^2026-04-16/ s/INFO/HIGHLIGHT/' log.txt  # transform only today's lines
+
+### Multi-step transform (chain with -e):
+  sed -e 's/\r$//' -e '/^$/d' -e 's/  */ /g' -e '1d' raw_data.csv > clean.csv
+  # Fix Windows endings + remove empty lines + collapse spaces + remove header
+
+## [EXPECTED RESULT]
+sed transforms data formats at streaming speed. A 5 GB file
+transforms in seconds because sed never loads the full file.
+
+## Technician Tip — sed + pipeline = transform stage:
+  curl -s "https://api.example.com/data" | \
+    jq -r '.results[] | [.name, .value] | @csv' | \
+    sed '1i\name,value' | \
+    sed 's/"//g' > clean_data.csv
+  # API → jq extracts → sed adds header + cleans quotes → CSV
+
+## Common Pain Point:
+"sed on macOS behaves differently" → macOS uses BSD sed.
+  GNU sed: sed -i 's/old/new/' file      (in-place, no backup)
+  BSD sed: sed -i '' 's/old/new/' file    (needs empty string)
+  Portable: sed 's/old/new/' file > tmp && mv tmp file
+
+## Next:
+Type menu to return. You have completed Day 1!
+You can now design multi-stage data pipelines using Unix tools.

@@ -1,0 +1,89 @@
+# Lesson: csvsql — Run SQL on CSV Files
+
+## [WHEN] You need this when:
+1. You need JOINs, GROUP BY, HAVING on CSV data.
+2. You want to query a CSV exactly like a database table.
+3. You're prototyping a query before writing it for production.
+4. You need to aggregate across multiple CSV files.
+
+## [INTENT] "Run full SQL queries on flat CSV files — no database needed."
+
+## [CONTEXT]
+csvsql (part of csvkit) creates an in-memory SQLite database from your
+CSV, runs your SQL query, and outputs the result. Full SQL power on
+flat files. For small-to-medium datasets (under 1M rows), it's instant.
+
+## [ACTION] csvsql patterns
+
+### Basic query:
+  csvsql --query "SELECT name, city FROM data" data.csv
+
+### WHERE clause:
+  csvsql --query "SELECT * FROM data WHERE salary > 80000" data.csv
+
+### GROUP BY + aggregation:
+  csvsql --query "SELECT city, COUNT(*) as count, AVG(salary) as avg_salary FROM data GROUP BY city" data.csv
+
+### JOIN two CSVs:
+  csvsql --query "SELECT u.name, o.product, o.amount FROM users u JOIN orders o ON u.id = o.user_id" users.csv orders.csv
+
+### ORDER BY + LIMIT:
+  csvsql --query "SELECT name, salary FROM data ORDER BY salary DESC LIMIT 10" data.csv
+
+### HAVING (filter groups):
+  csvsql --query "SELECT city, COUNT(*) as n FROM data GROUP BY city HAVING n >= 5" data.csv
+
+### Subqueries:
+  csvsql --query "SELECT * FROM data WHERE salary > (SELECT AVG(salary) FROM data)" data.csv
+
+### Output as CSV (for piping):
+  csvsql --query "SELECT name, salary FROM data WHERE salary > 80000 ORDER BY salary DESC" data.csv | csvlook
+
+### Create a table and insert into SQLite:
+  csvsql --db sqlite:///analysis.db --insert data.csv
+  # Now you have a persistent SQLite database from your CSV
+
+### Query multiple files:
+  csvsql --query "
+    SELECT d.department, COUNT(*) as headcount, SUM(s.amount) as total_sales
+    FROM departments d
+    JOIN sales s ON d.id = s.dept_id
+    GROUP BY d.department
+    ORDER BY total_sales DESC
+  " departments.csv sales.csv
+
+## [EXPECTED RESULT]
+Any SQL query you know works on CSV files. No database setup,
+no schema definition, no server. Just: csvsql --query "..." file.csv
+
+## Try it now:
+  cat > /tmp/employees.csv << 'EOF'
+  id,name,department,salary
+  1,Alice,Engineering,95000
+  2,Bob,Marketing,72000
+  3,Charlie,Engineering,88000
+  4,Diana,Marketing,75000
+  5,Eve,Engineering,102000
+  EOF
+
+  csvsql --query "SELECT department, COUNT(*) as n, AVG(salary) as avg_sal FROM employees GROUP BY department" /tmp/employees.csv | csvlook
+
+## Technician Tip:
+csvsql loads data INTO MEMORY. For files over 1M rows, either:
+  1. Pre-filter with xsv: xsv search ... | csvsql --query "..."
+  2. Import into sqlite3 (Day 4) for persistent, indexed queries
+
+The combo: xsv for speed filtering → csvsql for complex queries
+is the most powerful CSV analysis pattern on the CLI.
+
+## Common Pain Point:
+"csvsql is slow on large files" → it's loading everything into memory.
+Use --no-inference to skip type detection (faster):
+  csvsql --no-inference --query "..." data.csv
+
+"Column name has spaces" → quote in SQL:
+  csvsql --query 'SELECT "First Name" FROM data' data.csv
+
+## Next:
+Type menu to return. You have completed Day 3!
+You can now process CSV files at any scale — from quick filters to full SQL.

@@ -49,6 +49,7 @@ get_course_name() {
         git-essentials)    echo "Git & Version Control" ;;
         docker-essentials) echo "Docker & Containers" ;;
         shell-mastery)     echo "Shell Scripting Mastery" ;;
+        data-forge)        echo "Data Forge" ;;
         *) echo "$slug" ;;
     esac
 }
