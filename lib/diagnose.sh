@@ -20,7 +20,8 @@ cmd_diagnose() {
     print_menu_item "3" "💾 Disk or storage issues"
     print_menu_item "4" "⚙️  Service or application won't work"
     print_menu_item "5" "🔒 Permission denied or access issues"
-    print_menu_item "6" "🩺 Full system health check"
+    print_menu_item "6" "🔧 Hardware or kernel problems"
+    print_menu_item "7" "🩺 Full system health check"
     echo ""
     print_menu_item "0" "Back"
     print_prompt
@@ -32,7 +33,8 @@ cmd_diagnose() {
         3) diag_storage ;;
         4) diag_services ;;
         5) diag_permissions ;;
-        6) diag_health_check ;;
+        6) diag_hardware_menu ;;
+        7) diag_health_check ;;
         0) return 0 ;;
         *) echo -e "  ${C_RED}Invalid choice.${C_RESET}"; cmd_diagnose ;;
     esac
@@ -105,8 +107,9 @@ diag_performance() {
     echo ""
     print_menu_item "1" "High CPU usage (system is hot/loud)"
     print_menu_item "2" "Out of memory / OOM killed"
-    print_menu_item "3" "System feels sluggish (high load)"
-    print_menu_item "4" "Run all performance checks"
+    print_menu_item "3" "Swap thrashing (system very slow)"
+    print_menu_item "4" "System feels sluggish (high load)"
+    print_menu_item "5" "Run all performance checks"
     echo ""
     print_menu_item "9" "Back"
     print_prompt
@@ -115,8 +118,9 @@ diag_performance() {
     case "$choice" in
         1) diag_cpu ;;
         2) diag_memory ;;
-        3) diag_load ;;
-        4) diag_cpu; diag_pause; diag_memory; diag_pause; diag_load ;;
+        3) diag_swap ;;
+        4) diag_load ;;
+        5) diag_cpu; diag_pause; diag_memory; diag_pause; diag_swap; diag_pause; diag_load ;;
         9) cmd_diagnose ;;
         *) diag_performance ;;
     esac
@@ -227,6 +231,56 @@ diag_load() {
     diag_run "Uptime" "uptime"
 }
 
+diag_swap() {
+    diag_section "Swap Analysis"
+
+    diag_run "Swap devices" "swapon --show 2>/dev/null || cat /proc/swaps"
+    diag_run "Memory + swap overview" "free -h"
+
+    local swap_total
+    swap_total=$(free -m | awk '/^Swap:/ {print $2}')
+    local swap_used
+    swap_used=$(free -m | awk '/^Swap:/ {print $3}')
+
+    if [ "$swap_total" -eq 0 ] 2>/dev/null; then
+        diag_verdict "warn" "No swap configured"
+        diag_explain "Without swap, the OOM killer activates immediately when RAM is full."
+        diag_fix "Create swap: sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile"
+        diag_fix "Make permanent: echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab"
+        return
+    fi
+
+    local swap_pct=$((swap_used * 100 / swap_total))
+
+    if [ "$swap_pct" -gt 80 ]; then
+        diag_verdict "critical" "Swap ${swap_pct}% used (${swap_used}M / ${swap_total}M) — system is thrashing"
+        diag_explain "The system is constantly moving data between RAM and disk. Everything is slow."
+        diag_run "Top memory consumers" "ps aux --sort=-%mem | head -6"
+        diag_run "Per-process swap usage" "for pid in /proc/[0-9]*/status; do awk '/^(Name|VmSwap)/ {printf \$2\" \"}' \"\$pid\" 2>/dev/null; echo; done | sort -k2 -rn | head -10"
+        diag_fix "Kill or restart the memory hog identified above"
+        diag_fix "Add more RAM (permanent solution)"
+        diag_fix "Increase swap: sudo swapoff -a && sudo fallocate -l 4G /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile"
+    elif [ "$swap_pct" -gt 50 ]; then
+        diag_verdict "warn" "Swap ${swap_pct}% used — elevated"
+        diag_explain "Some swapping is normal. Above 50% indicates memory pressure."
+        diag_run "Top memory consumers" "ps aux --sort=-%mem | head -6"
+    elif [ "$swap_pct" -gt 0 ]; then
+        diag_verdict "ok" "Swap ${swap_pct}% used — some swap activity, normal"
+    else
+        diag_verdict "ok" "Swap configured but unused — RAM is sufficient"
+    fi
+
+    # Check swappiness
+    local swappiness
+    swappiness=$(cat /proc/sys/vm/swappiness 2>/dev/null)
+    if [ -n "$swappiness" ]; then
+        diag_explain "Swappiness: $swappiness (0=avoid swap, 100=swap aggressively, default=60)"
+        if [ "$swappiness" -gt 60 ] && [ "$swap_pct" -gt 50 ]; then
+            diag_fix "Reduce swappiness: sudo sysctl vm.swappiness=10"
+        fi
+    fi
+}
+
 # ══════════════════════════════════════════════
 #  CATEGORY 2: NETWORK & CONNECTIVITY
 # ══════════════════════════════════════════════
@@ -240,7 +294,9 @@ diag_network() {
     print_menu_item "2" "DNS not resolving (names don't work)"
     print_menu_item "3" "Port conflict or connection refused"
     print_menu_item "4" "SSH connection problems"
-    print_menu_item "5" "Run all network checks"
+    print_menu_item "5" "Firewall blocking traffic"
+    print_menu_item "6" "Routing issues (can't reach specific hosts)"
+    print_menu_item "7" "Run all network checks"
     echo ""
     print_menu_item "9" "Back"
     print_prompt
@@ -251,7 +307,9 @@ diag_network() {
         2) diag_dns ;;
         3) diag_ports ;;
         4) diag_ssh ;;
-        5) diag_internet; diag_pause; diag_dns; diag_pause; diag_ports ;;
+        5) diag_firewall ;;
+        6) diag_routing ;;
+        7) diag_internet; diag_pause; diag_dns; diag_pause; diag_ports; diag_pause; diag_firewall ;;
         9) cmd_diagnose ;;
         *) diag_network ;;
     esac
@@ -397,6 +455,110 @@ diag_ssh() {
     diag_run "SSH listening port" "ss -tlnp | grep ssh"
 }
 
+diag_firewall() {
+    diag_section "Firewall Analysis"
+
+    # Detect firewall type
+    if command -v ufw >/dev/null 2>&1; then
+        diag_run "UFW status" "sudo ufw status verbose 2>/dev/null || ufw status 2>/dev/null || echo 'Need sudo to check UFW'"
+
+        local ufw_active
+        ufw_active=$(sudo ufw status 2>/dev/null | head -1 || echo "unknown")
+        if echo "$ufw_active" | grep -qi "active"; then
+            diag_verdict "ok" "UFW firewall is active"
+            diag_run "UFW rules" "sudo ufw status numbered 2>/dev/null | head -20"
+        elif echo "$ufw_active" | grep -qi "inactive"; then
+            diag_verdict "warn" "UFW is installed but NOT active"
+            diag_fix "Enable: sudo ufw enable"
+            diag_fix "Allow SSH first: sudo ufw allow ssh"
+        fi
+    elif command -v firewall-cmd >/dev/null 2>&1; then
+        diag_run "firewalld status" "sudo firewall-cmd --state 2>/dev/null"
+        diag_run "firewalld rules" "sudo firewall-cmd --list-all 2>/dev/null"
+
+        if sudo firewall-cmd --state 2>/dev/null | grep -q "running"; then
+            diag_verdict "ok" "firewalld is running"
+        else
+            diag_verdict "warn" "firewalld is NOT running"
+            diag_fix "Start: sudo systemctl start firewalld"
+        fi
+    else
+        diag_explain "No UFW or firewalld found. Checking raw iptables..."
+    fi
+
+    # Always show iptables (underlying mechanism)
+    diag_run "iptables rules (filter table)" "sudo iptables -L -n --line-numbers 2>/dev/null | head -30 || echo 'Need sudo for iptables'"
+
+    local drop_rules
+    drop_rules=$(sudo iptables -L -n 2>/dev/null | grep -ci "DROP\|REJECT" || echo "0")
+    if [ "$drop_rules" -gt 0 ]; then
+        diag_verdict "warn" "$drop_rules DROP/REJECT rules found"
+        diag_explain "These rules may block traffic. Check if your port is affected."
+    fi
+
+    echo ""
+    echo -e "  ${C_WHITE}Check if a specific port is allowed? (Enter port or press Enter to skip):${C_RESET}"
+    printf "  Port: "
+    read -r fw_port
+    if [ -n "$fw_port" ]; then
+        if command -v ufw >/dev/null 2>&1; then
+            local allowed
+            allowed=$(sudo ufw status 2>/dev/null | grep "$fw_port" || echo "")
+            if [ -n "$allowed" ]; then
+                diag_verdict "ok" "Port $fw_port has a UFW rule"
+                echo "    $allowed"
+            else
+                diag_verdict "warn" "Port $fw_port has NO UFW rule"
+                diag_fix "Allow it: sudo ufw allow ${fw_port}/tcp"
+            fi
+        else
+            local blocked
+            blocked=$(sudo iptables -L -n 2>/dev/null | grep "$fw_port" | grep -ci "DROP\|REJECT" || echo "0")
+            if [ "$blocked" -gt 0 ]; then
+                diag_verdict "critical" "Port $fw_port is BLOCKED by iptables"
+            else
+                diag_verdict "ok" "Port $fw_port is not explicitly blocked"
+            fi
+        fi
+    fi
+}
+
+diag_routing() {
+    diag_section "Routing Analysis"
+
+    diag_run "Routing table" "ip route show 2>/dev/null || route -n 2>/dev/null"
+
+    # Check default route
+    local gw
+    gw=$(ip route 2>/dev/null | grep "^default" | awk '{print $3}' | head -1)
+    if [ -n "$gw" ]; then
+        diag_verdict "ok" "Default gateway: $gw"
+    else
+        diag_verdict "critical" "No default gateway — cannot reach external networks"
+        diag_fix "Set gateway: sudo ip route add default via <gateway_ip>"
+        diag_fix "Or renew DHCP: sudo dhclient"
+        return
+    fi
+
+    # ARP table
+    diag_run "ARP neighbors" "ip neigh show 2>/dev/null | head -10"
+
+    echo ""
+    echo -e "  ${C_WHITE}Trace route to a specific host? (Enter hostname/IP or press Enter to skip):${C_RESET}"
+    printf "  Host: "
+    read -r trace_host
+    if [ -n "$trace_host" ]; then
+        if command -v traceroute >/dev/null 2>&1; then
+            diag_run "Traceroute to $trace_host" "traceroute -m 15 -w 2 $trace_host 2>&1 | head -20"
+        elif command -v tracepath >/dev/null 2>&1; then
+            diag_run "Tracepath to $trace_host" "tracepath $trace_host 2>&1 | head -20"
+        else
+            diag_run "Route to $trace_host" "ip route get $trace_host 2>&1"
+            diag_explain "Install traceroute for full path analysis: sudo apt install traceroute"
+        fi
+    fi
+}
+
 # ══════════════════════════════════════════════
 #  CATEGORY 3: STORAGE & FILESYSTEM
 # ══════════════════════════════════════════════
@@ -409,7 +571,9 @@ diag_storage() {
     print_menu_item "1" "Disk full (no space left on device)"
     print_menu_item "2" "Inode exhaustion (can't create files)"
     print_menu_item "3" "Slow disk I/O"
-    print_menu_item "4" "Run all storage checks"
+    print_menu_item "4" "Filesystem errors or corruption"
+    print_menu_item "5" "Mount failures (device won't mount)"
+    print_menu_item "6" "Run all storage checks"
     echo ""
     print_menu_item "9" "Back"
     print_prompt
@@ -419,7 +583,9 @@ diag_storage() {
         1) diag_disk_full ;;
         2) diag_inodes ;;
         3) diag_disk_io ;;
-        4) diag_disk_full; diag_pause; diag_inodes; diag_pause; diag_disk_io ;;
+        4) diag_filesystem ;;
+        5) diag_mounts ;;
+        6) diag_disk_full; diag_pause; diag_inodes; diag_pause; diag_disk_io; diag_pause; diag_filesystem ;;
         9) cmd_diagnose ;;
         *) diag_storage ;;
     esac
@@ -501,6 +667,77 @@ diag_disk_io() {
         diag_fix "Check what's writing: sudo iotop -oP (if available)"
     elif [ -n "$iowait" ]; then
         diag_verdict "ok" "I/O wait at ${iowait}% — normal"
+    fi
+}
+
+diag_filesystem() {
+    diag_section "Filesystem Integrity"
+
+    # Check for read-only remounts (sign of corruption)
+    diag_run "Read-only mounted filesystems" "mount | grep 'ro,' | grep -v 'snap\|squashfs' || echo 'None found (good)'"
+
+    local ro_mounts
+    ro_mounts=$(mount | grep "ro," | grep -cv "snap\|squashfs\|tmpfs\|sysfs\|proc" 2>/dev/null || echo "0")
+    if [ "$ro_mounts" -gt 0 ]; then
+        diag_verdict "critical" "$ro_mounts filesystem(s) remounted read-only — possible corruption"
+        diag_explain "A filesystem remounting as read-only is the kernel protecting data."
+        diag_fix "Check dmesg for the error, then unmount and run fsck"
+    fi
+
+    # Check dmesg for filesystem errors
+    diag_run "Kernel filesystem errors" "dmesg 2>/dev/null | grep -iE 'ext4.*error|xfs.*error|corrupt|I/O error|remount.*ro' | tail -10 || echo 'No errors (or no access to dmesg)'"
+
+    local fs_errors
+    fs_errors=$(dmesg 2>/dev/null | grep -ciE "ext4.*error|xfs.*error|corrupt|remount.*ro" || echo "0")
+    fs_errors=$(echo "$fs_errors" | head -1 | tr -dc '0-9')
+    fs_errors="${fs_errors:-0}"
+    if [ "$fs_errors" -gt 0 ] 2>/dev/null; then
+        diag_verdict "critical" "$fs_errors filesystem error messages in kernel log"
+        diag_fix "Identify the affected device from the messages above"
+        diag_fix "Unmount the filesystem, then: sudo fsck -y /dev/sdX"
+        diag_fix "If root filesystem: schedule fsck on next boot: sudo touch /forcefsck"
+    else
+        diag_verdict "ok" "No filesystem corruption detected in kernel log"
+    fi
+
+    # Show filesystem types
+    diag_run "Filesystem types" "df -Th | grep -vE 'tmpfs|devtmpfs|udev|squashfs' | head -10"
+}
+
+diag_mounts() {
+    diag_section "Mount Analysis"
+
+    diag_run "Currently mounted filesystems" "findmnt --real 2>/dev/null || mount | grep -v 'cgroup\|tmpfs\|proc\|sys'"
+    diag_run "Block devices" "lsblk 2>/dev/null || echo 'lsblk not available'"
+    diag_run "fstab entries" "cat /etc/fstab 2>/dev/null | grep -v '^#' | grep -v '^$'"
+
+    # Compare fstab vs mounted
+    if [ -f /etc/fstab ]; then
+        local fstab_count
+        fstab_count=$(grep -cv '^#\|^$\|swap\|none' /etc/fstab 2>/dev/null || echo "0")
+        local mount_count
+        mount_count=$(findmnt --real --noheadings 2>/dev/null | wc -l || echo "0")
+
+        diag_explain "fstab entries: $fstab_count | Active mounts: $mount_count"
+
+        # Try mount -a to find failures
+        local mount_errors
+        mount_errors=$(sudo mount -a 2>&1 || echo "")
+        if [ -n "$mount_errors" ]; then
+            diag_verdict "warn" "mount -a reported issues:"
+            echo "    $mount_errors"
+            diag_fix "Check /etc/fstab for typos or missing devices"
+            diag_fix "Verify device exists: sudo blkid"
+        else
+            diag_verdict "ok" "All fstab entries can be mounted"
+        fi
+    fi
+
+    # Check for UUIDs vs device names
+    if grep -q "^/dev/sd" /etc/fstab 2>/dev/null; then
+        diag_verdict "warn" "fstab uses device names (/dev/sdX) instead of UUIDs"
+        diag_explain "Device names can change between reboots. UUIDs are stable."
+        diag_fix "Use UUID= instead: sudo blkid to find UUIDs"
     fi
 }
 
@@ -813,7 +1050,183 @@ diag_security_audit() {
 }
 
 # ══════════════════════════════════════════════
-#  CATEGORY 6: FULL HEALTH CHECK
+#  CATEGORY 6: HARDWARE & KERNEL
+# ══════════════════════════════════════════════
+
+diag_hardware_menu() {
+    print_header "🔧 Hardware & Kernel"
+    echo ""
+    echo -e "  ${C_WHITE}What's happening?${C_RESET}"
+    echo ""
+    print_menu_item "1" "Device not detected (USB, disk, NIC)"
+    print_menu_item "2" "Driver or module issues"
+    print_menu_item "3" "Kernel errors (OOPS, panics)"
+    print_menu_item "4" "Hardware health (SMART, temperature)"
+    print_menu_item "5" "Run all hardware checks"
+    echo ""
+    print_menu_item "9" "Back"
+    print_prompt
+    read -r choice || return 0
+
+    case "$choice" in
+        1) diag_devices ;;
+        2) diag_drivers ;;
+        3) diag_kernel ;;
+        4) diag_hw_health ;;
+        5) diag_devices; diag_pause; diag_drivers; diag_pause; diag_kernel; diag_pause; diag_hw_health ;;
+        9) cmd_diagnose ;;
+        *) diag_hardware_menu ;;
+    esac
+    diag_back_prompt
+}
+
+diag_devices() {
+    diag_section "Device Detection"
+
+    diag_run "PCI devices (NICs, GPUs, controllers)" "lspci 2>/dev/null | head -20 || echo 'lspci not available (install pciutils)'"
+    diag_run "USB devices" "lsusb 2>/dev/null | head -15 || echo 'lsusb not available (install usbutils)'"
+    diag_run "Block devices (disks, partitions)" "lsblk 2>/dev/null || echo 'lsblk not available'"
+    diag_run "Recent device events (last 20)" "dmesg 2>/dev/null | grep -iE 'usb|sd[a-z]|eth|wlan|nvme|attached|removed|new.*device' | tail -20 || echo 'No access to dmesg'"
+
+    echo ""
+    echo -e "  ${C_WHITE}Looking for a specific device? (Enter keyword or press Enter to skip):${C_RESET}"
+    printf "  Device keyword: "
+    read -r dev_keyword
+    if [ -n "$dev_keyword" ]; then
+        diag_run "PCI devices matching '$dev_keyword'" "lspci 2>/dev/null | grep -i '$dev_keyword' || echo 'Not found in PCI'"
+        diag_run "USB devices matching '$dev_keyword'" "lsusb 2>/dev/null | grep -i '$dev_keyword' || echo 'Not found in USB'"
+        diag_run "dmesg mentions of '$dev_keyword'" "dmesg 2>/dev/null | grep -i '$dev_keyword' | tail -10 || echo 'Not found in kernel log'"
+    fi
+}
+
+diag_drivers() {
+    diag_section "Kernel Modules & Drivers"
+
+    diag_run "Loaded kernel modules (count)" "lsmod 2>/dev/null | wc -l"
+    diag_run "Recently loaded modules" "dmesg 2>/dev/null | grep -i 'module\|firmware\|driver' | tail -15 || echo 'No access to dmesg'"
+
+    # Check for module load failures
+    local mod_errors
+    mod_errors=$(dmesg 2>/dev/null | grep -ciE "firmware.*fail|module.*error|driver.*fail" || echo "0")
+    mod_errors=$(echo "$mod_errors" | head -1 | tr -dc '0-9')
+    mod_errors="${mod_errors:-0}"
+    if [ "$mod_errors" -gt 0 ] 2>/dev/null; then
+        diag_verdict "warn" "$mod_errors driver/firmware errors in kernel log"
+        diag_run "Driver errors" "dmesg 2>/dev/null | grep -iE 'firmware.*fail|module.*error|driver.*fail' | tail -10"
+        diag_fix "Check if firmware is installed: apt search firmware"
+        diag_fix "Try loading manually: sudo modprobe <module_name>"
+    else
+        diag_verdict "ok" "No driver errors detected"
+    fi
+
+    echo ""
+    echo -e "  ${C_WHITE}Check a specific module? (Enter name or press Enter to skip):${C_RESET}"
+    printf "  Module name: "
+    read -r mod_name
+    if [ -n "$mod_name" ]; then
+        if lsmod 2>/dev/null | grep -q "^$mod_name"; then
+            diag_verdict "ok" "Module '$mod_name' is loaded"
+            diag_run "Module info" "modinfo $mod_name 2>/dev/null | head -10"
+        else
+            diag_verdict "warn" "Module '$mod_name' is NOT loaded"
+            diag_fix "Load it: sudo modprobe $mod_name"
+            diag_fix "Check if it exists: modinfo $mod_name"
+        fi
+    fi
+}
+
+diag_kernel() {
+    diag_section "Kernel Health"
+
+    diag_run "Kernel version" "uname -r"
+    diag_run "Full kernel info" "uname -a"
+
+    # Check for kernel panics, oops, bugs
+    diag_run "Kernel errors" "dmesg 2>/dev/null | grep -iE 'oops|panic|bug|rip|call.trace|segfault' | tail -15 || echo 'No access to dmesg'"
+
+    local kernel_errors
+    kernel_errors=$(dmesg 2>/dev/null | grep -ciE "oops|panic|bug.*kernel|call.trace" || echo "0")
+    kernel_errors=$(echo "$kernel_errors" | head -1 | tr -dc '0-9')
+    kernel_errors="${kernel_errors:-0}"
+    if [ "$kernel_errors" -gt 0 ] 2>/dev/null; then
+        diag_verdict "critical" "$kernel_errors kernel errors detected (OOPS/panic/bug)"
+        diag_explain "Kernel errors indicate serious issues: bad hardware, driver bugs, or memory corruption."
+        diag_fix "Update kernel: sudo apt update && sudo apt upgrade"
+        diag_fix "Check for bad RAM: schedule memtest on next boot"
+        diag_fix "If a specific driver crashes, try disabling it: sudo modprobe -r <module>"
+    else
+        diag_verdict "ok" "No kernel errors detected"
+    fi
+
+    # Kernel log errors (via journalctl)
+    diag_run "Kernel error messages (last hour)" "journalctl -k -p err --since '1 hour ago' --no-pager 2>/dev/null | tail -10 || echo 'No journalctl access'"
+
+    # Tainted kernel check
+    local tainted
+    tainted=$(cat /proc/sys/kernel/tainted 2>/dev/null || echo "0")
+    if [ "$tainted" != "0" ]; then
+        diag_verdict "warn" "Kernel is tainted (value: $tainted)"
+        diag_explain "Tainted = non-free module loaded, or a previous error. Not always a problem."
+    else
+        diag_verdict "ok" "Kernel is not tainted"
+    fi
+}
+
+diag_hw_health() {
+    diag_section "Hardware Health"
+
+    # Temperature
+    if command -v sensors >/dev/null 2>&1; then
+        diag_run "Temperature sensors" "sensors 2>/dev/null"
+    else
+        # Try thermal zones directly
+        local has_thermal=0
+        for tz in /sys/class/thermal/thermal_zone*/temp; do
+            if [ -f "$tz" ]; then
+                has_thermal=1
+                break
+            fi
+        done
+        if [ "$has_thermal" -eq 1 ]; then
+            diag_run "Thermal zones" "for tz in /sys/class/thermal/thermal_zone*/temp; do zone=\$(dirname \"\$tz\"); name=\$(cat \"\$zone/type\" 2>/dev/null || basename \"\$zone\"); temp=\$(cat \"\$tz\" 2>/dev/null); echo \"\$name: \$((temp/1000))°C\"; done"
+        else
+            diag_explain "No temperature sensors accessible. Install lm-sensors: sudo apt install lm-sensors && sudo sensors-detect"
+        fi
+    fi
+
+    # SMART disk health
+    if command -v smartctl >/dev/null 2>&1; then
+        local disks
+        disks=$(lsblk -dno NAME,TYPE 2>/dev/null | awk '$2=="disk" {print "/dev/"$1}')
+        for disk in $disks; do
+            diag_run "SMART health: $disk" "sudo smartctl -H $disk 2>/dev/null | grep -E 'result|Health' || echo 'Cannot read SMART (may need sudo)'"
+        done
+    else
+        diag_explain "SMART not available. Install: sudo apt install smartmontools"
+        diag_explain "Then check: sudo smartctl -a /dev/sda"
+    fi
+
+    # Memory errors
+    diag_run "Memory hardware info" "dmesg 2>/dev/null | grep -iE 'memory|EDAC|mce|ecc' | tail -5 || echo 'No memory errors in dmesg'"
+
+    local mem_errors
+    mem_errors=$(dmesg 2>/dev/null | grep -ciE "EDAC.*error|mce.*error|ecc.*error" || echo "0")
+    mem_errors=$(echo "$mem_errors" | head -1 | tr -dc '0-9')
+    mem_errors="${mem_errors:-0}"
+    if [ "$mem_errors" -gt 0 ] 2>/dev/null; then
+        diag_verdict "critical" "Memory hardware errors detected"
+        diag_fix "Run memtest86+ on next boot to identify faulty RAM"
+        diag_fix "Check which DIMM: sudo dmidecode -t memory"
+    else
+        diag_verdict "ok" "No memory hardware errors"
+    fi
+
+    # Uptime and load context
+    diag_run "System uptime" "uptime"
+}
+
+# ══════════════════════════════════════════════
+#  CATEGORY 7: FULL HEALTH CHECK
 # ══════════════════════════════════════════════
 
 diag_health_check() {
