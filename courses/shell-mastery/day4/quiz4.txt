@@ -1,0 +1,55 @@
+Q1: What does "local" do inside a function?
+A) Makes the variable global
+B) Restricts the variable's scope to that function only
+C) Makes the variable read-only
+D) Exports the variable
+Correct: B
+
+Q2: How do you return a string value from a function?
+A) return "hello"
+B) echo "hello" inside the function, capture with $(...) outside
+C) set result="hello"
+D) export "hello"
+Correct: B
+
+Q3: What does "source ./lib/utils.sh" do?
+A) Runs utils.sh in a subshell
+B) Loads utils.sh into the current shell (functions and variables become available)
+C) Compiles utils.sh
+D) Creates a symlink
+Correct: B
+
+Q4: BASH_SOURCE[0] vs $0 — which finds the currently-executing file even when sourced?
+A) $0
+B) BASH_SOURCE[0]
+C) $BASH
+D) $SHELL
+Correct: B
+
+Q5: What's the purpose of a lock file?
+A) Security encryption
+B) Prevent two copies of the same script from running simultaneously
+C) Lock the terminal
+D) Password protection
+Correct: B
+
+Q6: trap 'rm -f /tmp/lock' EXIT does what?
+A) Removes the lock file when the user presses a key
+B) Runs the cleanup command when the script exits (for any reason)
+C) Creates a trap door
+D) Locks the exit
+Correct: B
+
+Q7: What's wrong with: count = 5 inside a function?
+A) Nothing
+B) Spaces around = make bash try to run "count" as a command
+C) You need "let"
+D) Functions can't use numbers
+Correct: B
+
+Q8: The die() function pattern is used for:
+A) Killing processes
+B) Printing an error to stderr and exiting with a non-zero code
+C) Debugging
+D) Logging
+Correct: B

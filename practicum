@@ -79,6 +79,9 @@ cmd_status() {
     echo -e "  ${C_WHITE}Mode:${C_RESET}      ${C_CYAN}$mode${C_RESET}"
     echo -e "  ${C_WHITE}Completed:${C_RESET} ${C_GREEN}$completed lessons${C_RESET}"
     echo -e "  ${C_WHITE}Unlocked:${C_RESET}  $unlocked lessons"
+    if type diag_health_compact >/dev/null 2>&1; then
+        diag_health_compact
+    fi
     echo ""
     license_status
     echo ""

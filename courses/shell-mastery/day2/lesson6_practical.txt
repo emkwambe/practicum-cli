@@ -1,0 +1,151 @@
+# Lesson: Practical — Build an Input Validator
+
+## [WHEN] You need this when:
+You want to combine everything from Day 2 into a real tool.
+
+## [INTENT] "Write a script that validates and processes user input safely."
+
+## [CONTEXT]
+This is a production pattern. Every script that takes input should:
+  1. Check argument count
+  2. Validate each argument's format
+  3. Provide clear error messages
+  4. Return proper exit codes
+
+## [ACTION] A complete input validator
+
+  #!/bin/bash
+  set -euo pipefail
+
+  # --- Configuration ---
+  SCRIPT_NAME=$(basename "$0")
+  VERSION="1.0.0"
+
+  # --- Usage ---
+  usage() {
+      cat << EOF
+  Usage: $SCRIPT_NAME [options] <action> <target>
+
+  Actions:
+    check    Check if target is reachable
+    info     Show information about target
+    monitor  Watch target continuously
+
+  Options:
+    -p PORT    Port number (default: 80)
+    -t SECS    Timeout in seconds (default: 5)
+    -v         Verbose output
+    -h         Show this help
+
+  Examples:
+    $SCRIPT_NAME check 192.168.1.1
+    $SCRIPT_NAME -p 443 -t 10 check google.com
+    $SCRIPT_NAME info /var/log/syslog
+  EOF
+      exit 0
+  }
+
+  # --- Parse options ---
+  PORT=80
+  TIMEOUT=5
+  VERBOSE=0
+
+  while [[ "$#" -gt 0 ]]; do
+      case "$1" in
+          -p) PORT="$2"; shift ;;
+          -t) TIMEOUT="$2"; shift ;;
+          -v) VERBOSE=1 ;;
+          -h|--help) usage ;;
+          -V|--version) echo "$VERSION"; exit 0 ;;
+          -*) echo "Error: Unknown option: $1" >&2; exit 1 ;;
+          *)  break ;;  # stop parsing flags, rest are positional
+      esac
+      shift
+  done
+
+  # --- Validate positional args ---
+  ACTION="${1:-}"
+  TARGET="${2:-}"
+
+  if [[ -z "$ACTION" ]]; then
+      echo "Error: action required (check|info|monitor)" >&2
+      echo "Try: $SCRIPT_NAME --help" >&2
+      exit 1
+  fi
+
+  if [[ -z "$TARGET" ]]; then
+      echo "Error: target required" >&2
+      exit 1
+  fi
+
+  # --- Validate formats ---
+  if ! [[ "$PORT" =~ ^[0-9]+$ ]] || (( PORT < 1 || PORT > 65535 )); then
+      echo "Error: invalid port: $PORT (must be 1-65535)" >&2
+      exit 1
+  fi
+
+  if ! [[ "$TIMEOUT" =~ ^[0-9]+$ ]]; then
+      echo "Error: timeout must be a number" >&2
+      exit 1
+  fi
+
+  # --- Execute ---
+  case "$ACTION" in
+      check)
+          [[ $VERBOSE -eq 1 ]] && echo "Checking $TARGET on port $PORT..."
+          if ping -c 1 -W "$TIMEOUT" "$TARGET" >/dev/null 2>&1; then
+              echo "✅ $TARGET is reachable"
+              exit 0
+          else
+              echo "❌ $TARGET is NOT reachable"
+              exit 1
+          fi
+          ;;
+      info)
+          if [[ -f "$TARGET" ]]; then
+              echo "File: $TARGET"
+              echo "Size: $(stat -c %s "$TARGET" 2>/dev/null) bytes"
+              echo "Lines: $(wc -l < "$TARGET")"
+              echo "Modified: $(stat -c %y "$TARGET" 2>/dev/null)"
+          elif [[ -d "$TARGET" ]]; then
+              echo "Directory: $TARGET"
+              echo "Items: $(ls "$TARGET" | wc -l)"
+          else
+              echo "Error: $TARGET not found" >&2
+              exit 1
+          fi
+          ;;
+      monitor)
+          echo "Monitoring $TARGET every ${TIMEOUT}s (Ctrl+C to stop)..."
+          while true; do
+              if ping -c 1 -W 2 "$TARGET" >/dev/null 2>&1; then
+                  echo "[$(date +%T)] ✅ $TARGET UP"
+              else
+                  echo "[$(date +%T)] ❌ $TARGET DOWN"
+              fi
+              sleep "$TIMEOUT"
+          done
+          ;;
+      *)
+          echo "Error: unknown action: $ACTION" >&2
+          echo "Valid actions: check, info, monitor" >&2
+          exit 1
+          ;;
+  esac
+
+## [EXPECTED RESULT]
+A professional script with:
+  ✅ Flag parsing (-p, -t, -v, -h)
+  ✅ Input validation (port range, numeric check)
+  ✅ Clear error messages to stderr
+  ✅ Proper exit codes
+  ✅ Usage help
+  ✅ Version flag
+
+## Technician Tip:
+This pattern is the TEMPLATE for every CLI tool you'll ever write.
+Copy it, change the actions and flags, and you have a new tool in minutes.
+
+## Next:
+Type menu to return. You have completed Day 2!
+You can now write scripts with full decision logic, pattern matching, and input validation.

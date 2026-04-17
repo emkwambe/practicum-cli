@@ -1,0 +1,91 @@
+# Lesson: Arithmetic — Math in Bash
+
+## [WHEN] You need this when:
+1. You need to count, add, or compare numbers.
+2. You're calculating percentages (disk usage, memory).
+3. You need a counter in a loop.
+4. You're doing date math or byte conversions.
+
+## [INTENT] "Do math inside my script."
+
+## [CONTEXT]
+Bash does INTEGER math only. For decimals, use bc or awk.
+Three ways to do arithmetic:
+  $(( expression ))    — arithmetic expansion (most common)
+  let "expression"     — assignment shorthand
+  (( expression ))     — arithmetic evaluation (for if conditions)
+
+## [ACTION] Arithmetic operations
+
+### Basic math:
+  a=10
+  b=3
+  echo "Add:      $((a + b))"      # 13
+  echo "Subtract: $((a - b))"      # 7
+  echo "Multiply: $((a * b))"      # 30
+  echo "Divide:   $((a / b))"      # 3 (integer division!)
+  echo "Modulo:   $((a % b))"      # 1 (remainder)
+  echo "Power:    $((a ** 2))"     # 100
+
+### Increment / decrement:
+  count=0
+  ((count++))         # count is now 1
+  ((count += 5))      # count is now 6
+  ((count--))         # count is now 5
+
+### In-place assignment:
+  total=100
+  used=73
+  free=$((total - used))
+  pct=$((used * 100 / total))
+  echo "${pct}% used, ${free} free"
+
+### Practical: calculate disk percentage
+  total_kb=$(df / | awk 'NR==2 {print $2}')
+  used_kb=$(df / | awk 'NR==2 {print $3}')
+  pct=$((used_kb * 100 / total_kb))
+  echo "Root filesystem: ${pct}% used"
+
+### Decimal math (use bc):
+  echo "scale=2; 10 / 3" | bc          # 3.33
+  echo "scale=2; 100 * 0.73" | bc      # 73.00
+  result=$(echo "scale=2; $used / $total * 100" | bc)
+
+### Decimal math (use awk):
+  awk "BEGIN {printf \"%.1f%%\n\", $used / $total * 100}"
+
+### Arithmetic in conditions:
+  if (( count > 10 )); then
+      echo "Count is high"
+  fi
+
+  # Ternary-style:
+  (( score >= 70 )) && result="PASS" || result="FAIL"
+
+## [EXPECTED RESULT]
+You can calculate percentages, counts, and thresholds in scripts.
+Integer math with $(( )), decimal with bc or awk.
+
+## Try it now:
+  #!/bin/bash
+  total=$(free -m | awk '/^Mem:/ {print $2}')
+  used=$(free -m | awk '/^Mem:/ {print $3}')
+  pct=$((used * 100 / total))
+  echo "Memory: ${used}MB / ${total}MB (${pct}%)"
+  if (( pct > 80 )); then
+      echo "WARNING: Memory pressure!"
+  fi
+
+## Technician Tip:
+Never use expr (it's ancient and slow). Use $(( )) instead.
+  ❌ result=$(expr 5 + 3)
+  ✅ result=$((5 + 3))
+
+For byte conversions:
+  bytes=1073741824
+  gb=$((bytes / 1024 / 1024 / 1024))
+  echo "${gb} GB"
+
+## Common Pain Point:
+"Bash gives wrong result for 10/3" → integer division. 10/3 = 3 not 3.33.
+For decimal: use bc or awk. Bash cannot do floating point natively.

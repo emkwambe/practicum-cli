@@ -1,0 +1,34 @@
+Q1: set -euo pipefail combines which three protections?
+A) encryption, undo, password
+B) exit on error, error on undefined vars, catch pipe failures
+C) enable, update, optimize
+D) execute, unmask, process
+Correct: B
+
+Q2: How do you collect errors in a script and report them at the end?
+A) Write to a file
+B) Use an array: errors+=("message") then report ${#errors[@]} at the end
+C) Use a counter only
+D) Print them immediately and forget
+Correct: B
+
+Q3: Which is the correct function definition?
+A) def check_disk():
+B) function check_disk {}
+C) check_disk() { ... }
+D) check_disk = function() { ... }
+Correct: C
+
+Q4: Your script runs on cron. How do you capture output?
+A) Hope it prints to the terminal
+B) Redirect with exec &> logfile or tee to a log file
+C) cron captures automatically
+D) Use printf
+Correct: B
+
+Q5: A lock file prevents what?
+A) Unauthorized access
+B) Two instances of the same script running at the same time
+C) File corruption
+D) Network attacks
+Correct: B

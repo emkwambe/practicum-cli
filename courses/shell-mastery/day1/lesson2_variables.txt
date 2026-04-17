@@ -1,0 +1,76 @@
+# Lesson: Variables — Store and Reuse Values
+
+## [WHEN] You need this when:
+1. You need to use a value multiple times in a script.
+2. You want to make a script configurable.
+3. A path, filename, or setting might change.
+4. You need to capture command output for later use.
+
+## [INTENT] "Store a value so I can reference it by name."
+
+## [CONTEXT]
+Variables in bash have NO spaces around the = sign.
+  name="Eddy"       ← CORRECT
+  name = "Eddy"     ← WRONG (tries to run "name" as a command)
+
+Reference a variable with $:
+  echo "$name"       ← prints: Eddy
+  echo "${name}"     ← same, but safer in some contexts
+
+## [ACTION] Variable types and usage
+
+### Assigning variables:
+  name="Eddy"                           # string
+  count=42                              # number (still a string internally)
+  today=$(date +%F)                     # command substitution
+  files=$(ls /tmp | wc -l)             # capture output
+  readonly VERSION="1.0"                # constant (can't change)
+
+### Using variables:
+  echo "Hello, $name"
+  echo "Today is $today, there are $files files in /tmp"
+  echo "Script version: $VERSION"
+
+### String operations:
+  full="Hello World"
+  echo "${#full}"                       # length: 11
+  echo "${full^^}"                      # uppercase: HELLO WORLD
+  echo "${full,,}"                      # lowercase: hello world
+  echo "${full:0:5}"                    # substring: Hello
+  echo "${full/World/Bash}"             # replace: Hello Bash
+
+### Default values (critical for scripts):
+  ${VAR:-default}                       # use "default" if VAR is unset
+  ${VAR:=default}                       # set VAR to "default" if unset
+  ${VAR:?error message}                 # exit with error if VAR unset
+
+  Example:
+  LOG_DIR="${LOG_DIR:-/var/log/myapp}"
+  echo "Logging to $LOG_DIR"
+
+## [EXPECTED RESULT]
+Variables hold values. Use them to avoid hardcoding paths, names,
+or settings. Scripts become reusable and configurable.
+
+## Try it now:
+  #!/bin/bash
+  APP_NAME="my-tool"
+  LOG_FILE="/tmp/${APP_NAME}.log"
+  echo "[$( date )] $APP_NAME started" | tee "$LOG_FILE"
+  echo "Log written to $LOG_FILE"
+
+## Technician Tip — always quote your variables:
+  ❌ echo $filename           # breaks if filename has spaces
+  ✅ echo "$filename"          # handles spaces correctly
+
+  ❌ rm $path                  # DANGEROUS if path is empty → rm / 
+  ✅ rm "$path"                # safe — empty string = no-op
+
+Rule: ALWAYS double-quote variables unless you specifically need
+word splitting or globbing (rare).
+
+## Common Pain Point:
+"Variable is empty even though I set it" → check for:
+  1. Space around =: name = "x" is WRONG
+  2. Running script with sh instead of bash
+  3. Variable set in a subshell (pipe): echo "x" | read var (var lost)

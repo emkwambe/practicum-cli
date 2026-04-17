@@ -1,0 +1,99 @@
+# Lesson: Debugging — Find and Fix Script Bugs
+
+## [WHEN] You need this when:
+1. Your script fails and you don't know where.
+2. A variable has an unexpected value.
+3. A condition evaluates wrong.
+4. You need to trace what your script actually does.
+
+## [INTENT] "See exactly what my script is doing, line by line."
+
+## [CONTEXT]
+Bash has built-in debugging. The key tool: set -x (trace mode).
+It prints every command BEFORE executing it, with variables expanded.
+
+## [ACTION] Debugging tools
+
+### Trace mode (set -x):
+  #!/bin/bash
+  set -x            # enable trace — every command is printed
+  name="World"
+  echo "Hello, $name"
+  set +x            # disable trace
+
+  Output:
+  + name=World
+  + echo 'Hello, World'
+  Hello, World
+
+### Trace a specific section:
+  echo "Before debug"
+  set -x
+  problematic_function
+  set +x
+  echo "After debug"
+
+### Run with debugging without editing the script:
+  bash -x script.sh            # trace entire script
+  bash -xv script.sh           # trace + verbose (shows raw source lines too)
+
+### Debug with PS4 (custom trace prefix):
+  export PS4='+ ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+  set -x
+
+  Output:
+  + script.sh:15: check_disk(): df -h
+  # Now you see WHICH FILE, WHICH LINE, WHICH FUNCTION
+
+### Print variable state:
+  debug() {
+      [ "${DEBUG:-0}" -eq 1 ] && echo "DEBUG: $*" >&2
+  }
+
+  debug "count=$count, file=$file"
+
+  # Enable with: DEBUG=1 ./script.sh
+  # Silent by default, verbose when needed
+
+### Shellcheck (static analysis):
+  # Install: sudo apt install shellcheck
+  shellcheck script.sh
+
+  # Catches:
+  # - Unquoted variables
+  # - Useless use of cat
+  # - Missing shebangs
+  # - SC2086: Double quote to prevent globbing
+  # - SC2046: Quote this to prevent word splitting
+
+### Common debugging workflow:
+  1. Run shellcheck first (catches obvious issues)
+  2. Add set -x to narrow down the failing section
+  3. Add debug "var=$var" around suspicious code
+  4. Use trap 'echo "Error line $LINENO"' ERR for location
+  5. Test edge cases: empty input, missing files, permissions
+
+## [EXPECTED RESULT]
+You can trace script execution, identify where it fails, and
+see the actual values of variables at each step.
+
+## Try it now:
+  #!/bin/bash
+  export PS4='+ line ${LINENO}: '
+  set -x
+
+  count=0
+  for f in /etc/*.conf; do
+      [ -f "$f" ] && ((count++))
+  done
+  echo "Found $count config files"
+
+## Technician Tip:
+shellcheck is the BEST investment you can make in bash quality.
+Run it on EVERY script before committing. Install it in CI too:
+  shellcheck --severity=error *.sh || exit 1
+
+Common shellcheck fixes that prevent real bugs:
+  SC2086: "$var" not $var
+  SC2046: "$(cmd)" not $(cmd)
+  SC2164: cd "$dir" || exit (handle cd failure)

@@ -1,0 +1,55 @@
+# Lesson: for Loops — Iterate Over Lists
+
+## [WHEN] You need this when:
+1. You need to process multiple files, servers, or users.
+2. You want to repeat an action for each item in a list.
+
+## [INTENT] "Do this action for every item in the list."
+
+## [CONTEXT]
+for loops iterate over a list of items. Each iteration, the variable
+takes the next value from the list.
+
+## [ACTION] for loop patterns
+
+### Loop over a list:
+  for name in Alice Bob Charlie; do
+      echo "Hello, $name"
+  done
+
+### Loop over files:
+  for f in /var/log/*.log; do
+      echo "$f: $(wc -l < "$f") lines"
+  done
+
+### Loop over command output:
+  for user in $(cut -d: -f1 /etc/passwd); do
+      echo "User: $user"
+  done
+
+### C-style for loop (counting):
+  for ((i=1; i<=10; i++)); do
+      echo "Count: $i"
+  done
+
+### Loop over arguments:
+  for arg in "$@"; do
+      echo "Processing: $arg"
+  done
+
+### Loop with sequence:
+  for i in {1..5}; do echo "Iteration $i"; done
+  for i in $(seq 1 2 10); do echo "$i"; done    # 1,3,5,7,9
+
+## Try it now:
+  for f in /etc/*.conf; do
+      [ -f "$f" ] && echo "$(basename "$f"): $(wc -l < "$f") lines"
+  done
+
+## Technician Tip:
+Never parse ls output in a loop. Use globs:
+  ❌ for f in $(ls *.txt); do ...        # breaks on spaces
+  ✅ for f in *.txt; do ...               # correct
+
+When no files match, the glob stays literal. Guard with:
+  shopt -s nullglob    # makes unmatched globs expand to nothing

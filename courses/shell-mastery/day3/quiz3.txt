@@ -1,0 +1,55 @@
+Q1: Which for loop syntax iterates over files safely (handles spaces)?
+A) for f in $(ls *.txt)
+B) for f in *.txt
+C) for f in `ls *.txt`
+D) for f in ls *.txt
+Correct: B
+
+Q2: How do you read a file line by line preserving whitespace?
+A) cat file | read line
+B) for line in $(cat file)
+C) while IFS= read -r line; do ... done < file
+D) read file line
+Correct: C
+
+Q3: ${#array[@]} returns what?
+A) The first element
+B) The last element
+C) The number of elements in the array
+D) The total string length
+Correct: C
+
+Q4: What does "break 2" do in a nested loop?
+A) Breaks the inner loop only
+B) Breaks both the inner AND outer loop
+C) Breaks after 2 iterations
+D) Syntax error
+Correct: B
+
+Q5: What does "continue" do inside a loop?
+A) Exits the loop
+B) Skips the rest of this iteration and goes to the next
+C) Pauses the loop
+D) Restarts the loop from the beginning
+Correct: B
+
+Q6: How do you append to an array?
+A) array += "item"
+B) array+=("item")
+C) array.push("item")
+D) array[+]="item"
+Correct: B
+
+Q7: Why use "${array[@]}" instead of "${array[*]}" in a for loop?
+A) No difference
+B) @ keeps each element separate; * joins them as one string
+C) * is faster
+D) @ only works with strings
+Correct: B
+
+Q8: select creates what?
+A) A file selector
+B) An interactive numbered menu from a list of options
+C) A database query
+D) A CSS selector
+Correct: B

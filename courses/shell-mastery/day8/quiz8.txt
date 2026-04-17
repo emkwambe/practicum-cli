@@ -1,0 +1,55 @@
+Q1: The standard production script header is:
+A) #!/bin/bash followed by echo "hello"
+B) #!/bin/bash, set -euo pipefail, trap cleanup EXIT
+C) import bash
+D) source /etc/profile
+Correct: B
+
+Q2: To generate a timestamped report, which command gives YYYY-MM-DD HH:MM:SS?
+A) date +%s
+B) date '+%F %T'
+C) date --report
+D) timestamp
+Correct: B
+
+Q3: A script should return exit code 1 when:
+A) It ran successfully
+B) Any errors or warnings were detected
+C) The user pressed Enter
+D) It took too long
+Correct: B
+
+Q4: Which is the safest way to handle temp files?
+A) Create them and hope they get deleted
+B) mktemp + trap 'rm -f "$TMPFILE"' EXIT
+C) Write to /dev/null
+D) Use /tmp directly without cleanup
+Correct: B
+
+Q5: How do you parse -o FILE from command-line arguments?
+A) if [ "$1" = "-o" ]; then OUTPUT="$2"; fi
+B) case "$1" in -o) OUTPUT="$2"; shift ;; esac inside a while loop
+C) getopts is the only way
+D) Arguments can't have values
+Correct: B
+
+Q6: To check if a service is running in a script:
+A) ps aux | grep service
+B) systemctl is-active servicename >/dev/null 2>&1
+C) service --check
+D) cat /etc/services
+Correct: B
+
+Q7: An array of errors grows during the script. How to report the count at the end?
+A) echo $errors
+B) echo "${#errors[@]}"
+C) echo "$(count errors)"
+D) wc -l errors
+Correct: B
+
+Q8: The capstone server-report.sh should have at minimum:
+A) 1 function
+B) 3 functions
+C) 6+ functions with local variables, flag parsing, and error collection
+D) No functions needed
+Correct: C

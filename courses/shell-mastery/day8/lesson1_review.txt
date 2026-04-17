@@ -1,0 +1,82 @@
+# Lesson: Shell Scripting — Final Review
+
+## [WHEN] You need this when:
+You've completed Days 1-7 and are ready for the capstone.
+
+## [INTENT] "Review every skill before the final challenge."
+
+## [CONTEXT]
+You've learned to write production-grade bash scripts. Here's your skill map:
+
+## Skills Summary
+
+### Day 1: Foundations
+  ✅ Shebang (#!/bin/bash, #!/usr/bin/env bash)
+  ✅ Variables (assignment, defaults, string operations)
+  ✅ Quoting (double, single, escaping)
+  ✅ Arguments ($1, $#, $@, shift)
+  ✅ User input (read -p, read -s, read -t)
+  ✅ Exit codes (0=success, $?, set -e)
+
+### Day 2: Decision Logic
+  ✅ if/then/else/elif/fi
+  ✅ Test operators (file, string, numeric)
+  ✅ case/esac (pattern matching, flag parsing)
+  ✅ Arithmetic ($(()), (()))
+  ✅ String operations (regex, substring, manipulation)
+
+### Day 3: Iteration
+  ✅ for loops (list, glob, C-style, seq)
+  ✅ while/until loops (retry, file reading)
+  ✅ Arrays (indexed, associative, operations)
+  ✅ Loop control (break, continue, select)
+
+### Day 4: Modularity
+  ✅ Functions (define, call, parameters, return)
+  ✅ Scope (local variables)
+  ✅ Source/libraries (code sharing)
+  ✅ Production patterns (logging, locking, config)
+
+### Day 6: Text Processing
+  ✅ awk (column extraction, filtering, calculation)
+  ✅ sed (search/replace, delete, insert)
+  ✅ Regex (patterns, anchors, quantifiers)
+  ✅ Log parsing (practical pipeline)
+
+### Day 7: Error Handling
+  ✅ trap (EXIT, INT, TERM, ERR)
+  ✅ Defensive scripting (validation, guards)
+  ✅ Debugging (set -x, PS4, shellcheck)
+  ✅ Production template (backup script)
+
+## LFCS Exam Coverage
+  ✅ Scripting domain: fully covered
+  ✅ Automation domain: cron, systemd timers
+  ✅ Text processing: grep, awk, sed, sort, uniq, cut, tr
+  ✅ Error handling: exit codes, conditional execution
+
+## The Professional Script Template
+  #!/bin/bash
+  set -euo pipefail
+
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  source "$SCRIPT_DIR/lib/utils.sh"
+
+  trap cleanup EXIT
+  trap 'die "Interrupted"' INT TERM
+  trap 'die "Error at line $LINENO"' ERR
+
+  main() {
+      parse_args "$@"
+      validate_inputs
+      acquire_lock
+      log INFO "Starting..."
+      do_work
+      log INFO "Done."
+  }
+
+  main "$@"
+
+Every production script follows this shape.
+
+## Continue to the capstone to prove mastery.

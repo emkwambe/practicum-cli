@@ -1,0 +1,92 @@
+# Lesson: String Comparisons & Pattern Matching
+
+## [WHEN] You need this when:
+1. You need to validate user input (is it an email? a number?).
+2. You want to check if a string contains a substring.
+3. You need to extract parts of a string.
+4. You're parsing log lines or config values.
+
+## [INTENT] "Check if a string matches a pattern or contains specific text."
+
+## [CONTEXT]
+Bash supports glob patterns (simple) and regex (powerful).
+Use [[ ]] for pattern matching — it's safer and more powerful than [ ].
+
+## [ACTION] String operations
+
+### Contains check:
+  [[ "$line" == *"error"* ]] && echo "Error found!"
+  [[ "$url" == https://* ]] && echo "Secure URL"
+
+### Regex matching (=~):
+  # Is it an IP address?
+  if [[ "$input" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+      echo "Valid IP format"
+  fi
+
+  # Is it a number?
+  [[ "$val" =~ ^[0-9]+$ ]] && echo "Numeric"
+
+  # Email-like?
+  [[ "$email" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]] && echo "Email"
+
+  # Extract with capture groups:
+  line="error: disk full at /var/log"
+  if [[ "$line" =~ error:\ (.+)\ at\ (.+) ]]; then
+      echo "Problem: ${BASH_REMATCH[1]}"    # disk full
+      echo "Location: ${BASH_REMATCH[2]}"   # /var/log
+  fi
+
+### String manipulation (no external tools):
+  path="/var/log/nginx/error.log"
+
+  echo "${path##*/}"         # error.log    (basename)
+  echo "${path%/*}"          # /var/log/nginx (dirname)
+  echo "${path%.log}"        # /var/log/nginx/error (strip extension)
+  echo "${path#/var/}"       # log/nginx/error.log (strip prefix)
+
+  name="hello-world-app"
+  echo "${name//-/_}"        # hello_world_app (replace all - with _)
+  echo "${name/#hello/goodbye}"  # goodbye-world-app (replace prefix)
+
+### Substring:
+  str="Hello, World!"
+  echo "${str:0:5}"          # Hello (offset 0, length 5)
+  echo "${str:7}"            # World! (offset 7 to end)
+  echo "${#str}"             # 13 (length)
+
+### Case conversion (bash 4+):
+  name="hello WORLD"
+  echo "${name^^}"           # HELLO WORLD (uppercase)
+  echo "${name,,}"           # hello world (lowercase)
+  echo "${name^}"            # Hello WORLD (capitalize first)
+
+## [EXPECTED RESULT]
+You can validate, search, extract, and transform strings entirely in bash
+without calling grep, sed, or awk for simple operations.
+
+## Try it now:
+  #!/bin/bash
+  read -p "Enter a value: " val
+  if [[ "$val" =~ ^[0-9]+$ ]]; then
+      echo "$val is a number"
+  elif [[ "$val" =~ ^[a-zA-Z]+$ ]]; then
+      echo "$val is a word"
+  elif [[ "$val" == *@* ]]; then
+      echo "$val looks like an email"
+  else
+      echo "$val is mixed content"
+  fi
+
+## Technician Tip:
+BASH_REMATCH is the secret weapon for log parsing:
+  log="2026-04-16 10:30:45 ERROR: Connection refused from 10.0.0.5"
+  if [[ "$log" =~ ([0-9.]+)$ ]]; then
+      echo "Offending IP: ${BASH_REMATCH[1]}"   # 10.0.0.5
+  fi
+
+## Common Pain Point:
+"Regex doesn't work in [ ]" → regex only works in [[ =~ ]].
+"My glob works in file listing but not in [[ ]]" → globs use *, regex uses .*
+  [[ "$f" == *.log ]]     # glob (correct)
+  [[ "$f" =~ \.log$ ]]    # regex (also correct)

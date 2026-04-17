@@ -1,0 +1,90 @@
+# Lesson: Scope — local vs Global Variables
+
+## [WHEN] You need this when:
+1. A function accidentally overwrites a variable used elsewhere.
+2. You need temporary variables that don't leak.
+3. You're building modular scripts with many functions.
+
+## [INTENT] "Keep function variables from polluting the rest of the script."
+
+## [CONTEXT]
+By DEFAULT, all bash variables are GLOBAL. A function can see and
+change any variable. This is dangerous in large scripts.
+
+Use "local" to restrict a variable to the function:
+  local var="value"
+
+## [ACTION] Scope management
+
+### The problem (without local):
+  count=0
+  process_file() {
+      count=999         # OVERWRITES the global count!
+      echo "Processing..."
+  }
+  process_file
+  echo "Count: $count"   # 999 — NOT what we expected!
+
+### The fix (with local):
+  count=0
+  process_file() {
+      local count=999    # separate from the global count
+      echo "Local count: $count"
+  }
+  process_file
+  echo "Global count: $count"  # 0 — preserved!
+
+### Best practice — always use local:
+  check_disk() {
+      local mount="$1"
+      local usage
+      usage=$(df "$mount" | awk 'NR==2 {print $5}' | tr -d '%')
+      local status
+      if (( usage > 90 )); then
+          status="CRITICAL"
+      elif (( usage > 75 )); then
+          status="WARNING"
+      else
+          status="OK"
+      fi
+      echo "$status: $mount at ${usage}%"
+  }
+
+### Functions calling functions (scope chain):
+  outer() {
+      local x="outer"
+      inner
+      echo "After inner: x=$x"    # still "outer"
+  }
+  inner() {
+      local x="inner"             # doesn't affect outer's x
+      echo "In inner: x=$x"
+  }
+  outer
+
+### Returning multiple values (nameref, bash 4.3+):
+  get_stats() {
+      local -n result="$1"       # nameref — modifies the caller's variable
+      result[cpu]=$(top -bn1 2>/dev/null | grep "Cpu" | awk '{print 100-$8}')
+      result[mem]=$(free | awk '/Mem/ {printf "%.0f", $3/$2*100}')
+  }
+  declare -A stats
+  get_stats stats
+  echo "CPU: ${stats[cpu]}%, MEM: ${stats[mem]}%"
+
+## [EXPECTED RESULT]
+Functions don't accidentally break each other's variables.
+Each function manages its own state with local.
+
+## Technician Tip:
+Make it a RULE: every variable inside a function gets "local."
+The only exception: variables you intentionally want to set globally
+(like error flags or return values).
+
+  my_function() {
+      local input="$1"
+      local result
+      # ... do work ...
+      echo "$result"     # return via stdout
+  }
+  output=$(my_function "arg")   # capture in caller

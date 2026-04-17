@@ -1,0 +1,55 @@
+Q1: awk '{print $3}' extracts what?
+A) Line 3
+B) The third field (column) of each line
+C) The third character
+D) Three lines
+Correct: B
+
+Q2: sed 's/foo/bar/g' — what does the 'g' flag do?
+A) Global search across files
+B) Replace ALL occurrences on the line (not just the first)
+C) Case-insensitive
+D) Generate output
+Correct: B
+
+Q3: In regex, what does ^ mean?
+A) Power/exponent
+B) Start of line
+C) Not (inside character class)
+D) Both B and C depending on context
+Correct: D
+
+Q4: grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' extracts what?
+A) Dates
+B) IP addresses
+C) Version numbers
+D) Decimals
+Correct: B
+
+Q5: What does sed -i do?
+A) Interactive mode
+B) Edit the file in place (modifies the actual file)
+C) Case-insensitive
+D) Insert mode
+Correct: B
+
+Q6: awk -F: changes what?
+A) The output format
+B) The field separator (split on : instead of whitespace)
+C) The file encoding
+D) The filter
+Correct: B
+
+Q7: sort | uniq -c does what?
+A) Sorts and removes duplicates
+B) Sorts then counts consecutive identical lines
+C) Counts characters
+D) Sorts uniquely
+Correct: B
+
+Q8: Why use sed 's|old|new|' instead of sed 's/old/new/'?
+A) It's faster
+B) When old or new contains / (like file paths), use | as delimiter to avoid escaping
+C) Required on macOS
+D) No difference
+Correct: B

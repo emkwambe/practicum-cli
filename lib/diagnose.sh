@@ -971,3 +971,98 @@ diag_health_check() {
 
     diag_back_prompt
 }
+
+# ══════════════════════════════════════════════
+#  COMPACT HEALTH (for practicum status)
+# ══════════════════════════════════════════════
+
+diag_health_compact() {
+    # Runs silently, returns a one-line health summary
+    local score=0
+    local total=0
+    local issues=""
+
+    # CPU
+    total=$((total + 1))
+    local idle
+    idle=$(top -bn1 2>/dev/null | grep "Cpu(s)" | awk '{print $8}' | cut -d. -f1)
+    idle="${idle:-0}"
+    if [ "$idle" -gt 0 ] 2>/dev/null && [ "$((100 - idle))" -lt 80 ]; then
+        score=$((score + 1))
+    elif [ "$idle" -gt 0 ] 2>/dev/null; then
+        issues="${issues}CPU "
+    else
+        score=$((score + 1))
+    fi
+
+    # Memory
+    total=$((total + 1))
+    local mem_pct
+    mem_pct=$(free 2>/dev/null | awk '/^Mem:/ {printf "%.0f", ($2-$7)/$2*100}')
+    if [ -n "$mem_pct" ] && [ "$mem_pct" -lt 80 ]; then
+        score=$((score + 1))
+    elif [ -n "$mem_pct" ]; then
+        issues="${issues}MEM "
+    else
+        score=$((score + 1))
+    fi
+
+    # Disk
+    total=$((total + 1))
+    local max_disk
+    max_disk=$(df 2>/dev/null | awk 'NR>1 && $1 !~ /tmpfs|devtmpfs|loop|none/ {gsub(/%/,"",$5); if($5+0 > max) max=$5+0} END {print max+0}')
+    if [ "$max_disk" -lt 80 ] 2>/dev/null; then
+        score=$((score + 1))
+    else
+        issues="${issues}DISK "
+    fi
+
+    # Load
+    total=$((total + 1))
+    local load1
+    load1=$(cat /proc/loadavg 2>/dev/null | awk '{print $1}' | cut -d. -f1)
+    local cores
+    cores=$(nproc 2>/dev/null || echo 1)
+    if [ -n "$load1" ] && [ "$load1" -le "$cores" ] 2>/dev/null; then
+        score=$((score + 1))
+    elif [ -n "$load1" ]; then
+        issues="${issues}LOAD "
+    else
+        score=$((score + 1))
+    fi
+
+    # Services
+    total=$((total + 1))
+    local failed_svcs
+    failed_svcs=$(systemctl --failed --no-legend 2>/dev/null | wc -l)
+    if [ "$failed_svcs" -eq 0 ] 2>/dev/null; then
+        score=$((score + 1))
+    else
+        issues="${issues}SVCS "
+    fi
+
+    # Network
+    total=$((total + 1))
+    if ping -c 1 -W 1 8.8.8.8 >/dev/null 2>&1; then
+        score=$((score + 1))
+    else
+        issues="${issues}NET "
+    fi
+
+    # Grade
+    local pct=0
+    [ "$total" -gt 0 ] && pct=$((score * 100 / total))
+    local grade
+    if [ "$pct" -ge 90 ]; then grade="A"
+    elif [ "$pct" -ge 80 ]; then grade="B"
+    elif [ "$pct" -ge 60 ]; then grade="C"
+    elif [ "$pct" -ge 40 ]; then grade="D"
+    else grade="F"; fi
+
+    # Output
+    case "$grade" in
+        A|B) echo -e "  ${C_WHITE}System:${C_RESET}    ${C_GREEN}${grade} (${score}/${total} checks passed)${C_RESET}" ;;
+        C)   echo -e "  ${C_WHITE}System:${C_RESET}    ${C_YELLOW}${grade} (${score}/${total}) ⚠️  ${issues}${C_RESET}" ;;
+        *)   echo -e "  ${C_WHITE}System:${C_RESET}    ${C_RED}${grade} (${score}/${total}) 🚨 ${issues}${C_RESET}" ;;
+    esac
+}

@@ -1,0 +1,85 @@
+# Lesson: Test Operators — The Full Toolkit
+
+## [WHEN] You need this when:
+1. You need to check file types, permissions, or existence.
+2. You need to compare numbers or strings.
+3. You want to combine multiple conditions.
+
+## [INTENT] "Know every test I can run inside [ ] or [[ ]]."
+
+## [CONTEXT]
+The test command ([ ] or [[ ]]) evaluates conditions.
+There are three categories: file tests, string tests, number tests.
+
+## [ACTION] All the tests you need
+
+### File tests:
+  [ -f file ]    true if file exists and is a regular file
+  [ -d dir ]     true if dir exists and is a directory
+  [ -e path ]    true if path exists (any type)
+  [ -r file ]    true if file is readable
+  [ -w file ]    true if file is writable
+  [ -x file ]    true if file is executable
+  [ -s file ]    true if file exists and is NOT empty
+  [ -L file ]    true if file is a symlink
+  [ -p file ]    true if file is a named pipe
+  [ file1 -nt file2 ]   true if file1 is newer than file2
+  [ file1 -ot file2 ]   true if file1 is older than file2
+
+### String tests:
+  [ -z "$var" ]          true if string is empty (zero length)
+  [ -n "$var" ]          true if string is NOT empty
+  [ "$a" = "$b" ]       true if strings are equal
+  [ "$a" != "$b" ]      true if strings differ
+  [[ "$a" == pattern* ]] true if $a matches glob pattern
+  [[ "$a" =~ regex ]]   true if $a matches regex
+
+### Number tests:
+  [ "$a" -eq "$b" ]     equal
+  [ "$a" -ne "$b" ]     not equal
+  [ "$a" -lt "$b" ]     less than
+  [ "$a" -le "$b" ]     less than or equal
+  [ "$a" -gt "$b" ]     greater than
+  [ "$a" -ge "$b" ]     greater than or equal
+
+### Combining conditions:
+  # AND (both must be true):
+  [ -f "$file" ] && [ -r "$file" ]
+  [[ -f "$file" && -r "$file" ]]
+
+  # OR (either can be true):
+  [ "$a" = "yes" ] || [ "$a" = "y" ]
+  [[ "$a" == "yes" || "$a" == "y" ]]
+
+  # NOT (negate):
+  [ ! -f "$file" ]        # true if file does NOT exist
+  [[ ! -z "$var" ]]       # true if var is NOT empty
+
+## [EXPECTED RESULT]
+You can test any condition about files, strings, or numbers.
+
+## Try it now:
+  #!/bin/bash
+  file="${1:-/etc/hostname}"
+  echo "Checking: $file"
+  [ -e "$file" ] && echo "  EXISTS" || echo "  MISSING"
+  [ -f "$file" ] && echo "  Is a file" || echo "  Not a file"
+  [ -d "$file" ] && echo "  Is a directory" || echo "  Not a directory"
+  [ -r "$file" ] && echo "  Readable" || echo "  Not readable"
+  [ -w "$file" ] && echo "  Writable" || echo "  Not writable"
+  [ -x "$file" ] && echo "  Executable" || echo "  Not executable"
+  [ -s "$file" ] && echo "  Not empty ($(wc -c < "$file") bytes)" || echo "  Empty"
+
+## Technician Tip — arithmetic in bash:
+For number comparisons, you can also use (( )):
+  if (( count > 10 )); then echo "High"; fi
+  if (( disk_pct >= 90 )); then echo "Full"; fi
+
+(( )) is cleaner for math. [ ] uses -gt -lt -eq (harder to read).
+
+## Common Pain Point:
+"integer expression expected" → you're comparing a string with -gt.
+  ❌ [ "$name" -gt 5 ]    # name is "hello" — not a number
+  ✅ [ "$count" -gt 5 ]   # count must be numeric
+
+Check first: [[ "$var" =~ ^[0-9]+$ ]] && echo "is a number"

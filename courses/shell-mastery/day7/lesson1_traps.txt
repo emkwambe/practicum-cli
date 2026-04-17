@@ -1,0 +1,90 @@
+# Lesson: trap — Catch Signals and Clean Up
+
+## [WHEN] You need this when:
+1. Your script creates temp files that need cleanup.
+2. Users press Ctrl+C mid-script and leave things in a bad state.
+3. You need to release lock files on any kind of exit.
+4. You want graceful shutdown for long-running scripts.
+
+## [INTENT] "Run cleanup code no matter how the script exits."
+
+## [CONTEXT]
+trap catches signals (interrupts) and runs a command when they fire.
+
+Common signals:
+  EXIT    — script is exiting (any reason)
+  INT     — user pressed Ctrl+C
+  TERM    — kill command sent
+  ERR     — a command returned non-zero (with set -e)
+  HUP     — terminal closed
+
+## [ACTION] trap patterns
+
+### Cleanup on exit:
+  TMPFILE=$(mktemp)
+  trap 'rm -f "$TMPFILE"' EXIT
+
+  echo "Working with $TMPFILE..."
+  # ... do work ...
+  # TMPFILE is auto-deleted when script exits, even on error
+
+### Cleanup function:
+  cleanup() {
+      echo "Cleaning up..."
+      rm -f "$TMPFILE" "$LOCKFILE"
+      [ -n "${PID:-}" ] && kill "$PID" 2>/dev/null
+  }
+  trap cleanup EXIT
+
+### Catch Ctrl+C:
+  trap 'echo "Interrupted! Cleaning up..."; cleanup; exit 130' INT TERM
+
+### Handle errors (with set -e):
+  trap 'echo "ERROR on line $LINENO: $BASH_COMMAND" >&2' ERR
+
+  # This prints: ERROR on line 15: curl http://broken.url
+  # Incredibly useful for debugging
+
+### Comprehensive error handler:
+  on_error() {
+      local line="$1"
+      local cmd="$2"
+      local code="$3"
+      echo "FAILED at line $line: '$cmd' (exit code $code)" >&2
+      echo "Stack trace:" >&2
+      for ((i=1; i<${#FUNCNAME[@]}; i++)); do
+          echo "  ${FUNCNAME[$i]}() at ${BASH_SOURCE[$i]}:${BASH_LINENO[$((i-1))]}" >&2
+      done
+  }
+  trap 'on_error $LINENO "$BASH_COMMAND" $?' ERR
+
+### Ignore a signal:
+  trap '' INT       # Ctrl+C does nothing (use carefully)
+
+### Reset a trap:
+  trap - INT        # restore default Ctrl+C behavior
+
+## [EXPECTED RESULT]
+No matter how the script exits (success, error, Ctrl+C, kill),
+your cleanup code runs. No orphaned files, no stuck locks.
+
+## Try it now:
+  #!/bin/bash
+  set -euo pipefail
+  trap 'echo "Cleanup: removing $TMPFILE"; rm -f "$TMPFILE"' EXIT
+  trap 'echo ""; echo "Interrupted!"; exit 1' INT
+
+  TMPFILE=$(mktemp)
+  echo "Working... (press Ctrl+C to test)"
+  echo "Temp file: $TMPFILE"
+  sleep 10     # Ctrl+C here — watch cleanup run
+  echo "Done"
+
+## Technician Tip:
+The EXIT trap is the MOST important. It runs on:
+  - Normal exit (exit 0)
+  - Error exit (exit 1, set -e triggered)
+  - Ctrl+C (after INT handler runs)
+  - kill (after TERM handler runs)
+
+Always use EXIT for cleanup. Use INT/TERM only for custom messages.

@@ -1,0 +1,55 @@
+Q1: What does the shebang line #!/bin/bash do?
+A) Comments out the first line
+B) Tells the OS which interpreter to use for the script
+C) Starts the bash daemon
+D) Imports the bash library
+Correct: B
+
+Q2: Which is correct variable assignment in bash?
+A) name = "Eddy"
+B) name="Eddy"
+C) $name="Eddy"
+D) set name "Eddy"
+Correct: B
+
+Q3: What's the difference between "double" and 'single' quotes?
+A) No difference
+B) Double quotes allow variable expansion; single quotes treat everything literally
+C) Single quotes are faster
+D) Double quotes are for multi-word, single for single-word
+Correct: B
+
+Q4: $# contains what?
+A) The script's process ID
+B) The number of arguments passed to the script
+C) The last exit code
+D) The script name
+Correct: B
+
+Q5: What does set -euo pipefail do?
+A) Makes the script run faster
+B) Exit on error, error on undefined vars, catch pipe failures
+C) Sets up the environment
+D) Enables debugging mode
+Correct: B
+
+Q6: A script returns exit code 0. What does that mean?
+A) Error
+B) Success
+C) Warning
+D) Not found
+Correct: B
+
+Q7: Why should you always quote variables ("$var" not $var)?
+A) It's faster
+B) Prevents word splitting on spaces and avoids empty-string bugs
+C) Required by POSIX
+D) Makes them read-only
+Correct: B
+
+Q8: How do you read user input with a prompt?
+A) input("Enter name: ")
+B) read -p "Enter name: " name
+C) scanf name
+D) get name
+Correct: B

@@ -1,0 +1,91 @@
+# Lesson: Script Arguments & Special Variables
+
+## [WHEN] You need this when:
+1. Your script needs input from the user at launch time.
+2. You're building a tool like: ./deploy.sh production v1.2
+3. You need to know the script's own name or PID.
+4. You want to check if enough arguments were provided.
+
+## [INTENT] "Accept inputs when the script is called."
+
+## [CONTEXT]
+When you run: ./backup.sh /data /mnt/backup daily
+Bash sets special variables automatically:
+  $0   = ./backup.sh           (script name)
+  $1   = /data                 (first argument)
+  $2   = /mnt/backup           (second argument)
+  $3   = daily                 (third argument)
+  $#   = 3                     (number of arguments)
+  $@   = /data /mnt/backup daily  (all arguments, separately)
+  $*   = /data /mnt/backup daily  (all arguments, as one string)
+  $$   = 12345                 (current script's PID)
+  $?   = 0                     (exit code of last command)
+  $!   = 12346                 (PID of last background process)
+
+## [ACTION] Using arguments in scripts
+
+### Basic argument handling:
+  #!/bin/bash
+  echo "Script:  $0"
+  echo "Arg 1:   $1"
+  echo "Arg 2:   $2"
+  echo "All:     $@"
+  echo "Count:   $#"
+
+### Validate argument count:
+  #!/bin/bash
+  if [ "$#" -lt 2 ]; then
+      echo "Usage: $0 <source> <destination>"
+      exit 1
+  fi
+  SOURCE="$1"
+  DEST="$2"
+  echo "Copying $SOURCE to $DEST..."
+
+### Loop through all arguments:
+  #!/bin/bash
+  for file in "$@"; do
+      echo "Processing: $file"
+      wc -l "$file"
+  done
+
+### Shift arguments (consume one at a time):
+  #!/bin/bash
+  while [ "$#" -gt 0 ]; do
+      case "$1" in
+          -v|--verbose) VERBOSE=1 ;;
+          -o|--output)  OUTPUT="$2"; shift ;;
+          *)            FILES+=("$1") ;;
+      esac
+      shift
+  done
+
+## [EXPECTED RESULT]
+Your script accepts inputs, validates them, and uses them.
+If the user provides wrong inputs, the script prints usage and exits.
+
+## Try it now:
+  cat > /tmp/args.sh << 'EOF'
+  #!/bin/bash
+  echo "You gave me $# arguments:"
+  i=1
+  for arg in "$@"; do
+      echo "  [$i] $arg"
+      i=$((i + 1))
+  done
+  EOF
+  chmod +x /tmp/args.sh
+  /tmp/args.sh hello world "spaces work" 42
+
+## Technician Tip — "$@" vs $@:
+  "$@"  → each argument stays separate (preserves spaces)
+  $@    → arguments get split on spaces (BREAKS filenames with spaces)
+
+  ALWAYS use "$@" when passing arguments to another command:
+  ✅ grep "$@"
+  ❌ grep $@
+
+## Common Pain Point:
+"My script ignores arguments" → check that you reference $1, $2.
+"Argument with spaces breaks" → always quote: "$1" not $1.
+"$10 gives me '0' with a 1 prefix" → use ${10} for arg 10+.

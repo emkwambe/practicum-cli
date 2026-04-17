@@ -1,0 +1,55 @@
+Q1: trap 'cleanup' EXIT runs the cleanup function when?
+A) Only on errors
+B) Only when the user presses Ctrl+C
+C) When the script exits for ANY reason (success, error, signal)
+D) Never automatically
+Correct: C
+
+Q2: What does set -u do?
+A) Enables undo
+B) Errors on undefined/unset variables (catches typos)
+C) Enables Unicode
+D) Unlocks the script
+Correct: B
+
+Q3: : "${DIR:?DIR must be set}" — what does this do?
+A) Sets DIR to "DIR must be set"
+B) Exits with error message if DIR is unset or empty
+C) Prints DIR
+D) Comments out the line
+Correct: B
+
+Q4: bash -x script.sh does what?
+A) Executes with extra permissions
+B) Runs in trace mode (prints each command before execution)
+C) Runs in XML mode
+D) Deletes the script
+Correct: B
+
+Q5: shellcheck is a tool that:
+A) Checks shell compatibility
+B) Statically analyzes bash scripts for bugs and style issues
+C) Checks network connectivity
+D) Monitors shell sessions
+Correct: B
+
+Q6: rm -rf "${DIR:?}" prevents what disaster?
+A) Nothing
+B) If DIR is empty, the command refuses to run instead of deleting /
+C) Removes the directory quietly
+D) Only works on Linux
+Correct: B
+
+Q7: What exit code does Ctrl+C produce?
+A) 0
+B) 1
+C) 130 (128 + 2, where 2 = SIGINT)
+D) 255
+Correct: C
+
+Q8: PS4='+ ${LINENO}: ' changes what?
+A) The terminal prompt
+B) The prefix shown in trace mode (set -x), adding line numbers
+C) The password prompt
+D) Nothing
+Correct: B

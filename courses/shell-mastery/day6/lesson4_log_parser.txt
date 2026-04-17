@@ -1,0 +1,88 @@
+# Lesson: Practical — Build a Log Analyzer
+
+## [WHEN] You need this when:
+You want to combine awk, sed, grep, and regex into a real tool.
+
+## [INTENT] "Parse a log file and produce actionable insights."
+
+## [CONTEXT]
+This is the most common sysadmin automation task: read logs,
+extract patterns, count occurrences, report findings.
+
+## [ACTION] A complete log analyzer script
+
+  #!/bin/bash
+  set -euo pipefail
+
+  LOG_FILE="${1:-/var/log/syslog}"
+
+  if [ ! -f "$LOG_FILE" ]; then
+      echo "Error: $LOG_FILE not found" >&2
+      exit 1
+  fi
+
+  echo "=== Log Analysis: $(basename "$LOG_FILE") ==="
+  echo "Period: $(head -1 "$LOG_FILE" | awk '{print $1,$2,$3}') → $(tail -1 "$LOG_FILE" | awk '{print $1,$2,$3}')"
+  echo ""
+
+  # Total lines
+  total=$(wc -l < "$LOG_FILE")
+  echo "Total lines: $total"
+
+  # Error count by severity
+  echo ""
+  echo "--- Severity Breakdown ---"
+  for level in error warn info debug; do
+      count=$(grep -ci "$level" "$LOG_FILE" || echo 0)
+      pct=$((count * 100 / total))
+      printf "  %-8s %6d (%2d%%)\n" "$level" "$count" "$pct"
+  done
+
+  # Top talkers (which services log the most)
+  echo ""
+  echo "--- Top 5 Services ---"
+  awk '{print $5}' "$LOG_FILE" | sed 's/\[.*//;s/://' | sort | uniq -c | sort -rn | head -5 | \
+      while read -r count svc; do
+          printf "  %6d  %s\n" "$count" "$svc"
+      done
+
+  # Error-specific lines
+  error_count=$(grep -ci "error\|fail\|critical" "$LOG_FILE" || echo 0)
+  if [ "$error_count" -gt 0 ]; then
+      echo ""
+      echo "--- Last 5 Errors ---"
+      grep -i "error\|fail\|critical" "$LOG_FILE" | tail -5 | while IFS= read -r line; do
+          echo "  $line"
+      done
+  fi
+
+  echo ""
+  echo "=== End Report ==="
+
+## Breakdown of techniques used:
+  grep -ci     — case-insensitive count
+  awk '{print $5}'  — extract 5th column (service name)
+  sed 's/\[.*//'    — strip PID brackets
+  sort | uniq -c    — count unique values
+  sort -rn          — sort numerically, descending
+  head -5           — top 5
+
+## Try it now:
+  # Run on your system log:
+  bash log_analyzer.sh /var/log/syslog
+
+  # Generate a test log to practice:
+  for i in $(seq 1 100); do
+      echo "Apr 16 10:${i}:00 myhost app[$RANDOM]: $(shuf -n1 -e INFO WARN ERROR DEBUG) test message $i"
+  done > /tmp/test.log
+  bash log_analyzer.sh /tmp/test.log
+
+## Technician Tip:
+This pattern scales. Replace the log format parsing for any log:
+  - Apache: awk '{print $1}' → IP addresses
+  - Nginx: awk '{print $9}' → HTTP status codes
+  - JSON logs: use jq instead of awk
+
+## Next:
+Type menu to return. You have completed Day 6!
+You can now parse, transform, and analyze any text data from the CLI.

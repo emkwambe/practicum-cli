@@ -1,0 +1,91 @@
+# Lesson: Arrays — Store Multiple Values
+
+## [WHEN] You need this when:
+1. You have a list of servers, files, or users to process.
+2. You need to collect results and use them later.
+3. You want to build a dynamic list during execution.
+4. You're passing multiple values to a function.
+
+## [INTENT] "Store a list of values in one variable."
+
+## [CONTEXT]
+Bash has indexed arrays (numbered) and associative arrays (key-value).
+
+## [ACTION] Array operations
+
+### Create arrays:
+  servers=("web01" "web02" "db01" "cache01")
+  ports=(80 443 8080 3306)
+  files=(/var/log/*.log)                          # glob expansion
+
+### Access elements:
+  echo "${servers[0]}"        # web01 (first element)
+  echo "${servers[2]}"        # db01
+  echo "${servers[-1]}"       # cache01 (last element)
+  echo "${servers[@]}"        # all elements (space-separated)
+  echo "${#servers[@]}"       # 4 (count)
+
+### Add elements:
+  servers+=("monitor01")      # append
+  servers[5]="backup01"       # set by index
+
+### Loop over array:
+  for server in "${servers[@]}"; do
+      echo "Checking $server..."
+  done
+
+### Loop with index:
+  for i in "${!servers[@]}"; do
+      echo "[$i] ${servers[$i]}"
+  done
+
+### Remove element:
+  unset 'servers[2]'          # removes db01 (leaves gap)
+
+### Slice:
+  echo "${servers[@]:1:2}"    # 2 elements starting at index 1
+
+### Associative arrays (bash 4+):
+  declare -A config
+  config[host]="192.168.1.10"
+  config[port]="8080"
+  config[env]="production"
+
+  echo "Host: ${config[host]}"
+  echo "All keys: ${!config[@]}"
+  echo "All values: ${config[@]}"
+
+  for key in "${!config[@]}"; do
+      echo "$key = ${config[$key]}"
+  done
+
+## [EXPECTED RESULT]
+Arrays let you collect and iterate over lists of values
+without creating temp files or parsing strings.
+
+## Try it now:
+  #!/bin/bash
+  failed=()
+  for svc in ssh cron nginx docker nonexistent; do
+      if systemctl is-active "$svc" >/dev/null 2>&1; then
+          echo "✅ $svc"
+      else
+          echo "❌ $svc"
+          failed+=("$svc")
+      fi
+  done
+  echo ""
+  echo "${#failed[@]} service(s) not running: ${failed[*]}"
+
+## Technician Tip:
+"${array[@]}" vs "${array[*]}":
+  "@" → each element is a separate word (USE THIS for loops)
+  "*" → all elements joined as ONE string
+
+  for item in "${array[@]}"; do ...  ← CORRECT (each item separate)
+  for item in "${array[*]}"; do ...  ← WRONG (one big string)
+
+## Common Pain Point:
+"Array is empty after a pipe" → subshell issue (same as while loops).
+Build the array before the pipe, or use process substitution:
+  while read -r line; do arr+=("$line"); done < <(some_command)

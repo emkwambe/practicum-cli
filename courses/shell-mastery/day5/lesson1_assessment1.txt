@@ -1,0 +1,64 @@
+# Assessment 1: Build a System Monitoring Tool
+
+## [WHEN] You need this when:
+You have completed Days 1-4 and are ready to prove your scripting skills.
+
+## [INTENT] "Build a real monitoring script from scratch."
+
+## [CONTEXT]
+This assessment simulates a junior sysadmin task: write a script that
+checks system health, reports issues, and can run on cron.
+
+## [ACTION] Build: syscheck.sh
+
+Create a script called syscheck.sh that:
+
+### 1. Script Structure
+  - Has a proper shebang (#!/bin/bash)
+  - Uses set -euo pipefail
+  - Accepts a -v (verbose) flag
+  - Has a usage/help function (-h flag)
+
+### 2. Functions (at least 4):
+  - check_disk()    — report any filesystem over 80%
+  - check_memory()  — report if memory usage > 80%
+  - check_services() — check if ssh and cron are running
+  - generate_report() — output a formatted summary
+
+### 3. Output format:
+  [2026-04-16 10:30:00] System Health Report
+  ==========================================
+  Host: EDDY-THE-GREAT
+  Uptime: 5 days, 3 hours
+
+  DISK:
+    ✅ / at 45%
+    ⚠️ /var at 82% — WARNING
+
+  MEMORY:
+    ✅ 62% used (4.7G / 7.6G)
+
+  SERVICES:
+    ✅ ssh: active
+    ❌ nginx: inactive
+
+  SUMMARY: 1 warning(s), 1 error(s)
+  ==========================================
+
+### 4. Requirements:
+  - Use local variables in all functions
+  - Use arrays to collect warnings and errors
+  - Log output to /tmp/syscheck.log
+  - Return exit code 0 if healthy, 1 if any issues
+
+### 5. Bonus:
+  - Accept -o FILE to write report to a specific file
+  - Accept -s SERVICE to check additional services
+  - Color output (green/yellow/red)
+
+## [EXPECTED RESULT]
+A single-file script that runs unattended, produces a clear report,
+and could run on cron to email you the results.
+
+## [WHEN READY]
+Run: practicum assess1-shell

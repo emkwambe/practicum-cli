@@ -1,0 +1,96 @@
+# Lesson: Defensive Scripting — Validate Everything
+
+## [WHEN] You need this when:
+1. Your script takes user input that could be malicious or wrong.
+2. A variable might be empty, causing rm -rf / disasters.
+3. You need to guard against missing dependencies.
+4. Your script runs unattended and must not silently fail.
+
+## [INTENT] "Make my script fail LOUDLY and SAFELY on bad input."
+
+## [CONTEXT]
+Defensive scripting means: assume everything will go wrong.
+Validate inputs, check dependencies, guard dangerous commands.
+
+## [ACTION] Defensive patterns
+
+### The standard script header:
+  #!/bin/bash
+  set -euo pipefail
+  IFS=$'\n\t'    # safer word splitting (no space splitting)
+
+### Validate required arguments:
+  : "${1:?Usage: $0 <directory>}"
+  # Dies with: "Usage: script.sh <directory>" if $1 is empty
+
+### Validate variable is set:
+  : "${BACKUP_DIR:?BACKUP_DIR must be set}"
+  : "${DB_HOST:?DB_HOST is required}"
+
+### Guard dangerous commands:
+  # NEVER do this:
+  rm -rf "$DIR"                    # if DIR is empty → rm -rf /
+
+  # ALWAYS do this:
+  rm -rf "${DIR:?DIR must be set}"  # refuses to run if DIR is empty
+
+  # Even better:
+  [ -d "$DIR" ] || die "Not a directory: $DIR"
+  [[ "$DIR" == /tmp/* ]] || die "Safety: only /tmp allowed"
+  rm -rf "$DIR"
+
+### Check dependencies at startup:
+  require_cmd() {
+      command -v "$1" >/dev/null 2>&1 || die "$1 is required but not installed"
+  }
+  require_cmd curl
+  require_cmd jq
+  require_cmd docker
+
+### Validate numeric input:
+  [[ "$PORT" =~ ^[0-9]+$ ]] || die "Port must be a number: $PORT"
+  (( PORT >= 1 && PORT <= 65535 )) || die "Port out of range: $PORT"
+
+### Validate file input:
+  [ -f "$CONFIG" ] || die "Config not found: $CONFIG"
+  [ -r "$CONFIG" ] || die "Config not readable: $CONFIG"
+
+### Validate directory:
+  [ -d "$OUTPUT_DIR" ] || mkdir -p "$OUTPUT_DIR"
+  [ -w "$OUTPUT_DIR" ] || die "Cannot write to: $OUTPUT_DIR"
+
+### Sanitize user input:
+  # Remove dangerous characters:
+  clean=$(echo "$input" | tr -cd '[:alnum:]._-')
+
+  # Prevent path traversal:
+  [[ "$filename" == *..* ]] && die "Path traversal detected"
+
+### Timeout for hung commands:
+  timeout 30 curl -s http://api.example.com || die "API timed out"
+
+## [EXPECTED RESULT]
+Your script fails fast with clear error messages instead of
+silently doing the wrong thing.
+
+## Try it now:
+  #!/bin/bash
+  set -euo pipefail
+
+  die() { echo "ERROR: $1" >&2; exit 1; }
+
+  : "${1:?Usage: $0 <directory>}"
+  DIR="$1"
+
+  [ -d "$DIR" ] || die "Not a directory: $DIR"
+  [ -r "$DIR" ] || die "Cannot read: $DIR"
+
+  echo "Contents of $DIR:"
+  ls -la "$DIR"
+
+## Technician Tip:
+The ": ${VAR:?message}" pattern is the fastest validation:
+  : "${API_KEY:?API_KEY environment variable is required}"
+
+The : (colon) is a no-op command. ${VAR:?msg} expands VAR or exits.
+One line, zero overhead, maximum safety.

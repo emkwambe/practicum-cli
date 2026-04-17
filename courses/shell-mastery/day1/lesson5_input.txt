@@ -1,0 +1,88 @@
+# Lesson: User Input with read
+
+## [WHEN] You need this when:
+1. Your script needs interactive confirmation (y/n).
+2. You want the user to enter a value at runtime.
+3. You need to read lines from a file.
+4. You're building a menu-driven script.
+
+## [INTENT] "Pause and ask the user for input during execution."
+
+## [CONTEXT]
+The read command captures user input into a variable.
+It pauses the script until the user presses Enter.
+
+## [ACTION] read patterns
+
+### Basic prompt:
+  read -p "Enter your name: " name
+  echo "Hello, $name!"
+
+### With a default value:
+  read -p "Port [8080]: " port
+  port="${port:-8080}"
+  echo "Using port: $port"
+
+### Yes/no confirmation:
+  read -p "Are you sure? (y/n): " confirm
+  if [[ "$confirm" != "y" ]]; then
+      echo "Cancelled."
+      exit 0
+  fi
+
+### Silent input (passwords):
+  read -sp "Password: " password
+  echo ""   # newline after hidden input
+  echo "Got ${#password} characters"
+
+### Timeout (auto-continue after N seconds):
+  read -t 5 -p "Press Enter within 5 seconds... " response
+  if [ $? -ne 0 ]; then
+      echo "Timed out, using defaults."
+  fi
+
+### Read a single character (no Enter needed):
+  read -n 1 -p "Continue? (y/n) " choice
+  echo ""
+
+### Read from a file (line by line):
+  while IFS= read -r line; do
+      echo "Line: $line"
+  done < /etc/hostname
+
+### Read into multiple variables:
+  echo "first second third" | read -r a b c
+  # Note: in a pipe, variables are lost (subshell)
+  # Better: use process substitution or here-string
+  read -r a b c <<< "first second third"
+  echo "$a $b $c"
+
+## [EXPECTED RESULT]
+The script pauses, user types input, script continues with that value.
+
+## Try it now:
+  #!/bin/bash
+  read -p "What is your favorite command? " cmd
+  echo "Let me look that up..."
+  if command -v "$cmd" >/dev/null 2>&1; then
+      echo "$cmd is installed at: $(which "$cmd")"
+  else
+      echo "$cmd is not installed."
+  fi
+
+## Technician Tip — IFS and read:
+When reading CSVs or colon-separated data:
+  while IFS=: read -r user _ uid gid _ home shell; do
+      echo "$user → $shell (UID $uid)"
+  done < /etc/passwd
+
+IFS (Internal Field Separator) tells read what character splits fields.
+Default is space/tab/newline. Override for CSV: IFS=,
+
+## Common Pain Point:
+"read in a pipe doesn't work" → pipes create subshells.
+  echo "hi" | read var; echo "$var"    ← empty!
+  read var <<< "hi"; echo "$var"       ← works!
+
+"read strips leading whitespace" → use IFS= to preserve:
+  IFS= read -r line

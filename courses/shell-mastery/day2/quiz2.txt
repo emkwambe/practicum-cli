@@ -1,0 +1,55 @@
+Q1: What's the correct syntax for if/then in bash?
+A) if CONDITION then ... end
+B) if CONDITION; then ... fi
+C) if (CONDITION) { ... }
+D) if CONDITION do ... done
+Correct: B
+
+Q2: Which test checks if a file exists and is a regular file?
+A) [ -e file ]
+B) [ -d file ]
+C) [ -f file ]
+D) [ -x file ]
+Correct: C
+
+Q3: In [[ $var =~ ^[0-9]+$ ]], what does =~ do?
+A) Assignment
+B) Glob pattern matching
+C) Regular expression matching
+D) String concatenation
+Correct: C
+
+Q4: What does case end with?
+A) end
+B) done
+C) esac
+D) fi
+Correct: C
+
+Q5: $(( 10 / 3 )) returns what?
+A) 3.33
+B) 3
+C) 4
+D) Error
+Correct: B
+
+Q6: What's the purpose of the *) pattern in a case statement?
+A) Matches files
+B) Default branch — catches anything that didn't match above
+C) Wildcard import
+D) Comments
+Correct: B
+
+Q7: ${path##*/} does what to "/var/log/error.log"?
+A) Returns /var/log
+B) Returns error.log (strips longest prefix up to /)
+C) Returns .log
+D) Returns /var
+Correct: B
+
+Q8: Why use [[ ]] instead of [ ] in bash?
+A) Required by POSIX
+B) Faster
+C) Safer with empty vars, supports && || and =~ regex
+D) Only works on Linux
+Correct: C

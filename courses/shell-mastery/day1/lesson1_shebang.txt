@@ -1,0 +1,62 @@
+# Lesson: The Shebang — Every Script Starts Here
+
+## [WHEN] You need this when:
+1. You're writing your first bash script.
+2. A script runs differently on different machines.
+3. You get "Permission denied" trying to run a script.
+4. Your script works with bash but fails with sh.
+
+## [INTENT] "Create a script file that Linux knows how to execute."
+
+## [CONTEXT]
+Every bash script starts with a shebang line:
+  #!/bin/bash
+
+This tells the OS: "Use /bin/bash to interpret this file."
+Without it, the system guesses — and guesses wrong sometimes.
+
+The script lifecycle:
+  1. Create the file (any text editor)
+  2. Add the shebang as line 1
+  3. Make it executable: chmod +x script.sh
+  4. Run it: ./script.sh
+
+## [ACTION] Your first script
+Create a file called hello.sh:
+
+  #!/bin/bash
+  # My first script — comments start with #
+  echo "Hello, I am a script!"
+  echo "Today is $(date)"
+  echo "I am running as: $(whoami)"
+  echo "On host: $(hostname)"
+
+Make it executable and run:
+  chmod +x hello.sh
+  ./hello.sh
+
+## [EXPECTED RESULT]
+  Hello, I am a script!
+  Today is Thu Apr 16 2026
+  I am running as: hp
+  On host: EDDY-THE-GREAT
+
+## Try it now:
+  echo '#!/bin/bash' > /tmp/test.sh
+  echo 'echo "It works! PID: $$"' >> /tmp/test.sh
+  chmod +x /tmp/test.sh
+  /tmp/test.sh
+
+## Technician Tip:
+Use #!/usr/bin/env bash instead of #!/bin/bash for portability.
+On some systems (FreeBSD, macOS), bash isn't at /bin/bash.
+The env version finds bash wherever it's installed.
+
+  #!/usr/bin/env bash     ← portable (recommended)
+  #!/bin/bash             ← direct (faster, common on Linux)
+
+## Common Pain Point:
+"Permission denied" → you forgot chmod +x.
+"bad interpreter" → wrong path in shebang, or Windows line endings.
+Fix Windows endings: sed -i 's/\r$//' script.sh
+Or: dos2unix script.sh

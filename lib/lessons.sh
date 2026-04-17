@@ -48,6 +48,7 @@ get_course_name() {
         linux-foundations) echo "Linux Foundations" ;;
         git-essentials)    echo "Git & Version Control" ;;
         docker-essentials) echo "Docker & Containers" ;;
+        shell-mastery)     echo "Shell Scripting Mastery" ;;
         *) echo "$slug" ;;
     esac
 }
