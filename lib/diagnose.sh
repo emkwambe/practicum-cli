@@ -22,7 +22,11 @@ cmd_diagnose() {
     print_menu_item "5" "🔒 Permission denied or access issues"
     print_menu_item "6" "🔧 Hardware or kernel problems"
     print_menu_item "7" "🩺 Full system health check"
+    print_menu_item "8" "🔎 Error pattern scan (auto-detect issues)"
+    print_menu_item "9" "📊 Diagnostic history & trends"
     echo ""
+    print_menu_item "r" "📋 Generate & save report"
+    print_menu_item "l" "📋 List saved reports"
     print_menu_item "0" "Back"
     print_prompt
     read -r choice || return 0
@@ -35,6 +39,10 @@ cmd_diagnose() {
         5) diag_permissions ;;
         6) diag_hardware_menu ;;
         7) diag_health_check ;;
+        8) diag_pattern_match ;;
+        9) diag_history ;;
+        r|R) diag_report ;;
+        l|L) diag_list_reports ;;
         0) return 0 ;;
         *) echo -e "  ${C_RED}Invalid choice.${C_RESET}"; cmd_diagnose ;;
     esac
@@ -58,6 +66,14 @@ diag_run() {
     echo ""
     eval "$cmd" 2>&1 | sed 's/^/    /'
     echo ""
+
+    # Log to report if report mode is active
+    if [ -n "${DIAG_REPORT_FILE:-}" ]; then
+        echo "  ▶ $label" >> "$DIAG_REPORT_FILE"
+        echo "  \$ $cmd" >> "$DIAG_REPORT_FILE"
+        eval "$cmd" 2>&1 | sed 's/^/    /' >> "$DIAG_REPORT_FILE" 2>/dev/null
+        echo "" >> "$DIAG_REPORT_FILE"
+    fi
 }
 
 diag_verdict() {
@@ -68,6 +84,20 @@ diag_verdict() {
         warn)     echo -e "  ${C_YELLOW}⚠️  $msg${C_RESET}" ;;
         critical) echo -e "  ${C_RED}🚨 $msg${C_RESET}" ;;
     esac
+
+    # History logging — every verdict is recorded
+    local logfile="$HOME/.practicum/clinic_history.log"
+    mkdir -p "$HOME/.practicum"
+    local caller_func="${FUNCNAME[1]:-unknown}"
+    echo "[$(date '+%F %T')] STATUS=$status FUNCTION=$caller_func MSG=\"$msg\"" >> "$logfile" 2>/dev/null
+
+    # Report logging
+    if [ -n "${DIAG_REPORT_FILE:-}" ]; then
+        local icon="✅"
+        [ "$status" = "warn" ] && icon="⚠️"
+        [ "$status" = "critical" ] && icon="🚨"
+        echo "  $icon $msg" >> "$DIAG_REPORT_FILE"
+    fi
 }
 
 diag_explain() {
@@ -134,8 +164,8 @@ diag_cpu() {
 
     # Check overall CPU
     local idle
-    idle=$(top -bn1 | grep "Cpu(s)" | awk '{print $8}' 2>/dev/null | cut -d. -f1)
-    if [ -n "$idle" ]; then
+    idle=$(top -bn1 2>/dev/null | grep "Cpu(s)" | awk -F',' '{for(i=1;i<=NF;i++) if($i ~ /id/) {gsub(/[^0-9.]/,"",$i); printf "%d", $i}}')
+    if [ -n "$idle" ] && [ "$idle" -ge 0 ] 2>/dev/null; then
         local used=$((100 - idle))
         if [ "$used" -gt 90 ]; then
             diag_verdict "critical" "CPU at ${used}% — system is overloaded"
@@ -1524,8 +1554,8 @@ diag_health_check() {
     # --- CPU ---
     total=$((total + 1))
     local idle
-    idle=$(top -bn1 2>/dev/null | grep "Cpu(s)" | awk '{print $8}' | cut -d. -f1)
-    if [ -n "$idle" ]; then
+    idle=$(top -bn1 2>/dev/null | grep "Cpu(s)" | awk -F',' '{for(i=1;i<=NF;i++) if($i ~ /id/) {gsub(/[^0-9.]/,"",$i); printf "%d", $i}}')
+    if [ -n "$idle" ] && [ "$idle" -ge 0 ] 2>/dev/null; then
         local cpu_used=$((100 - idle))
         if [ "$cpu_used" -lt 80 ]; then
             score=$((score + 1))
@@ -1683,7 +1713,7 @@ diag_health_compact() {
     # CPU
     total=$((total + 1))
     local idle
-    idle=$(top -bn1 2>/dev/null | grep "Cpu(s)" | awk '{print $8}' | cut -d. -f1)
+    idle=$(top -bn1 2>/dev/null | grep "Cpu(s)" | awk -F',' '{for(i=1;i<=NF;i++) if($i ~ /id/) {gsub(/[^0-9.]/,"",$i); printf "%d", $i}}')
     idle="${idle:-0}"
     if [ "$idle" -gt 0 ] 2>/dev/null && [ "$((100 - idle))" -lt 80 ]; then
         score=$((score + 1))
@@ -1763,4 +1793,386 @@ diag_health_compact() {
         C)   echo -e "  ${C_WHITE}System:${C_RESET}    ${C_YELLOW}${grade} (${score}/${total}) ⚠️  ${issues}${C_RESET}" ;;
         *)   echo -e "  ${C_WHITE}System:${C_RESET}    ${C_RED}${grade} (${score}/${total}) 🚨 ${issues}${C_RESET}" ;;
     esac
+}
+
+# ══════════════════════════════════════════════
+#  HISTORY TRACKING
+# ══════════════════════════════════════════════
+
+diag_history() {
+    local logfile="$HOME/.practicum/clinic_history.log"
+
+    if [ ! -f "$logfile" ] || [ ! -s "$logfile" ]; then
+        echo ""
+        echo -e "  ${C_DIM}No diagnostic history yet. Run 'diagnose' to start.${C_RESET}"
+        echo ""
+        return
+    fi
+
+    print_header "📊 IT Clinic — Diagnostic History"
+    echo ""
+
+    # Summary stats
+    local total_entries
+    total_entries=$(wc -l < "$logfile")
+    local critical_count
+    critical_count=$(grep -c "STATUS=critical" "$logfile" 2>/dev/null || true)
+    critical_count="${critical_count##*$'\n'}"
+    critical_count="${critical_count:-0}"
+    local warn_count
+    warn_count=$(grep -c "STATUS=warn" "$logfile" 2>/dev/null || true)
+    warn_count="${warn_count##*$'\n'}"
+    warn_count="${warn_count:-0}"
+    local ok_count
+    ok_count=$(grep -c "STATUS=ok" "$logfile" 2>/dev/null || true)
+    ok_count="${ok_count##*$'\n'}"
+    ok_count="${ok_count:-0}"
+    local first_date
+    first_date=$(head -1 "$logfile" | grep -oP '\d{4}-\d{2}-\d{2}' | head -1)
+    local last_date
+    last_date=$(tail -1 "$logfile" | grep -oP '\d{4}-\d{2}-\d{2}' | head -1)
+
+    echo -e "  ${C_WHITE}Total diagnostics run:${C_RESET}  $total_entries"
+    echo -e "  ${C_WHITE}Period:${C_RESET}                 ${first_date:-unknown} → ${last_date:-unknown}"
+    echo ""
+    echo -e "  ${C_GREEN}✅ OK:${C_RESET}       $ok_count"
+    echo -e "  ${C_YELLOW}⚠️  Warnings:${C_RESET} $warn_count"
+    echo -e "  ${C_RED}🚨 Critical:${C_RESET} $critical_count"
+    echo ""
+
+    # Recurring issues (critical/warn that appear more than once)
+    local recurring
+    recurring=$(grep -E "STATUS=(critical|warn)" "$logfile" | \
+        sed 's/.*FUNCTION=//' | sed 's/ MSG=.*//' | \
+        sort | uniq -c | sort -rn | head -10)
+
+    if [ -n "$recurring" ]; then
+        echo -e "  ${C_WHITE}Recurring issues (most frequent):${C_RESET}"
+        echo ""
+        echo "$recurring" | while read -r count func; do
+            local last_seen
+            last_seen=$(grep "FUNCTION=$func" "$logfile" | tail -1 | grep -oP '\d{4}-\d{2}-\d{2} \d{2}:\d{2}' | head -1)
+            if [ "$count" -gt 3 ]; then
+                echo -e "    ${C_RED}$count occurrences${C_RESET}  $func  ${C_DIM}(last: ${last_seen:-unknown})${C_RESET}"
+            elif [ "$count" -gt 1 ]; then
+                echo -e "    ${C_YELLOW}$count occurrences${C_RESET}  $func  ${C_DIM}(last: ${last_seen:-unknown})${C_RESET}"
+            fi
+        done
+        echo ""
+    fi
+
+    # Trend: last 7 days
+    echo -e "  ${C_WHITE}Last 7 days:${C_RESET}"
+    echo ""
+    for i in 6 5 4 3 2 1 0; do
+        local day
+        day=$(date -d "-${i} days" '+%F' 2>/dev/null || date -v-${i}d '+%F' 2>/dev/null || continue)
+        local day_ok
+        day_ok=$(grep "^\[$day" "$logfile" 2>/dev/null | grep -c "STATUS=ok" 2>/dev/null || true)
+        day_ok=$(echo "$day_ok" | tail -1 | tr -dc '0-9')
+        day_ok="${day_ok:-0}"
+        local day_warn
+        day_warn=$(grep "^\[$day" "$logfile" 2>/dev/null | grep -c "STATUS=warn" 2>/dev/null || true)
+        day_warn=$(echo "$day_warn" | tail -1 | tr -dc '0-9')
+        day_warn="${day_warn:-0}"
+        local day_crit
+        day_crit=$(grep "^\[$day" "$logfile" 2>/dev/null | grep -c "STATUS=critical" 2>/dev/null || true)
+        day_crit=$(echo "$day_crit" | tail -1 | tr -dc '0-9')
+        day_crit="${day_crit:-0}"
+        local day_total=$((day_ok + day_warn + day_crit))
+        if [ "$day_total" -gt 0 ]; then
+            local bar=""
+            local j
+            for ((j=0; j<day_ok && j<20; j++)); do bar="${bar}█"; done
+            for ((j=0; j<day_warn && j<20; j++)); do bar="${bar}▒"; done
+            for ((j=0; j<day_crit && j<20; j++)); do bar="${bar}░"; done
+            printf "    %s  ${C_GREEN}%s${C_YELLOW}%s${C_RED}%s${C_RESET}  (%d)\n" \
+                "$day" "" "" "" "$day_total"
+            # Simpler: just show counts
+            printf "    %s  ✅ %-3d ⚠️  %-3d 🚨 %-3d\n" "$day" "$day_ok" "$day_warn" "$day_crit"
+        else
+            printf "    %s  ${C_DIM}—${C_RESET}\n" "$day"
+        fi
+    done
+    echo ""
+
+    # Recommendations
+    if [ "$critical_count" -gt 5 ]; then
+        echo -e "  ${C_RED}⚡ High critical count. Consider scheduling a maintenance window.${C_RESET}"
+    fi
+    if echo "$recurring" | grep -q "diag_disk"; then
+        echo -e "  ${C_YELLOW}💡 Recurring disk issues. Set up log rotation:${C_RESET}"
+        echo -e "  ${C_DIM}   sudo apt install logrotate && sudo logrotate -f /etc/logrotate.conf${C_RESET}"
+    fi
+    if echo "$recurring" | grep -q "diag_memory\|diag_swap"; then
+        echo -e "  ${C_YELLOW}💡 Recurring memory issues. Consider adding swap or RAM.${C_RESET}"
+    fi
+    echo ""
+}
+
+# ══════════════════════════════════════════════
+#  SAVEABLE REPORTS
+# ══════════════════════════════════════════════
+
+diag_report() {
+    local report_dir="$HOME/.practicum/reports"
+    mkdir -p "$report_dir"
+    local timestamp
+    timestamp=$(date '+%F_%H%M%S')
+    local report_file="$report_dir/clinic-report-${timestamp}.txt"
+
+    export DIAG_REPORT_FILE="$report_file"
+
+    # Write report header
+    cat > "$report_file" << EOF
+══════════════════════════════════════════════════════
+  IT CLINIC — DIAGNOSTIC REPORT
+  Host:     $(hostname)
+  User:     $(whoami)
+  Date:     $(date '+%F %T %Z')
+  Kernel:   $(uname -r)
+  Uptime:   $(uptime -p 2>/dev/null || uptime)
+══════════════════════════════════════════════════════
+
+EOF
+
+    echo ""
+    echo -e "  ${C_CYAN}Generating diagnostic report...${C_RESET}"
+    echo -e "  ${C_DIM}All results will be saved to: $report_file${C_RESET}"
+    echo ""
+
+    # Run health check (captures to both screen and file)
+    echo "── HEALTH CHECK ──" >> "$report_file"
+    diag_health_check
+
+    echo "" >> "$report_file"
+    echo "── END OF REPORT ──" >> "$report_file"
+    echo "Generated: $(date '+%F %T')" >> "$report_file"
+
+    unset DIAG_REPORT_FILE
+
+    echo ""
+    echo -e "  ${C_GREEN}✅ Report saved: ${C_WHITE}$report_file${C_RESET}"
+    echo -e "  ${C_DIM}View:  cat $report_file${C_RESET}"
+    echo -e "  ${C_DIM}Share: mail -s 'IT Clinic Report' admin@example.com < $report_file${C_RESET}"
+    echo ""
+
+    # Log to history
+    local logfile="$HOME/.practicum/clinic_history.log"
+    echo "[$(date '+%F %T')] REPORT_SAVED file=$report_file" >> "$logfile" 2>/dev/null
+}
+
+diag_list_reports() {
+    local report_dir="$HOME/.practicum/reports"
+    if [ ! -d "$report_dir" ] || [ -z "$(ls -A "$report_dir" 2>/dev/null)" ]; then
+        echo ""
+        echo -e "  ${C_DIM}No reports saved yet. Run 'report' to generate one.${C_RESET}"
+        echo ""
+        return
+    fi
+
+    print_header "📋 Saved Reports"
+    echo ""
+    local count=0
+    for f in "$report_dir"/clinic-report-*.txt; do
+        [ -f "$f" ] || continue
+        count=$((count + 1))
+        local size
+        size=$(du -h "$f" 2>/dev/null | cut -f1)
+        local basename
+        basename=$(basename "$f")
+        local date_str
+        date_str=$(echo "$basename" | sed 's/clinic-report-//;s/\.txt//;s/_/ /')
+        echo -e "  ${C_CYAN}[$count]${C_RESET} $date_str  ${C_DIM}($size)${C_RESET}"
+        echo -e "       ${C_DIM}$f${C_RESET}"
+    done
+    echo ""
+    echo -e "  ${C_WHITE}$count report(s) saved${C_RESET}"
+    echo ""
+}
+
+# ══════════════════════════════════════════════
+#  ERROR PATTERN DATABASE (Level 3)
+# ══════════════════════════════════════════════
+
+diag_pattern_match() {
+    # Scans recent system output for known error patterns
+    # and provides specific diagnoses with targeted fixes
+
+    print_header "🔎 Error Pattern Scanner"
+    echo ""
+    echo -e "  ${C_DIM}Scanning system logs for known error patterns...${C_RESET}"
+    echo ""
+
+    local matches=0
+
+    # ── Storage patterns ──
+
+    # Pattern: "No space left on device" but df < 95%
+    local max_disk
+    max_disk=$(df 2>/dev/null | awk 'NR>1 && $1 !~ /tmpfs|devtmpfs|loop|none/ {gsub(/%/,"",$5); if($5+0 > max) max=$5+0} END {print max+0}')
+    local max_inode_pct
+    max_inode_pct=$(df -i 2>/dev/null | awk 'NR>1 && $1 !~ /tmpfs|devtmpfs|loop|none/ && $5 != "-" {gsub(/%/,"",$5); if($5+0 > max) max=$5+0} END {print max+0}')
+
+    if [ "${max_disk:-0}" -lt 90 ] 2>/dev/null && [ "${max_inode_pct:-0}" -gt 90 ] 2>/dev/null; then
+        matches=$((matches + 1))
+        diag_section "Pattern: Inode exhaustion (disk has space but can't create files)"
+        diag_verdict "critical" "Inodes ${max_inode_pct}% used — disk space (${max_disk}%) is fine but inodes are full"
+        diag_explain "Many tiny files consumed all inodes. Common with mail queues, session files, or cache dirs."
+        diag_run "Inode usage by filesystem" "df -ih | grep -v tmpfs"
+        diag_fix "Find directory with most files: find / -xdev -type d -exec sh -c 'echo \"\$(find \"\$1\" -maxdepth 1 | wc -l) \$1\"' _ {} \\; 2>/dev/null | sort -rn | head -10"
+        diag_fix "Common culprits: /tmp, /var/spool/postfix, /var/lib/php/sessions"
+    fi
+
+    # Pattern: Disk > 90%
+    if [ "${max_disk:-0}" -ge 90 ] 2>/dev/null; then
+        matches=$((matches + 1))
+        diag_section "Pattern: Disk critically full (${max_disk}%)"
+        diag_verdict "critical" "Disk at ${max_disk}%"
+        diag_run "Largest directories" "du -sh /* 2>/dev/null | sort -rh | head -10"
+        diag_run "Journal size" "journalctl --disk-usage 2>/dev/null"
+        diag_fix "Clean journals: sudo journalctl --vacuum-size=100M"
+        diag_fix "Clean apt cache: sudo apt clean"
+        diag_fix "Find large files: find / -xdev -type f -size +100M -exec ls -lh {} \\; 2>/dev/null | head -10"
+    fi
+
+    # ── Memory patterns ──
+
+    local mem_pct
+    mem_pct=$(free 2>/dev/null | awk '/^Mem:/ {printf "%.0f", $3/$2*100}')
+    local swap_pct
+    swap_pct=$(free 2>/dev/null | awk '/^Swap:/ {if($2>0) printf "%.0f", $3/$2*100; else print "0"}')
+
+    if [ "${mem_pct:-0}" -gt 90 ] 2>/dev/null && [ "${swap_pct:-0}" -gt 50 ] 2>/dev/null; then
+        matches=$((matches + 1))
+        diag_section "Pattern: Memory pressure + swap thrashing"
+        diag_verdict "critical" "RAM ${mem_pct}% + Swap ${swap_pct}% — system is thrashing"
+        diag_run "Top memory consumers" "ps aux --sort=-%mem | head -6"
+        diag_explain "System is constantly moving data between RAM and disk. Everything is slow."
+        diag_fix "Kill the top memory hog: kill -15 <PID>"
+        diag_fix "Long-term: add RAM or increase swap"
+    fi
+
+    # ── OOM killer patterns ──
+    local oom_count
+    oom_count=$(dmesg 2>/dev/null | grep -ci "oom-killer\|out of memory" || echo "0")
+    oom_count=$(echo "$oom_count" | head -1 | tr -dc '0-9')
+    oom_count="${oom_count:-0}"
+    if [ "$oom_count" -gt 0 ] 2>/dev/null; then
+        matches=$((matches + 1))
+        diag_section "Pattern: OOM Killer activated ($oom_count times)"
+        diag_verdict "critical" "Out-of-memory killer has killed processes $oom_count time(s)"
+        diag_run "OOM events" "dmesg 2>/dev/null | grep -i 'oom-killer\|out of memory' | tail -5"
+        diag_run "Killed processes" "dmesg 2>/dev/null | grep -i 'killed process' | tail -5"
+        diag_fix "Identify the memory hog from the killed process name above"
+        diag_fix "Set memory limits: systemctl edit <service> → MemoryMax=2G"
+    fi
+
+    # ── Network patterns ──
+
+    # Pattern: DNS works but specific hosts unreachable
+    if ping -c 1 -W 2 8.8.8.8 >/dev/null 2>&1; then
+        if ! host google.com >/dev/null 2>&1 && ! nslookup google.com >/dev/null 2>&1; then
+            matches=$((matches + 1))
+            diag_section "Pattern: Internet works but DNS is broken"
+            diag_verdict "critical" "Can reach 8.8.8.8 by IP but DNS resolution fails"
+            diag_run "DNS config" "cat /etc/resolv.conf"
+            diag_fix "Quick fix: echo 'nameserver 8.8.8.8' | sudo tee /etc/resolv.conf"
+            diag_fix "Permanent: edit /etc/systemd/resolved.conf or /etc/netplan/*.yaml"
+        fi
+    else
+        # Pattern: No internet at all
+        if ip link show 2>/dev/null | grep -q "state UP"; then
+            matches=$((matches + 1))
+            diag_section "Pattern: Network interface up but no internet"
+            diag_verdict "critical" "Interface is UP but cannot reach 8.8.8.8"
+            diag_run "Default gateway" "ip route | grep default"
+            local gw
+            gw=$(ip route 2>/dev/null | grep "^default" | awk '{print $3}' | head -1)
+            if [ -n "$gw" ]; then
+                diag_run "Gateway reachable?" "ping -c 1 -W 2 $gw 2>&1"
+                diag_fix "If gateway unreachable: check cable/WiFi connection"
+                diag_fix "If gateway reachable: check firewall or ISP"
+            else
+                diag_verdict "critical" "No default gateway configured"
+                diag_fix "sudo dhclient or: sudo ip route add default via <gateway_ip>"
+            fi
+        fi
+    fi
+
+    # ── Service patterns ──
+
+    local failed_svcs
+    failed_svcs=$(systemctl --failed --no-legend 2>/dev/null | awk '{print $1}')
+    if [ -n "$failed_svcs" ]; then
+        matches=$((matches + 1))
+        diag_section "Pattern: Failed services detected"
+        echo "$failed_svcs" | while read -r svc; do
+            [ -z "$svc" ] && continue
+            diag_verdict "critical" "Service failed: $svc"
+            local reason
+            reason=$(systemctl status "$svc" 2>/dev/null | grep -E "Active:|Main PID:|──" | head -3)
+            echo -e "    ${C_DIM}$reason${C_RESET}"
+            # Check for common causes
+            local exit_code
+            exit_code=$(systemctl show "$svc" -p ExecMainStatus 2>/dev/null | cut -d= -f2)
+            case "$exit_code" in
+                203) diag_explain "Exit 203 = exec format error (bad shebang or binary not found)"
+                     diag_fix "Check ExecStart path: systemctl cat $svc" ;;
+                217) diag_explain "Exit 217 = namespace error (missing /run or mount issue)"
+                     diag_fix "Check PrivateTmp/ProtectSystem in unit file" ;;
+                226) diag_explain "Exit 226 = namespace error (user namespace restrictions)"
+                     diag_fix "Check User= directive in: systemctl cat $svc" ;;
+                *)   diag_fix "Check logs: journalctl -u $svc --no-pager -n 20" ;;
+            esac
+        done
+    fi
+
+    # ── Security patterns ──
+
+    # Pattern: Recent failed SSH logins (brute force indicator)
+    local ssh_fails
+    ssh_fails=$(journalctl -u ssh --since "1 hour ago" --no-pager 2>/dev/null | grep -ci "failed password" || echo "0")
+    ssh_fails=$(echo "$ssh_fails" | head -1 | tr -dc '0-9')
+    ssh_fails="${ssh_fails:-0}"
+    if [ "$ssh_fails" -gt 10 ] 2>/dev/null; then
+        matches=$((matches + 1))
+        diag_section "Pattern: Possible SSH brute force attack"
+        diag_verdict "warn" "$ssh_fails failed SSH login attempts in the last hour"
+        diag_run "Top attacking IPs" "journalctl -u ssh --since '1 hour ago' --no-pager 2>/dev/null | grep 'Failed password' | grep -oP 'from \K[0-9.]+' | sort | uniq -c | sort -rn | head -5"
+        diag_fix "Block top attacker: sudo ufw deny from <IP>"
+        diag_fix "Install fail2ban: sudo apt install fail2ban"
+        diag_fix "Disable password auth: set PasswordAuthentication no in /etc/ssh/sshd_config"
+    fi
+
+    # ── Kernel patterns ──
+
+    local kern_errors
+    kern_errors=$(dmesg 2>/dev/null | grep -ciE "oops|panic|segfault|call.trace" || echo "0")
+    kern_errors=$(echo "$kern_errors" | head -1 | tr -dc '0-9')
+    kern_errors="${kern_errors:-0}"
+    if [ "$kern_errors" -gt 0 ] 2>/dev/null; then
+        matches=$((matches + 1))
+        diag_section "Pattern: Kernel errors detected ($kern_errors)"
+        diag_verdict "critical" "$kern_errors kernel error(s) in dmesg (OOPS/panic/segfault)"
+        diag_run "Kernel errors" "dmesg 2>/dev/null | grep -iE 'oops|panic|segfault|call.trace' | tail -5"
+        diag_explain "Kernel errors indicate hardware failure, driver bugs, or memory corruption."
+        diag_fix "Update kernel: sudo apt update && sudo apt upgrade"
+        diag_fix "Test RAM: schedule memtest86+ on next boot"
+    fi
+
+    # ── Summary ──
+    echo ""
+    if [ "$matches" -eq 0 ]; then
+        echo -e "  ${C_GREEN}━━━ No known error patterns detected ━━━${C_RESET}"
+        echo -e "  ${C_DIM}System appears healthy. Run 'diagnose' for detailed checks.${C_RESET}"
+    else
+        echo -e "  ${C_WHITE}━━━ $matches pattern(s) matched ━━━${C_RESET}"
+        echo -e "  ${C_DIM}Address critical issues first. Run 'diagnose' for deeper investigation.${C_RESET}"
+    fi
+    echo ""
+
+    # Log
+    local logfile="$HOME/.practicum/clinic_history.log"
+    echo "[$(date '+%F %T')] PATTERN_SCAN matches=$matches" >> "$logfile" 2>/dev/null
 }

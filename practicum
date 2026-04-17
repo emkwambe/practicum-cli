@@ -1192,20 +1192,119 @@ cmd_field() {
     local field_rc="$HOME/.practicum/field_bashrc"
     cat > "$field_rc" << FIELDRC
 export PRACTICUM_MODE="FIELD"
-export PS1='🌍 [FIELD] \w\$ '
-source "$SCRIPT_DIR/lib/colors.sh"
+export PS1='🩺 [CLINIC] \w\$ '
+export PRACTICUM_DIR="$SCRIPT_DIR"
 
+# Source diagnostic tools
+source "$SCRIPT_DIR/lib/colors.sh"
+source "$SCRIPT_DIR/lib/state.sh"
+source "$SCRIPT_DIR/lib/lessons.sh"
+source "$SCRIPT_DIR/lib/diagnose.sh"
+init_state
+
+# ── IT Clinic Commands ──
+
+diagnose() {
+    cmd_diagnose
+}
+
+health() {
+    diag_health_check
+}
+
+quick() {
+    diag_health_compact
+}
+
+# Shortcut commands for each category
+perf() { diag_performance; }
+network() { diag_network; }
+storage() { diag_storage; }
+services() { diag_services; }
+security() { diag_permissions; }
+hardware() { diag_hardware_menu; }
+scan() { diag_pattern_match; }
+history() { diag_history; }
+report() { diag_report; }
+reports() { diag_list_reports; }
+
+# Situational awareness
+situation() {
+    echo ""
+    echo -e "\${C_CYAN}  📍 System Situation\${C_RESET}"
+    echo -e "  \${C_DIM}Host:      \$(hostname)\${C_RESET}"
+    echo -e "  \${C_DIM}User:      \$(whoami)\${C_RESET}"
+    echo -e "  \${C_DIM}Directory: \$(pwd)\${C_RESET}"
+    echo -e "  \${C_DIM}Uptime:    \$(uptime -p 2>/dev/null || uptime)\${C_RESET}"
+    echo ""
+    diag_health_compact
+    echo ""
+}
+
+# History logging
+_log_session() {
+    local logfile="\$HOME/.practicum/clinic_history.log"
+    echo "[\$(date '+%F %T')] SESSION_START host=\$(hostname) user=\$(whoami)" >> "\$logfile"
+}
+_log_session
+
+# Block raw practicum from inside field
 practicum() {
-    echo -e "\${C_YELLOW}  ⚠️  Type 'exit' to leave Field first, then run practicum.\${C_RESET}"
+    echo -e "\${C_YELLOW}  ⚠️  Type 'exit' to leave the IT Clinic first.\${C_RESET}"
+}
+
+# Help
+clinic_help() {
+    echo ""
+    echo -e "\${C_PURPLE}  ══════════════════════════════════════\${C_RESET}"
+    echo -e "\${C_PURPLE}  🩺 IT Clinic — Available Commands\${C_RESET}"
+    echo -e "\${C_PURPLE}  ══════════════════════════════════════\${C_RESET}"
+    echo ""
+    echo -e "  \${C_WHITE}Diagnostics:\${C_RESET}"
+    echo -e "  \${C_CYAN}  diagnose\${C_RESET}     Full diagnostic navigator (guided)"
+    echo -e "  \${C_CYAN}  health\${C_RESET}       Full system health check (A-F grade)"
+    echo -e "  \${C_CYAN}  quick\${C_RESET}        One-line health summary"
+    echo -e "  \${C_CYAN}  scan\${C_RESET}         Auto-detect known error patterns"
+    echo ""
+    echo -e "  \${C_WHITE}Quick access (skip the menu):\${C_RESET}"
+    echo -e "  \${C_CYAN}  perf\${C_RESET}         CPU, memory, swap, load"
+    echo -e "  \${C_CYAN}  network\${C_RESET}      Internet, DNS, ports, SSH, firewall"
+    echo -e "  \${C_CYAN}  storage\${C_RESET}      Disk, inodes, I/O, filesystem, mounts"
+    echo -e "  \${C_CYAN}  services\${C_RESET}     Service status, crash loops, Docker"
+    echo -e "  \${C_CYAN}  security\${C_RESET}     Permissions, sudo, SELinux, audit"
+    echo -e "  \${C_CYAN}  hardware\${C_RESET}     Devices, drivers, kernel, SMART"
+    echo ""
+    echo -e "  \${C_WHITE}History & reports:\${C_RESET}"
+    echo -e "  \${C_CYAN}  history\${C_RESET}      View diagnostic trends over time"
+    echo -e "  \${C_CYAN}  report\${C_RESET}       Generate & save a diagnostic report"
+    echo -e "  \${C_CYAN}  reports\${C_RESET}      List all saved reports"
+    echo ""
+    echo -e "  \${C_WHITE}Context:\${C_RESET}"
+    echo -e "  \${C_CYAN}  situation\${C_RESET}    System overview + health grade"
+    echo -e "  \${C_CYAN}  clinic_help\${C_RESET}  Show this help"
+    echo ""
+    echo -e "  \${C_GREEN}  exit\${C_RESET}         Leave the IT Clinic"
+    echo ""
 }
 
 echo ""
-echo -e "\${C_PURPLE}=========================================\${C_RESET}"
-echo -e "\${C_RED}  🌍 FIELD MODE — Real System\${C_RESET}"
-echo -e "\${C_PURPLE}=========================================\${C_RESET}"
+echo -e "\${C_PURPLE}  ══════════════════════════════════════════════\${C_RESET}"
+echo -e "\${C_PURPLE}  🩺 IT CLINIC — Real System Diagnostics\${C_RESET}"
+echo -e "\${C_PURPLE}  ══════════════════════════════════════════════\${C_RESET}"
 echo ""
-echo -e "  \${C_RED}Commands affect the REAL system. Be careful.\${C_RESET}"
-echo -e "  \${C_GREEN}Type 'exit' to leave Field mode.\${C_RESET}"
+echo -e "  \${C_WHITE}You are operating on the REAL system.\${C_RESET}"
+echo -e "  \${C_DIM}Every command runs live. Diagnostics are read-only.\${C_RESET}"
+echo ""
+echo -e "  \${C_CYAN}  diagnose\${C_RESET}   — guided troubleshooting navigator"
+echo -e "  \${C_CYAN}  scan\${C_RESET}       — auto-detect known error patterns"
+echo -e "  \${C_CYAN}  health\${C_RESET}     — full system health check (A-F grade)"
+echo -e "  \${C_CYAN}  report\${C_RESET}     — generate & save diagnostic report"
+echo -e "  \${C_CYAN}  history\${C_RESET}    — view trends over time"
+echo -e "  \${C_CYAN}  clinic_help\${C_RESET} — all available commands"
+echo ""
+echo -e "  \${C_GREEN}  exit\${C_RESET}       — leave the IT Clinic"
+echo ""
+diag_health_compact
 echo ""
 FIELDRC
     
@@ -1284,6 +1383,18 @@ case "$1" in
         ;;
     diagnose|diag|clinic)
         cmd_diagnose
+        ;;
+    scan|pattern|patterns)
+        source "$SCRIPT_DIR/lib/diagnose.sh"
+        diag_pattern_match
+        ;;
+    history)
+        source "$SCRIPT_DIR/lib/diagnose.sh"
+        diag_history
+        ;;
+    report)
+        source "$SCRIPT_DIR/lib/diagnose.sh"
+        diag_report
         ;;
     --help|-h|help)
         show_help
