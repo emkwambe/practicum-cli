@@ -53,3 +53,38 @@ B) Scheduling automated runs (e.g., daily at 6 AM)
 C) JSON parsing
 D) Database indexing
 Correct: B
+
+Q9: The join command requires input files to be:
+A) In JSON format
+B) Pre-sorted on the join column
+C) The same length
+D) In CSV format
+Correct: B
+
+Q10: paste -d',' file1.txt file2.txt does what?
+A) Copies file1 into file2
+B) Merges files side-by-side with comma as delimiter
+C) Concatenates files vertically
+D) Compares files
+Correct: B
+
+Q11: grep -rl "TODO" ./src/ | xargs wc -l does what?
+A) Counts TODOs
+B) Finds files containing "TODO" then counts lines in each of those files
+C) Deletes TODO lines
+D) Replaces TODO
+Correct: B
+
+Q12: diff <(sort file1) <(sort file2) uses what feature?
+A) Here documents
+B) Process substitution — feeds command output as temporary files to diff
+C) Pipes
+D) Redirection
+Correct: B
+
+Q13: xargs -P 4 means:
+A) Limit to 4 arguments
+B) Run up to 4 commands in parallel
+C) Skip 4 lines
+D) Print 4 times
+Correct: B

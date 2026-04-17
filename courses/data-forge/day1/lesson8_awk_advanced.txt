@@ -1,0 +1,127 @@
+# Lesson: awk Advanced — Formatting, String Functions, and Loops
+
+## [WHEN] You need this when:
+1. You need formatted reports with aligned columns.
+2. You need to extract substrings or split fields further.
+3. You need to loop over fields within each line.
+4. You need case conversion or string manipulation.
+
+## [INTENT] "Use awk as a complete data processing language."
+
+## [CONTEXT]
+awk is more than field extraction. It has printf for formatting,
+string functions for manipulation, loops for iteration, and
+arrays for accumulation. Combined, awk replaces simple Python
+scripts for data processing.
+
+## [ACTION] Advanced awk
+
+### printf — formatted output:
+  # Aligned columns (right-justify numbers, left-justify text):
+  awk -F, '{printf "%-20s %10.2f %5d\n", $1, $3, $4}' sales.csv
+
+  # Format specifiers:
+  #  %s     string
+  #  %d     integer
+  #  %f     float
+  #  %10s   right-aligned, 10 chars wide
+  #  %-10s  left-aligned, 10 chars wide
+  #  %08d   zero-padded integer, 8 digits
+  #  %.2f   float with 2 decimal places
+
+  # Report with header and footer:
+  awk -F, '
+  BEGIN { printf "%-20s %10s %10s\n", "Product", "Revenue", "Qty"; print "─────────────────────────────────────────" }
+  NR>1 { printf "%-20s %10.2f %10d\n", $1, $3, $4; total+=$3 }
+  END { print "─────────────────────────────────────────"; printf "%-20s %10.2f\n", "TOTAL", total }
+  ' sales.csv
+
+### String functions:
+  length($0)               string length
+  length($1)               field length
+  substr($0, start, len)   extract substring
+  index($0, "needle")      find position (0 if not found)
+  split($0, arr, sep)      split into array
+  sub(/old/, "new")        replace first match in $0
+  gsub(/old/, "new")       replace ALL matches in $0
+  tolower($0)              lowercase
+  toupper($0)              uppercase
+  match($0, /regex/)       find regex position
+
+  # Extract first 3 characters:
+  awk '{print substr($1, 1, 3)}' file
+
+  # Extract file extension:
+  awk -F. '{print $NF}' filenames.txt
+
+  # Split CSV field further:
+  echo "tag1:tag2:tag3" | awk '{split($0, tags, ":"); for(t in tags) print tags[t]}'
+
+  # Replace in a specific field:
+  awk -F, -v OFS=',' '{gsub(/@.*/, "@company.com", $3); print}' users.csv
+
+### NR, NF, and special variables:
+  NR     current line number (across all files)
+  FNR    line number within current file
+  NF     number of fields in current line
+  $NF    last field
+  $(NF-1) second-to-last field
+  FILENAME current filename
+  FS     field separator (input)
+  OFS    output field separator
+  RS     record separator (default: newline)
+  ORS    output record separator
+
+  # Skip header:
+  awk 'NR > 1 {print}' file.csv
+
+  # Print line number with content:
+  awk '{printf "%4d: %s\n", NR, $0}' file
+
+  # Files with different field counts (data quality check):
+  awk -F, 'NF != 5 {print NR": expected 5 fields, got "NF" → "$0}' data.csv
+
+### Loops — iterate over fields:
+  # Print each field on its own line:
+  awk '{for(i=1; i<=NF; i++) print $i}' file
+
+  # Find the maximum value across all fields:
+  awk '{for(i=1;i<=NF;i++) if($i+0>max) max=$i} END{print "Max:", max}' numbers.txt
+
+  # Word frequency counter:
+  awk '{for(i=1;i<=NF;i++) words[$i]++} END{for(w in words) printf "%6d %s\n", words[w], w}' file | sort -rn | head -20
+
+  # Transpose rows to columns:
+  awk '{for(i=1;i<=NF;i++) col[i]=col[i]" "$i} END{for(i=1;i<=NF;i++) print col[i]}' file
+
+### Conditional processing:
+  # Ternary operator:
+  awk '{status = ($3 > 100 ? "HIGH" : "LOW"); print $1, status}' data.txt
+
+  # Multiple conditions:
+  awk -F, '{
+      if ($4 > 100000) tier = "Enterprise"
+      else if ($4 > 50000) tier = "Pro"
+      else tier = "Starter"
+      print $1, tier
+  }' customers.csv
+
+## [EXPECTED RESULT]
+awk becomes a full reporting and data processing language. You can
+produce formatted reports, manipulate strings, validate data quality,
+and transform any structured text — all in one command.
+
+## Technician Tip:
+For complex awk scripts, save to a file:
+  cat > report.awk << 'AWK'
+  BEGIN { FS=","; OFS="\t" }
+  NR==1 { next }
+  $3 > 1000 { total+=$3; count++; print $1, $2, $3 }
+  END { printf "Average: %.2f (%d records)\n", total/count, count }
+  AWK
+  awk -f report.awk data.csv
+
+## Common Pain Point:
+"printf doesn't print newline" → printf needs explicit \n (unlike print).
+  print "hello"          → adds newline automatically
+  printf "hello"         → NO newline (add \n: printf "hello\n")

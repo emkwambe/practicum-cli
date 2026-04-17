@@ -53,3 +53,38 @@ B) @csv handles commas, quotes, and newlines inside values correctly
 C) @csv is required by jq
 D) No difference
 Correct: B
+
+Q9: jq 'keys' on an object outputs:
+A) The values
+B) An array of all key names in the object
+C) The key count
+D) A sorted object
+Correct: B
+
+Q10: jq 'del(.password, .ssn)' does what?
+A) Deletes the JSON file
+B) Removes the password and ssn fields from the JSON object
+C) Encrypts the fields
+D) Renames the fields
+Correct: B
+
+Q11: jq -c '.[]' outputs each array item as:
+A) Pretty-printed JSON
+B) One compact JSON object per line (JSONL format)
+C) CSV
+D) XML
+Correct: B
+
+Q12: jq -s 'add' file1.json file2.json does what?
+A) Adds numbers
+B) Slurps both files and concatenates their arrays into one
+C) Compares files
+D) Sorts files
+Correct: B
+
+Q13: jq -n --arg name "Eddy" '{name: $name}' does what?
+A) Reads from stdin
+B) Generates JSON from shell variables without reading any input file
+C) Validates JSON
+D) Parses a string
+Correct: B

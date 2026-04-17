@@ -1,0 +1,114 @@
+# Lesson: jq Advanced — Keys, Delete, Slurp, and Multi-File
+
+## [WHEN] You need this when:
+1. You need to inspect JSON structure (what keys exist?).
+2. You need to remove sensitive fields before sharing.
+3. You need to combine multiple JSON files into one.
+4. You need to check if a field exists before accessing it.
+
+## [INTENT] "Manipulate JSON structure — inspect, clean, merge, validate."
+
+## [CONTEXT]
+Beyond reading and filtering, jq can modify JSON structure:
+remove fields, check existence, inspect types, merge files.
+These are essential for building production data pipelines.
+
+## [ACTION] Advanced jq
+
+### Inspect structure:
+  jq 'keys'                     # list all keys in an object
+  jq '.[0] | keys'              # keys of first array element
+  jq 'type'                     # "object", "array", "string", "number"
+  jq '.[] | type'               # type of each element
+  jq 'length'                   # number of keys (object) or items (array)
+  jq 'paths'                    # all paths in the JSON tree
+
+  # Discover API response structure:
+  curl -s "https://api.github.com/users/emkwambe" | jq 'keys'
+  # ["avatar_url","bio","blog","company",...]
+
+### Check if a key exists:
+  jq 'has("email")'                          # true/false
+  jq '.[] | select(has("phone"))'            # only items WITH phone
+  jq '.[] | select(has("phone") | not)'      # items WITHOUT phone
+
+  # Conditional access:
+  jq 'if has("email") then .email else "no email" end'
+
+### Delete fields:
+  jq 'del(.password)'                        # remove one key
+  jq 'del(.password, .ssn, .secret)'         # remove multiple
+  jq 'map(del(.internal_id))'                # remove from each array item
+  jq 'del(.[2])'                             # remove array element by index
+
+  # Clean API response before storing:
+  curl -s "$API_URL" | jq 'map(del(.avatar_url, .gravatar_id, .node_id))'
+
+### Compact output (-c):
+  jq -c '.[]' data.json                      # one JSON object per line
+  # {"name":"Alice","age":30}
+  # {"name":"Bob","age":25}
+
+  # JSONL format (JSON Lines) — used by many data tools:
+  jq -c '.[]' data.json > data.jsonl
+
+  # Process JSONL back:
+  cat data.jsonl | jq -s '.'                 # slurp JSONL into array
+
+### Slurp (-s) — combine inputs:
+  # Multiple JSON files into one array:
+  jq -s '.' file1.json file2.json file3.json
+  # [{...}, {...}, {...}]
+
+  # Merge arrays from multiple files:
+  jq -s 'add' users1.json users2.json
+  # Concatenates all arrays into one
+
+  # Read from stdin, one object per line:
+  cat data.jsonl | jq -s 'sort_by(.timestamp) | reverse'
+
+### Null input (-n) — generate JSON from scratch:
+  jq -n '{name: "Eddy", role: "engineer", tools: ["jq","awk","sed"]}'
+
+  # Build JSON from shell variables:
+  NAME="Eddy" CITY="Charlotte"
+  jq -n --arg n "$NAME" --arg c "$CITY" '{name: $n, city: $c}'
+  # {"name":"Eddy","city":"Charlotte"}
+
+  # Build from environment:
+  jq -n 'env | {user: .USER, home: .HOME, shell: .SHELL}'
+
+### Update values:
+  jq '.name = "updated"'                     # set a value
+  jq '.count += 1'                           # increment
+  jq '.tags += ["new-tag"]'                  # append to array
+  jq '.users[0].active = true'              # update nested
+
+  # Conditional update:
+  jq '.[] | if .status == "pending" then .status = "processed" else . end'
+
+### to_entries / from_entries — object ↔ array:
+  echo '{"a":1,"b":2,"c":3}' | jq 'to_entries'
+  # [{"key":"a","value":1},{"key":"b","value":2},{"key":"c","value":3}]
+
+  # Filter keys dynamically:
+  jq 'to_entries | map(select(.key | startswith("user"))) | from_entries'
+
+### Recursive descent (..) — find anything anywhere:
+  jq '.. | .email? // empty'                # find ALL email fields at any depth
+
+## [EXPECTED RESULT]
+You can inspect unknown JSON, clean sensitive data, merge files,
+generate JSON from shell variables, and handle JSONL format.
+
+## Technician Tip:
+The pipeline for exploring unknown API responses:
+  curl -s URL | jq 'type'            # array or object?
+  curl -s URL | jq 'keys'            # what fields?
+  curl -s URL | jq '.[0] | keys'     # if array: fields in first item
+  curl -s URL | jq '.[0]'            # first item in detail
+
+## Common Pain Point:
+"Cannot iterate over null" when using -s:
+  jq -s will wrap ALL stdin into an array. If input is already
+  an array, you get [[...]]. Use jq -s 'add' to flatten.

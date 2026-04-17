@@ -1,0 +1,150 @@
+# Lesson: Pipeline Power Tools — join, paste, xargs, and Process Substitution
+
+## [WHEN] You need this when:
+1. You need to merge two files on a shared column (like SQL JOIN).
+2. You need to combine files side-by-side (column merge).
+3. You need to run a command for EACH result from a pipeline.
+4. You need to compare outputs of two commands without temp files.
+
+## [INTENT] "Connect data sources and automate actions across pipelines."
+
+## [CONTEXT]
+These are the tools that turn individual commands into
+production-grade data workflows. They bridge the gap between
+"I can filter data" and "I can process data end-to-end."
+
+## [ACTION] Pipeline power tools
+
+### join — merge files on a shared key (like SQL JOIN):
+  # Both files MUST be sorted on the join column first
+
+  # File 1: users.txt (user_id name)
+  # 101 Alice
+  # 102 Bob
+  # 103 Charlie
+
+  # File 2: scores.txt (user_id score)
+  # 101 95
+  # 102 87
+  # 103 72
+
+  sort users.txt > users_sorted.txt
+  sort scores.txt > scores_sorted.txt
+  join users_sorted.txt scores_sorted.txt
+  # 101 Alice 95
+  # 102 Bob 87
+  # 103 Charlie 72
+
+  # Specify join field:
+  join -1 2 -2 1 file1 file2     # join file1 col 2 with file2 col 1
+
+  # Custom delimiter:
+  join -t',' users.csv scores.csv
+
+  # Left join (show unmatched from file 1):
+  join -a 1 users.txt scores.txt
+
+  # Show unmatched only:
+  join -v 1 users.txt scores.txt   # users without scores
+
+### paste — merge files side-by-side:
+  # Combine columns from different files:
+  paste names.txt ages.txt cities.txt
+  # Alice    30    Charlotte
+  # Bob      25    New York
+
+  # Custom delimiter:
+  paste -d',' names.txt ages.txt > combined.csv
+
+  # Convert column to row:
+  paste -s names.txt               # all names on one line, tab-separated
+  paste -sd',' names.txt           # comma-separated
+
+  # Combine stdin with a file:
+  seq 5 | paste -d',' - names.txt  # number each name
+
+### xargs — build commands from pipeline output:
+  # Run a command for EACH line of input:
+  cat urls.txt | xargs -I{} curl -sL "{}" -o "{}.html"
+
+  # Delete files found by grep:
+  grep -rl "deprecated" ./src/ | xargs rm
+
+  # Parallel execution (-P):
+  cat servers.txt | xargs -P 4 -I{} ssh {} "uptime"
+  # Runs uptime on 4 servers simultaneously
+
+  # Batch mode (multiple args per command):
+  find . -name "*.log" | xargs gzip
+  # Compresses all .log files in one gzip call
+
+  # Handle filenames with spaces:
+  find . -name "*.csv" -print0 | xargs -0 wc -l
+
+  # Dry run (see what would execute):
+  echo "file1 file2 file3" | xargs -n1 echo "Would process:"
+
+  # Limit arguments per call:
+  cat huge_list.txt | xargs -n 100 echo
+  # Passes 100 items at a time
+
+### Process substitution — use command output as a file:
+  # Compare two directories without temp files:
+  diff <(ls dir1/) <(ls dir2/)
+
+  # Compare sorted vs unsorted:
+  diff <(sort file1) <(sort file2)
+
+  # Join command outputs directly:
+  join <(sort users.txt) <(sort scores.txt)
+
+  # Feed multiple command outputs to paste:
+  paste <(cut -d',' -f1 data.csv) <(cut -d',' -f3 data.csv)
+
+  # Compare before/after a transformation:
+  diff <(cat original.csv) <(sed 's/old/new/g' original.csv)
+
+### Here documents and here strings:
+  # Here document — multi-line input:
+  cat << 'EOF' > config.json
+  {
+      "host": "localhost",
+      "port": 8080,
+      "debug": false
+  }
+  EOF
+
+  # Here string — single-line input:
+  grep "error" <<< "this is an error message"
+
+  # Useful for quick sqlite3 queries:
+  sqlite3 data.db <<< "SELECT COUNT(*) FROM users;"
+
+  # Multi-line SQL:
+  sqlite3 data.db << SQL
+  SELECT department, COUNT(*), AVG(salary)
+  FROM employees
+  GROUP BY department
+  ORDER BY AVG(salary) DESC;
+  SQL
+
+## [EXPECTED RESULT]
+You can merge files, run bulk operations, compare outputs,
+and feed data between commands without temp files. These are
+the connective tissue of production data pipelines.
+
+## Technician Tip:
+The most powerful combination:
+  find . -name "*.csv" -print0 | xargs -0 -I{} sh -c '
+      echo "Processing: {}"
+      wc -l "{}"
+      csvstat --count "{}"
+  '
+This runs a multi-step operation on every CSV file found.
+
+## Common Pain Point:
+"join: file not sorted" → join REQUIRES pre-sorted input on the join field.
+Always: sort -k1 file | join - other_file
+Or: join <(sort file1) <(sort file2)
+
+"xargs: argument too long" → use xargs -n 100 to batch arguments.

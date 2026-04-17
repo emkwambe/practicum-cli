@@ -53,3 +53,52 @@ B) Pipes stream line-by-line (constant memory); Excel loads the entire file into
 C) Pipes compress the data
 D) No difference
 Correct: B
+
+Q9: The regex [0-9]{3,5} matches:
+A) Exactly 3 digits
+B) Between 3 and 5 consecutive digits
+C) 3 or 5 of anything
+D) The numbers 3 through 5
+Correct: B
+
+Q10: grep -oP '(?<=user=)\w+' does what?
+A) Searches for the word "user"
+B) Extracts the value AFTER "user=" without including "user=" in the output
+C) Prints lines containing user=
+D) Replaces user= with nothing
+Correct: B
+
+Q11: In sed, the & in 's/[0-9]+/(&)/g' represents:
+A) The ampersand character
+B) The entire matched text (whatever the regex matched)
+C) The last field
+D) The line number
+Correct: B
+
+Q12: sed -n '/ERROR/p' behaves like which command?
+A) sed '/ERROR/d'
+B) grep "ERROR" (prints only matching lines)
+C) awk '{print ERROR}'
+D) cut -d ERROR
+Correct: B
+
+Q13: awk '{printf "%-20s %10.2f\n", $1, $3}' produces:
+A) Unformatted output
+B) Left-aligned $1 (20 chars wide) and right-aligned $3 (float, 2 decimals)
+C) Only the first field
+D) A syntax error
+Correct: B
+
+Q14: awk 'NF != 5 {print NR": "$0}' is useful for:
+A) Printing 5 fields
+B) Data quality check — finding rows that don't have exactly 5 fields
+C) Counting to 5
+D) Skipping 5 lines
+Correct: B
+
+Q15: The \K operator in grep -oP 'user=\Kw+' does what?
+A) Kills the process
+B) Resets the match start — everything before \K is required but not output
+C) Enables Korean language
+D) Skips empty lines
+Correct: B
