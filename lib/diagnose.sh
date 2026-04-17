@@ -91,6 +91,13 @@ diag_verdict() {
     local caller_func="${FUNCNAME[1]:-unknown}"
     echo "[$(date '+%F %T')] STATUS=$status FUNCTION=$caller_func MSG=\"$msg\"" >> "$logfile" 2>/dev/null
 
+    # Log rotation — cap at 1000 lines
+    local log_lines
+    log_lines=$(wc -l < "$logfile" 2>/dev/null || echo "0")
+    if [ "$log_lines" -gt 1000 ] 2>/dev/null; then
+        tail -500 "$logfile" > "${logfile}.tmp" && mv "${logfile}.tmp" "$logfile"
+    fi
+
     # Report logging
     if [ -n "${DIAG_REPORT_FILE:-}" ]; then
         local icon="✅"

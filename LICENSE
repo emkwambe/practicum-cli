@@ -1,0 +1,72 @@
+Practicum CLI — License Agreement
+
+Copyright (c) 2025-2026 Mpingo Systems LLC. All rights reserved.
+
+1. GRANT OF LICENSE
+
+   Mpingo Systems LLC ("Licensor") grants you a limited, non-exclusive,
+   non-transferable license to use Practicum CLI ("Software") subject
+   to the following terms.
+
+2. FREE TIER
+
+   Days 1-3 of each course and the IT Clinic diagnostic tool are
+   provided free of charge for personal and educational use. No
+   license key is required for the free tier.
+
+3. PREMIUM CONTENT
+
+   Days 4+ of each course require a valid license key purchased from
+   the Licensor. Each license key is tied to the purchasing account
+   and may be activated on up to the number of devices specified by
+   your subscription tier.
+
+4. RESTRICTIONS
+
+   You may NOT:
+   a) Redistribute, resell, or sublicense the Software or any
+      premium content.
+   b) Remove or alter any copyright notices or license information.
+   c) Use the Software to create competing products or training
+      materials.
+   d) Share license keys with unauthorized users.
+
+5. IT CLINIC DIAGNOSTIC TOOL
+
+   The IT Clinic is provided "as-is" for diagnostic purposes only.
+   All diagnostic commands are read-only and do not modify your system.
+   Suggested fixes are displayed as text and are never auto-applied.
+   The Licensor is not responsible for any actions you take based on
+   diagnostic output.
+
+6. DATA & PRIVACY
+
+   The Software stores all data locally on your machine in the
+   ~/.practicum/ directory. No data is transmitted to the Licensor
+   or any third party. Diagnostic reports may contain system
+   information — review before sharing.
+
+7. DISCLAIMER OF WARRANTY
+
+   THE SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED. THE LICENSOR DOES NOT WARRANT THAT THE
+   SOFTWARE WILL BE ERROR-FREE OR UNINTERRUPTED.
+
+8. LIMITATION OF LIABILITY
+
+   IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY INDIRECT,
+   INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES ARISING FROM
+   THE USE OF THE SOFTWARE.
+
+9. TERMINATION
+
+   This license terminates automatically if you violate any of
+   these terms. Upon termination, you must delete all copies of
+   the premium content.
+
+10. CONTACT
+
+    Mpingo Systems LLC
+    Charlotte, NC
+    GitHub: https://github.com/emkwambe
+    Website: https://emkwambe.github.io/practicum-cli/

@@ -1,6 +1,6 @@
 #!/bin/bash
 # Practicum CLI — Intent. Context. Action. Result.
-# Version: 2.6.0
+# Version: 2.8.0
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -34,18 +34,21 @@ Usage: practicum <command>
 
 Commands:
   start       Begin or resume a course
-  status      Show your progress
+  status      Show progress + system health grade
   quiz        Take the current quiz
+  course      Switch between courses
   wizard      Enter Wizard mode (guided lessons)
   lab         Enter Lab mode (safe sandbox)
-  field       Enter Field mode (real system)
+  field       Enter IT Clinic (real system diagnostics)
+  diagnose    IT Clinic — guided troubleshooting navigator
+  scan        Auto-detect known error patterns
+  history     View diagnostic trends over time
+  report      Generate and save a diagnostic report
   snapshot    Save/restore lab state
   certificate Generate completion certificate
-  challenges  Interactive problem-solving scenarios
-  scenarios   Multi-step work scenarios (apprenticeship)
-  mastery     View skill mastery dashboard
-  diagnose    IT Clinic — troubleshoot system issues
-  course      Switch between courses
+  challenges  Interactive problem-solving (Linux course)
+  scenarios   Multi-step work scenarios (Linux course)
+  mastery     Skill mastery dashboard (Linux course)
   activate    Activate a license key
   help        Show this help message
 
@@ -54,7 +57,7 @@ Navigation (available anytime):
   back        Go back one step
   status      Show progress
 
-Version: 2.6.0
+Version: 2.8.0
 EOF
 }
 
