@@ -2,11 +2,95 @@
 # Practicum CLI — Lesson Loader
 
 COURSE_DIR=""
+ACTIVE_COURSE_FILE="$HOME/.practicum/active_course"
+
+get_active_course() {
+    if [ -f "$ACTIVE_COURSE_FILE" ]; then
+        cat "$ACTIVE_COURSE_FILE"
+    else
+        echo "linux-foundations"
+    fi
+}
+
+set_active_course() {
+    mkdir -p "$HOME/.practicum"
+    echo "$1" > "$ACTIVE_COURSE_FILE"
+    seed_course_unlocks
+}
+
+# Seed the first 3 lessons of Day 1 into the unlock list for the active course
+seed_course_unlocks() {
+    detect_course_dir
+    local day1_dir="$COURSE_DIR/day1"
+    [ -d "$day1_dir" ] || return 0
+    local i=0
+    for f in "$day1_dir"/lesson*.txt; do
+        [ -f "$f" ] || continue
+        i=$((i + 1))
+        [ "$i" -gt 3 ] && break
+        local cmd
+        cmd=$(basename "$f" .txt | sed 's/lesson[0-9]*_//')
+        unlock_lesson "$cmd" 2>/dev/null || true
+    done
+}
 
 detect_course_dir() {
     local script_dir
     script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-    COURSE_DIR="$script_dir/courses/linux-foundations"
+    local active
+    active=$(get_active_course)
+    COURSE_DIR="$script_dir/courses/$active"
+}
+
+get_course_name() {
+    local slug="${1:-$(get_active_course)}"
+    case "$slug" in
+        linux-foundations) echo "Linux Foundations" ;;
+        git-essentials)    echo "Git & Version Control" ;;
+        docker-essentials) echo "Docker & Containers" ;;
+        shell-mastery)     echo "Shell Scripting Mastery" ;;
+        data-forging)      echo "Data Forging" ;;
+        cicd-pipelines)    echo "CI/CD Pipelines" ;;
+        kubernetes)        echo "Kubernetes & Container Orchestration" ;;
+        terraform-iac)     echo "Terraform & Infrastructure as Code" ;;
+        *) echo "$slug" ;;
+    esac
+}
+
+list_available_courses() {
+    local script_dir
+    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+    for d in "$script_dir/courses"/*/; do
+        [ -d "$d" ] || continue
+        basename "$d"
+    done
+}
+
+get_day_title() {
+    local day_num="$1"
+    detect_course_dir
+    local titles_file="$COURSE_DIR/day_titles.txt"
+    if [ -f "$titles_file" ]; then
+        sed -n "${day_num}p" "$titles_file"
+    else
+        echo "Day $day_num"
+    fi
+}
+
+# Unlock the next lesson based on the course's unlock_chain.txt
+# Usage: unlock_next_from_chain <current_cmd>
+unlock_next_from_chain() {
+    local current_cmd="$1"
+    detect_course_dir
+    local chain_file="$COURSE_DIR/unlock_chain.txt"
+    if [ ! -f "$chain_file" ]; then
+        return 1
+    fi
+    local next
+    next=$(grep "^${current_cmd}|" "$chain_file" | cut -d'|' -f2 | head -1)
+    if [ -n "$next" ]; then
+        unlock_lesson "$next"
+    fi
 }
 
 list_lessons() {
@@ -19,11 +103,7 @@ list_lessons() {
         return 1
     fi
     
-    echo ""
-    echo "========================================="
-    echo "  Practicum CLI — $day Lessons"
-    echo "========================================="
-    echo ""
+    print_header "Practicum CLI — $day Lessons"
     
     local i=1
     for f in "$lesson_dir"/lesson*.txt; do
@@ -33,22 +113,19 @@ list_lessons() {
         local cmd
         cmd=$(basename "$f" .txt | sed 's/lesson[0-9]*_//')
         
-        local status="  "
         if is_completed "$cmd" 2>/dev/null; then
-            status="✅"
+            print_completed "[$i] $name"
         elif is_unlocked "$cmd" 2>/dev/null; then
-            status="🔓"
+            print_unlocked "[$i] $name"
         else
-            status="🔒"
+            print_locked "[$i] $name"
         fi
-        
-        echo "  [$i] $status $name"
         i=$((i + 1))
     done
     
     echo ""
-    echo "  [9] Back to main menu"
-    echo "  [0] Exit"
+    print_menu_item "9" "Back to main menu"
+    print_menu_item "0" "Exit"
     echo ""
 }
 
@@ -64,10 +141,57 @@ load_lesson() {
     fi
     
     echo ""
-    echo "========================================="
-    cat "$filepath"
+    echo -e "${C_PURPLE}=========================================${C_RESET}"
+    
+    while IFS= read -r line; do
+        case "$line" in
+            "# "*)
+                # Main title — bold purple
+                echo -e "${C_PURPLE}${line#\# }${C_RESET}"
+                ;;
+            "## ["*"]"*)
+                # ICAR headers — green bold: [WHEN], [INTENT], [CONTEXT], [ACTION], [EXPECTED RESULT]
+                echo -e ""
+                echo -e "${C_GREEN}${line#\#\# }${C_RESET}"
+                ;;
+            "## "*)
+                # Other H2 headers — cyan
+                echo -e ""
+                echo -e "${C_CYAN}${line#\#\# }${C_RESET}"
+                ;;
+            "### "*)
+                # H3 headers — white bold
+                echo -e "${C_WHITE}${line#\#\#\# }${C_RESET}"
+                ;;
+            "  "*"-"*|"     -"*)
+                # Bullet points — dim
+                echo -e "${C_DIM}${line}${C_RESET}"
+                ;;
+            "WARNING"*|"DANGEROUS"*)
+                # Warnings — red
+                echo -e "${C_RED}${line}${C_RESET}"
+                ;;
+            "  "*"—"*)
+                # Command examples with em-dash — cyan command, dim description
+                local cmd_part="${line%%—*}"
+                local desc_part="${line#*—}"
+                echo -e "${C_CYAN}${cmd_part}${C_DIM}—${desc_part}${C_RESET}"
+                ;;
+            [0-9]". "*)
+                # Numbered items — white
+                echo -e "${C_WHITE}${line}${C_RESET}"
+                ;;
+            "")
+                echo ""
+                ;;
+            *)
+                echo -e "${line}"
+                ;;
+        esac
+    done < "$filepath"
+    
     echo ""
-    echo "========================================="
+    echo -e "${C_PURPLE}=========================================${C_RESET}"
     echo ""
 }
 
@@ -131,16 +255,16 @@ show_encouragement() {
     next_name=$(get_next_lesson_preview "$day" "$completed")
 
     echo ""
-    echo "========================================="
-    echo "  🎉 Great job!"
-    echo "  Progress: $completed of $total lessons completed"
+    echo -e "${C_PURPLE}=========================================${C_RESET}"
+    echo -e "  ${C_GREEN}🎉 Great job!${C_RESET}"
+    echo -e "  ${C_WHITE}Progress: $completed of $total lessons completed${C_RESET}"
     echo ""
     if [ -n "$next_name" ]; then
-        echo "  📚 Next up: $next_name"
+        echo -e "  ${C_CYAN}📚 Next up: $next_name${C_RESET}"
     else
-        echo "  🏆 You've completed all lessons for this day!"
-        echo "  Take the quiz to test your knowledge."
+        echo -e "  ${C_GREEN}🏆 You've completed all lessons for this day!${C_RESET}"
+        echo -e "  ${C_CYAN}Take the quiz to test your knowledge.${C_RESET}"
     fi
-    echo "========================================="
+    echo -e "${C_PURPLE}=========================================${C_RESET}"
     echo ""
 }

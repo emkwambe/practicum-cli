@@ -1,37 +1,54 @@
 #!/bin/bash
 # Practicum CLI — Intent. Context. Action. Result.
-# Version: 0.2.0
+# Version: 3.0.0
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Source all libraries
+source "$SCRIPT_DIR/lib/colors.sh"
 source "$SCRIPT_DIR/lib/state.sh"
 source "$SCRIPT_DIR/lib/lessons.sh"
 source "$SCRIPT_DIR/lib/quiz_engine.sh"
 source "$SCRIPT_DIR/lib/modes.sh"
 source "$SCRIPT_DIR/lib/sandbox.sh"
 source "$SCRIPT_DIR/lib/wrappers.sh"
+source "$SCRIPT_DIR/lib/apprentice.sh"
+source "$SCRIPT_DIR/lib/license.sh"
+[ -f "$SCRIPT_DIR/lib/challenges/engine.sh" ] && source "$SCRIPT_DIR/lib/challenges/engine.sh"
+[ -f "$SCRIPT_DIR/lib/diagnose.sh" ] && source "$SCRIPT_DIR/lib/diagnose.sh"
 
 # Initialize state on every run
 init_state
+init_mastery
+init_license
+seed_course_unlocks
 
 # --- Command Implementations ---
 
 show_help() {
     cat << 'EOF'
-Practicum CLI — Linux terminal courses
+Practicum CLI — Terminal-native IT training platform
 Intent. Context. Action. Result.
 
 Usage: practicum <command>
 
 Commands:
   start       Begin or resume a course
-  status      Show your progress
+  status      Show progress + system health grade
   quiz        Take the current quiz
+  course      Switch between courses
   wizard      Enter Wizard mode (guided lessons)
   lab         Enter Lab mode (safe sandbox)
-  field       Enter Field mode (real system)
+  field       Enter IT Clinic (real system diagnostics)
+  diagnose    IT Clinic — guided troubleshooting navigator
+  scan        Auto-detect known error patterns
+  history     View diagnostic trends over time
+  report      Generate and save a diagnostic report
   snapshot    Save/restore lab state
+  certificate Generate completion certificate
+  challenges  Interactive problem-solving (Linux course)
+  scenarios   Multi-step work scenarios (Linux course)
+  mastery     Skill mastery dashboard (Linux course)
   activate    Activate a license key
   help        Show this help message
 
@@ -40,7 +57,7 @@ Navigation (available anytime):
   back        Go back one step
   status      Show progress
 
-Version: 0.2.0
+Version: 3.0.0
 EOF
 }
 
@@ -51,86 +68,357 @@ cmd_status() {
     completed=$(count_completed)
     local unlocked
     unlocked=$(count_unlocked)
-    local day1_score
-    day1_score=$(get_score "day1_quiz")
     
-    echo ""
-    echo "========================================="
-    echo "  📊 Practicum CLI — Status"
-    echo "========================================="
-    echo ""
-    echo "  Course:    Linux Foundations for IT & DevOps"
-    echo "  Mode:      $mode"
-    echo "  Completed: $completed lessons"
-    echo "  Unlocked:  $unlocked lessons"
-    echo ""
-    if [ -n "$day1_score" ]; then
-        echo "  Day 1 Quiz: ✅ $day1_score"
-    else
-        echo "  Day 1 Quiz: not taken"
+    print_header "📊 Practicum CLI — Status"
+    local course_name
+    course_name=$(get_course_name)
+    echo -e "  ${C_WHITE}Course:${C_RESET}    $course_name"
+    echo -e "  ${C_WHITE}Mode:${C_RESET}      ${C_CYAN}$mode${C_RESET}"
+    echo -e "  ${C_WHITE}Completed:${C_RESET} ${C_GREEN}$completed lessons${C_RESET}"
+    echo -e "  ${C_WHITE}Unlocked:${C_RESET}  $unlocked lessons"
+    if type diag_health_compact >/dev/null 2>&1; then
+        diag_health_compact
     fi
     echo ""
-    echo "  Unlocked lessons:"
+    license_status
+    echo ""
+    # Dynamic quiz scores — reads from active course's day count
+    detect_course_dir
+    local day_num
+    for day_num in $(seq 1 14); do
+        local day_title
+        day_title=$(get_day_title "$day_num")
+        [ -z "$day_title" ] && continue  # skip days that don't exist
+        local score_val
+        score_val=$(get_score "day${day_num}_quiz")
+        if [ -n "$score_val" ]; then
+            echo -e "  Day $day_num Quiz: ${C_GREEN}✅ $score_val${C_RESET}"
+        else
+            echo -e "  Day $day_num Quiz: ${C_DIM}not taken${C_RESET}"
+        fi
+    done
+    local capstone_score
+    capstone_score=$(get_score "capstone")
+    if [ -n "$capstone_score" ]; then
+        echo -e "  Capstone:   ${C_GREEN}🏆 $capstone_score${C_RESET}"
+    fi
+    echo ""
+    echo -e "  ${C_PURPLE}Unlocked lessons:${C_RESET}"
     if [ -f "$UNLOCKED_FILE" ]; then
         while IFS= read -r lesson; do
-            local mark="🔓"
-            is_completed "$lesson" && mark="✅"
-            echo "    $mark $lesson"
+            if is_completed "$lesson"; then
+                print_completed "$lesson"
+            else
+                print_unlocked "$lesson"
+            fi
         done < "$UNLOCKED_FILE"
     fi
     echo ""
-    echo "========================================="
+    echo -e "${C_PURPLE}=========================================${C_RESET}"
     echo ""
 }
 
 cmd_start() {
+    # Show career overview on first run
+    local first_run_flag="$HOME/.practicum/first_run_done"
+    if [ ! -f "$first_run_flag" ]; then
+        detect_course_dir
+        local overview="$COURSE_DIR/career_overview.txt"
+        if [ -f "$overview" ]; then
+            print_header "Welcome to Practicum CLI"
+            echo ""
+            while IFS= read -r line; do
+                case "$line" in
+                    "## "*)
+                        echo -e "  ${C_PURPLE}${line#\#\# }${C_RESET}"
+                        ;;
+                    "  ✅"*)
+                        echo -e "  ${C_GREEN}${line#  }${C_RESET}"
+                        ;;
+                    "  -"*|"     -"*)
+                        echo -e "  ${C_DIM}${line}${C_RESET}"
+                        ;;
+                    "  Day"*)
+                        echo -e "  ${C_CYAN}${line#  }${C_RESET}"
+                        ;;
+                    "  -"*|"#"*)
+                        : # skip markdown headers and comments
+                        ;;
+                    *)
+                        echo -e "  ${C_WHITE}${line}${C_RESET}"
+                        ;;
+                esac
+            done < "$overview"
+            echo ""
+            printf "  ${C_CYAN}Press Enter to continue...${C_RESET}"
+            read -r
+            touch "$first_run_flag"
+        fi
+    fi
+    
+    local course_name
+    course_name=$(get_course_name)
+    local active_slug
+    active_slug=$(get_active_course)
+    
+    print_header "Practicum CLI — $course_name"
+    echo -e "  ${C_DIM}Intent. Context. Action. Result.${C_RESET}"
     echo ""
-    echo "========================================="
-    echo "  Practicum CLI — Linux Foundations"
-    echo "  Intent. Context. Action. Result."
-    echo "========================================="
+    
+    # Detect how many days this course has
+    detect_course_dir
+    local max_day=0
+    for d_dir in "$COURSE_DIR"/day*/; do
+        [ -d "$d_dir" ] || continue
+        local dnum
+        dnum=$(basename "$d_dir" | sed 's/day//')
+        [ "$dnum" -gt "$max_day" ] 2>/dev/null && max_day=$dnum
+    done
+    
+    # Show days in groups
+    # Foundation: Days 1 through midpoint
+    local mid=$((max_day / 2))
+    [ "$mid" -lt 5 ] && mid=5
+    [ "$mid" -gt "$max_day" ] && mid=$max_day
+    
+    echo -e "  ${C_PURPLE}Foundation:${C_RESET}"
+    local d
+    for d in $(seq 1 $mid); do
+        local title
+        title=$(get_day_title $d)
+        [ -n "$title" ] && print_menu_item "$d" "$title"
+    done
+    
+    if [ "$mid" -lt "$max_day" ]; then
+        echo ""
+        echo -e "  ${C_PURPLE}Advanced:${C_RESET}"
+        local last_section=$((max_day - 1))
+        for d in $(seq $((mid + 1)) $last_section); do
+            local title
+            title=$(get_day_title $d)
+            [ -n "$title" ] && print_menu_item "$d" "$title"
+        done
+        echo ""
+        echo -e "  ${C_PURPLE}Capstone:${C_RESET}"
+        local title
+        title=$(get_day_title $max_day)
+        [ -n "$title" ] && print_menu_item "$max_day" "$title"
+    fi
+    
     echo ""
-    echo "  Main Menu:"
-    echo ""
-    echo "  [1] Day 1 — Navigation & Files"
-    echo "  [2] Day 2 — Text Processing & Pipes"
-    echo "  [3] Day 3 — Scripting Basics (coming soon)"
-    echo "  [4] Day 4 — Process & Environment (coming soon)"
-    echo "  [5] Day 5 — Final Assessment (coming soon)"
-    echo ""
-    echo "  [6] View progress"
-    echo "  [7] Take quiz (Day 1)"
-    echo "  [8] Take quiz (Day 2)"
-    echo "  [0] Exit"
-    echo ""
-    printf "  Your choice: "
+    echo -e "  ${C_PURPLE}Tools:${C_RESET}"
+    print_menu_item "p" "View progress"
+    print_menu_item "q" "Take quiz"
+    print_menu_item "c" "Generate certificate"
+    if [ "$active_slug" = "linux-foundations" ]; then
+        print_menu_item "x" "🏋️ Challenges"
+        print_menu_item "s" "🏢 Work Scenarios"
+        print_menu_item "m" "🎯 Skill Mastery"
+    fi
+    print_menu_item "k" "📚 Switch course"
+    print_menu_item "d" "🩺 IT Clinic (diagnose)"
+    print_menu_item "0" "Exit"
+    print_prompt
     read -r choice || return 0
     
     case "$choice" in
-        1)
-            cmd_day1_menu
+        [0-9]|1[0-4])
+            local day_num="$choice"
+            if [ "$day_num" -ge 1 ] 2>/dev/null && [ "$day_num" -le "$max_day" ]; then
+                # Use hardcoded Linux menu for linux-foundations (preserves unlock chains)
+                if [ "$active_slug" = "linux-foundations" ] && type "cmd_day${day_num}_menu" &>/dev/null; then
+                    if [ "$day_num" -le 3 ] || can_access_day "day${day_num}"; then
+                        "cmd_day${day_num}_menu"
+                    else
+                        show_upgrade_prompt
+                        cmd_start
+                    fi
+                else
+                    # Generic handler for all other courses
+                    if [ "$day_num" -le 3 ] || can_access_day "day${day_num}"; then
+                        cmd_generic_day_menu "$day_num"
+                    else
+                        show_upgrade_prompt
+                        cmd_start
+                    fi
+                fi
+            else
+                echo -e "  ${C_RED}Invalid choice.${C_RESET}"
+                cmd_start
+            fi
             ;;
-        2)
-            cmd_day2_menu
-            ;;
-        6)
-            cmd_status
-            ;;
-        7)
-            cmd_quiz
-            ;;
-        8)
-            cmd_quiz_day2
-            ;;
-        0)
-            echo "  Goodbye!"
-            return 0
-            ;;
-        *)
-            echo "  Invalid choice."
-            cmd_start
-            ;;
+        p|P) cmd_status ;;
+        q|Q) cmd_quiz_select ;;
+        c|C) cmd_certificate ;;
+        x|X) if [ "$active_slug" = "linux-foundations" ]; then cmd_challenges; else echo -e "  ${C_DIM}Challenges available in Linux Foundations course.${C_RESET}"; cmd_start; fi ;;
+        s|S) if [ "$active_slug" = "linux-foundations" ]; then cmd_scenarios; cmd_start; else echo -e "  ${C_DIM}Scenarios available in Linux Foundations course.${C_RESET}"; cmd_start; fi ;;
+        m|M) if [ "$active_slug" = "linux-foundations" ]; then show_mastery_dashboard; cmd_start; else echo -e "  ${C_DIM}Mastery dashboard available in Linux Foundations course.${C_RESET}"; cmd_start; fi ;;
+        k|K) cmd_course_switch; cmd_start ;;
+        d|D) cmd_diagnose; cmd_start ;;
+        0) echo -e "  ${C_GREEN}Goodbye!${C_RESET}"; return 0 ;;
+        *) echo -e "  ${C_RED}Invalid choice.${C_RESET}"; cmd_start ;;
     esac
+}
+
+cmd_course_switch() {
+    print_header "Switch Course"
+    echo ""
+    echo -e "  ${C_WHITE}Available courses:${C_RESET}"
+    echo ""
+
+    local current
+    current=$(get_active_course)
+
+    local i=1
+    local courses=()
+    while IFS= read -r course; do
+        courses+=("$course")
+        local name
+        name=$(get_course_name "$course")
+        if [ "$course" = "$current" ]; then
+            echo -e "  ${C_GREEN}[$i] $name ← currently active${C_RESET}"
+        else
+            echo -e "  ${C_CYAN}[$i] $name${C_RESET}"
+        fi
+        i=$((i + 1))
+    done < <(list_available_courses)
+
+    echo ""
+    print_menu_item "0" "Cancel"
+    print_prompt
+    read -r choice || return 0
+
+    if [ "$choice" = "0" ]; then
+        return 0
+    fi
+
+    if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -le "${#courses[@]}" ]; then
+        local selected="${courses[$((choice - 1))]}"
+        set_active_course "$selected"
+        # Reset first-run flag so career overview shows for new course
+        rm -f "$HOME/.practicum/first_run_done"
+        local name
+        name=$(get_course_name "$selected")
+        echo ""
+        echo -e "  ${C_GREEN}✅ Switched to: $name${C_RESET}"
+        echo -e "  ${C_DIM}   Restart with: practicum start${C_RESET}"
+        echo ""
+    else
+        echo -e "  ${C_RED}Invalid choice.${C_RESET}"
+    fi
+}
+
+# --- Apprenticeship-Aware Lesson Display ---
+# Wraps lesson with situational awareness (WIZARD), mastery tracking (all modes)
+show_lesson_with_context() {
+    local day="$1"
+    local lesson_file="$2"
+    local cmd="$3"
+    local mode
+    mode=$(get_mode 2>/dev/null || echo "WIZARD")
+    
+    # WIZARD mode: show situation before lesson
+    if [ "$mode" = "WIZARD" ]; then
+        show_situation "$cmd"
+    fi
+    
+    # Show the lesson
+    load_lesson "$day" "$lesson_file"
+    
+    # WIZARD mode: show senior tip after lesson
+    if [ "$mode" = "WIZARD" ]; then
+        senior_tip "$cmd"
+    fi
+    
+    # All modes: record mastery
+    record_skill_use "$cmd" "lesson"
+}
+
+# --- Generic Day Menu (works for any course/day) ---
+cmd_generic_day_menu() {
+    local day_num="$1"
+    local day="day${day_num}"
+    
+    list_lessons "$day"
+    printf "  Your choice: "
+    read -r choice || return 0
+    
+    detect_course_dir
+    local lesson_count
+    lesson_count=$(count_day_lessons "$day")
+    
+    if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -le "$lesson_count" ]; then
+        local lesson_file
+        lesson_file=$(get_lesson_file_by_number "$day" "$choice")
+        if [ -n "$lesson_file" ]; then
+            local cmd
+            cmd=$(get_lesson_command "$lesson_file")
+            show_lesson_with_context "$day" "$lesson_file" "$cmd"
+            add_completed "$cmd"
+            unlock_next_from_chain "$cmd"
+            echo "  ✅ Lesson '$cmd' completed!"
+            show_encouragement "$day"
+            echo "  [1] Next lesson"
+            echo "  [2] Repeat this lesson"
+            echo "  [7] Take Day $day_num quiz"
+            echo "  [9] Back to Day $day_num menu"
+            echo "  [0] Main menu"
+            echo ""
+            printf "  Your choice: "
+            read -r next || return 0
+            case "$next" in
+                1) cmd_generic_day_menu "$day_num" ;;
+                2) load_lesson "$day" "$lesson_file" ;;
+                7) cmd_generic_quiz_day "$day_num" ;;
+                9) cmd_generic_day_menu "$day_num" ;;
+                0) cmd_start ;;
+            esac
+        else
+            echo "  Invalid lesson number."
+            cmd_generic_day_menu "$day_num"
+        fi
+    elif [ "$choice" = "9" ]; then
+        cmd_start
+    elif [ "$choice" = "0" ]; then
+        return 0
+    else
+        echo "  Invalid choice."
+        cmd_generic_day_menu "$day_num"
+    fi
+}
+
+cmd_generic_quiz_day() {
+    local day_num="$1"
+    detect_course_dir
+    local quiz_file="$COURSE_DIR/day${day_num}/quiz${day_num}.txt"
+    
+    if [ ! -f "$quiz_file" ]; then
+        echo "  No quiz found for Day $day_num."
+        return 1
+    fi
+    
+    if run_quiz "$quiz_file"; then
+        save_score "day${day_num}_quiz" "passed"
+        echo ""
+        echo "========================================="
+        echo "  🎓 Day $day_num Quiz — PASSED!"
+        echo ""
+        local next_day=$((day_num + 1))
+        local next_title
+        next_title=$(get_day_title "$next_day")
+        if [ -n "$next_title" ]; then
+            echo "  Day $next_day ($next_title) is now available!"
+        else
+            echo "  🏆 You've completed all quizzes for $(get_course_name)!"
+            echo "  Run 'practicum certificate' for your credential."
+        fi
+        echo "========================================="
+        echo ""
+    else
+        echo ""
+        echo "  📖 Review the Day $day_num lessons and try again."
+        echo ""
+    fi
 }
 
 cmd_day1_menu() {
@@ -146,7 +434,7 @@ cmd_day1_menu() {
                 local cmd
                 cmd=$(get_lesson_command "$lesson_file")
                 if is_unlocked "$cmd" || [ "$choice" -le 3 ]; then
-                    load_lesson "day1" "$lesson_file"
+                    show_lesson_with_context "day1" "$lesson_file" "$cmd"
                     add_completed "$cmd"
                     # Unlock next lesson
                     case "$cmd" in
@@ -156,6 +444,7 @@ cmd_day1_menu() {
                         mkdir) unlock_lesson "touch" ;;
                         touch) unlock_lesson "rm" ;;
                     esac
+                    unlock_next_from_chain "$cmd"
                     echo "  ✅ Lesson '$cmd' completed!"
                     show_encouragement "day1"
                     echo "  [1] Next lesson"
@@ -230,23 +519,26 @@ cmd_day2_menu() {
     read -r choice || return 0
     
     case "$choice" in
-        [1-6])
+        [1-8])
             local lesson_file
             lesson_file=$(get_lesson_file_by_number "day2" "$choice")
             if [ -n "$lesson_file" ]; then
                 local cmd
                 cmd=$(get_lesson_command "$lesson_file")
                 if is_unlocked "$cmd"; then
-                    load_lesson "day2" "$lesson_file"
+                    show_lesson_with_context "day2" "$lesson_file" "$cmd"
                     add_completed "$cmd"
                     # Unlock next Day 2 lesson
                     case "$cmd" in
-                        grep) unlock_lesson "cut" ;;
-                        cut)  unlock_lesson "sort" ;;
-                        sort) unlock_lesson "uniq" ;;
-                        uniq) unlock_lesson "wc" ;;
-                        wc)   unlock_lesson "pipes" ;;
+                        grep)      unlock_lesson "cut" ;;
+                        cut)       unlock_lesson "sort" ;;
+                        sort)      unlock_lesson "uniq" ;;
+                        uniq)      unlock_lesson "wc" ;;
+                        wc)        unlock_lesson "pipes" ;;
+                        pipes)     unlock_lesson "sed" ;;
+                        sed)       unlock_lesson "head_tail" ;;
                     esac
+                    unlock_next_from_chain "$cmd"
                     echo "  ✅ Lesson '$cmd' completed!"
                     show_encouragement "day2"
                     echo "  [1] Next lesson"
@@ -292,19 +584,704 @@ cmd_quiz_day2() {
     
     if run_quiz "$quiz_file"; then
         save_score "day2_quiz" "passed"
-        # Unlock Day 3 commands when ready
+        unlock_lesson "variables"
         echo ""
         echo "========================================="
         echo "  🎓 Day 2 Quiz — PASSED!"
         echo ""
         echo "  You can now process text like a Unix power user."
-        echo "  Day 3 (Scripting Basics) coming soon!"
+        echo "  Day 3 (Scripting Basics) is now available!"
         echo "========================================="
         echo ""
     else
         echo ""
         echo "  📖 Review the Day 2 lessons and try again."
         echo "  Focus on pipes — they connect everything."
+        echo ""
+    fi
+}
+
+cmd_day3_menu() {
+    list_lessons "day3"
+    printf "  Your choice: "
+    read -r choice || return 0
+    
+    case "$choice" in
+        [1-6])
+            local lesson_file
+            lesson_file=$(get_lesson_file_by_number "day3" "$choice")
+            if [ -n "$lesson_file" ]; then
+                local cmd
+                cmd=$(get_lesson_command "$lesson_file")
+                if is_unlocked "$cmd"; then
+                    show_lesson_with_context "day3" "$lesson_file" "$cmd"
+                    add_completed "$cmd"
+                    case "$cmd" in
+                        variables)    unlock_lesson "conditionals" ;;
+                        conditionals) unlock_lesson "loops_for" ;;
+                        loops_for)    unlock_lesson "loops_while" ;;
+                        loops_while)  unlock_lesson "functions" ;;
+                        functions)    unlock_lesson "exit_codes" ;;
+                    esac
+                    unlock_next_from_chain "$cmd"
+                    echo "  ✅ Lesson '$cmd' completed!"
+                    show_encouragement "day3"
+                    echo "  [1] Next lesson"
+                    echo "  [2] Repeat this lesson"
+                    echo "  [7] Take Day 3 quiz"
+                    echo "  [9] Back to Day 3 menu"
+                    echo "  [0] Main menu"
+                    echo ""
+                    printf "  Your choice: "
+                    read -r next || return 0
+                    case "$next" in
+                        1) cmd_day3_menu ;;
+                        2) load_lesson "day3" "$lesson_file" ;;
+                        7) cmd_quiz_day3 ;;
+                        9) cmd_day3_menu ;;
+                        0) cmd_start ;;
+                    esac
+                else
+                    echo "  🔒 This lesson is locked. Pass the Day 2 quiz first."
+                    cmd_day3_menu
+                fi
+            else
+                echo "  Invalid lesson number."
+                cmd_day3_menu
+            fi
+            ;;
+        9)
+            cmd_start
+            ;;
+        0)
+            return 0
+            ;;
+        *)
+            echo "  Invalid choice."
+            cmd_day3_menu
+            ;;
+    esac
+}
+
+cmd_quiz_select() {
+    detect_course_dir
+    local course_name
+    course_name=$(get_course_name)
+    
+    echo ""
+    echo "  Select a quiz ($course_name):"
+    echo ""
+    
+    # Dynamically list available quizzes
+    local max_day=0
+    for d_dir in "$COURSE_DIR"/day*/; do
+        [ -d "$d_dir" ] || continue
+        local dnum
+        dnum=$(basename "$d_dir" | sed 's/day//')
+        [ "$dnum" -gt "$max_day" ] 2>/dev/null && max_day=$dnum
+    done
+    
+    local d
+    for d in $(seq 1 $max_day); do
+        local quiz_file="$COURSE_DIR/day${d}/quiz${d}.txt"
+        if [ -f "$quiz_file" ]; then
+            local title
+            title=$(get_day_title "$d")
+            local score_val
+            score_val=$(get_score "day${d}_quiz")
+            if [ -n "$score_val" ]; then
+                echo -e "  ${C_GREEN}[$d] $title ✅${C_RESET}"
+            else
+                echo -e "  ${C_CYAN}[$d] $title${C_RESET}"
+            fi
+        fi
+    done
+    echo ""
+    echo "  [0] Back to main menu"
+    echo ""
+    printf "  Your choice: "
+    read -r qchoice || return 0
+    
+    if [ "$qchoice" = "0" ]; then
+        cmd_start
+        return
+    fi
+    
+    local active_slug
+    active_slug=$(get_active_course)
+    
+    # For Linux Foundations, use hardcoded quiz handlers if they exist
+    if [ "$active_slug" = "linux-foundations" ] && type "cmd_quiz_day${qchoice}" &>/dev/null; then
+        "cmd_quiz_day${qchoice}"
+    elif [ "$qchoice" = "1" ] && [ "$active_slug" = "linux-foundations" ]; then
+        cmd_quiz
+    elif [[ "$qchoice" =~ ^[0-9]+$ ]] && [ "$qchoice" -ge 1 ] && [ "$qchoice" -le "$max_day" ]; then
+        cmd_generic_quiz_day "$qchoice"
+    else
+        echo "  Invalid choice."
+    fi
+}
+
+cmd_quiz_day3() {
+    detect_course_dir
+    local quiz_file="$COURSE_DIR/day3/quiz3.txt"
+    
+    if run_quiz "$quiz_file"; then
+        save_score "day3_quiz" "passed"
+        unlock_lesson "ps"
+        echo ""
+        echo "========================================="
+        echo "  🎓 Day 3 Quiz — PASSED!"
+        echo ""
+        echo "  You now know the building blocks of bash scripting."
+        echo "  Try 'practicum certificate' to generate your certificate!"
+        echo "========================================="
+        echo ""
+    else
+        echo ""
+        echo "  📖 Review the Day 3 lessons and try again."
+        echo "  Focus on exit codes and conditionals."
+        echo ""
+    fi
+}
+
+cmd_certificate() {
+    local day1_score
+    day1_score=$(get_score "day1_quiz")
+    
+    if [ "$day1_score" != "passed" ]; then
+        echo ""
+        echo "  ❌ You must pass the Day 1 quiz to earn a certificate."
+        echo "  Type 'practicum start' and choose [7] Take quiz."
+        echo ""
+        return 1
+    fi
+    
+    local day2_score
+    day2_score=$(get_score "day2_quiz")
+    local day3_score
+    day3_score=$(get_score "day3_quiz")
+    
+    local days_passed="Day 1: Navigation & Files"
+    [ "$day2_score" = "passed" ] && days_passed="$days_passed
+    Day 2: Text Processing & Pipes"
+    [ "$day3_score" = "passed" ] && days_passed="$days_passed
+    Day 3: Scripting Basics"
+    
+    local completed
+    completed=$(count_completed)
+    local cert_date
+    cert_date=$(date '+%B %d, %Y')
+    local cert_hash
+    cert_hash=$(echo -n "practicum:${USER}:$(date +%Y-%m-%d):${completed}" | sha256sum | cut -c1-12)
+    
+    echo ""
+    echo "  ╔════════════════════════════════════════════════════════╗"
+    echo "  ║                                                        ║"
+    echo "  ║          🎓  PRACTICUM CLI CERTIFICATE  🎓             ║"
+    echo "  ║                                                        ║"
+    echo "  ║   This certifies that                                  ║"
+    echo "  ║                                                        ║"
+    echo "  ║   Student: $USER"
+    echo "  ║                                                        ║"
+    echo "  ║   has successfully completed:                          ║"
+    echo "  ║                                                        ║"
+    echo "  ║   ✅ $(get_course_name)"
+    echo "  ║      $days_passed"
+    echo "  ║                                                        ║"
+    echo "  ║   Lessons completed: $completed                        "
+    echo "  ║   Date: $cert_date                                     "
+    echo "  ║   Certificate ID: $cert_hash                           "
+    echo "  ║                                                        ║"
+    echo "  ║   Practicum CLI — Intent. Context. Action. Result.     ║"
+    echo "  ║                                                        ║"
+    echo "  ╚════════════════════════════════════════════════════════╝"
+    echo ""
+}
+
+cmd_day4_menu() {
+    list_lessons "day4"
+    printf "  Your choice: "
+    read -r choice || return 0
+    
+    case "$choice" in
+        [1-8])
+            local lesson_file
+            lesson_file=$(get_lesson_file_by_number "day4" "$choice")
+            if [ -n "$lesson_file" ]; then
+                local cmd
+                cmd=$(get_lesson_command "$lesson_file")
+                if is_unlocked "$cmd"; then
+                    show_lesson_with_context "day4" "$lesson_file" "$cmd"
+                    add_completed "$cmd"
+                    case "$cmd" in
+                        ps)    unlock_lesson "kill" ;;
+                        kill)  unlock_lesson "jobs" ;;
+                        jobs)  unlock_lesson "env" ;;
+                        env)   unlock_lesson "alias" ;;
+                        alias) unlock_lesson "path" ;;
+                        path)  unlock_lesson "find" ;;
+                        find)  unlock_lesson "du_df" ;;
+                    esac
+                    unlock_next_from_chain "$cmd"
+                    echo "  ✅ Lesson '$cmd' completed!"
+                    show_encouragement "day4"
+                    echo "  [1] Next lesson"
+                    echo "  [2] Repeat this lesson"
+                    echo "  [7] Take Day 4 quiz"
+                    echo "  [9] Back to Day 4 menu"
+                    echo "  [0] Main menu"
+                    echo ""
+                    printf "  Your choice: "
+                    read -r next || return 0
+                    case "$next" in
+                        1) cmd_day4_menu ;;
+                        2) load_lesson "day4" "$lesson_file" ;;
+                        7) cmd_quiz_day4 ;;
+                        9) cmd_day4_menu ;;
+                        0) cmd_start ;;
+                    esac
+                else
+                    echo "  🔒 This lesson is locked. Pass the Day 3 quiz first."
+                    cmd_day4_menu
+                fi
+            else
+                echo "  Invalid lesson number."
+                cmd_day4_menu
+            fi
+            ;;
+        9) cmd_start ;;
+        0) return 0 ;;
+        *) echo "  Invalid choice."; cmd_day4_menu ;;
+    esac
+}
+
+cmd_quiz_day4() {
+    detect_course_dir
+    local quiz_file="$COURSE_DIR/day4/quiz4.txt"
+    
+    if run_quiz "$quiz_file"; then
+        save_score "day4_quiz" "passed"
+        unlock_lesson "capstone_intro"
+        unlock_lesson "chmod"
+        echo ""
+        echo "========================================="
+        echo "  🎓 Day 4 Quiz — PASSED!"
+        echo ""
+        echo "  You now understand processes and the shell environment."
+        echo "  Day 5 (Final Assessment) and Day 6 (Permissions) are unlocked!"
+        echo "========================================="
+        echo ""
+    else
+        echo ""
+        echo "  📖 Review the Day 4 lessons and try again."
+        echo ""
+    fi
+}
+
+cmd_day5_menu() {
+    echo ""
+    echo "========================================="
+    echo "  Day 5 — Final Assessment"
+    echo "========================================="
+    echo ""
+    echo "  Your mission: Write a monitoring script."
+    echo ""
+    echo "  [1] Read the capstone instructions"
+    echo "  [2] Submit monitor.sh for grading"
+    echo "  [3] Take Day 5 knowledge quiz"
+    echo "  [9] Back to main menu"
+    echo ""
+    printf "  Your choice: "
+    read -r choice || return 0
+    
+    case "$choice" in
+        1)
+            detect_course_dir
+            load_lesson "day5" "lesson1_capstone_intro.txt"
+            cmd_day5_menu
+            ;;
+        2)
+            cmd_final
+            ;;
+        3)
+            cmd_quiz_day5
+            ;;
+        9) cmd_start ;;
+        *) echo "  Invalid choice."; cmd_day5_menu ;;
+    esac
+}
+
+cmd_quiz_day5() {
+    detect_course_dir
+    local quiz_file="$COURSE_DIR/day5/quiz5.txt"
+    
+    if run_quiz "$quiz_file"; then
+        save_score "day5_quiz" "passed"
+        echo ""
+        echo "========================================="
+        echo "  🎓 Day 5 Quiz — PASSED!"
+        echo ""
+        echo "  Now write monitor.sh and run: practicum final"
+        echo "========================================="
+        echo ""
+    else
+        echo ""
+        echo "  📖 Review all 5 days and try again."
+        echo ""
+    fi
+}
+
+cmd_day6_menu() {
+    list_lessons "day6"
+    printf "  Your choice: "
+    read -r choice || return 0
+    
+    case "$choice" in
+        [1-8])
+            local lesson_file
+            lesson_file=$(get_lesson_file_by_number "day6" "$choice")
+            if [ -n "$lesson_file" ]; then
+                local cmd
+                cmd=$(get_lesson_command "$lesson_file")
+                if is_unlocked "$cmd"; then
+                    show_lesson_with_context "day6" "$lesson_file" "$cmd"
+                    add_completed "$cmd"
+                    case "$cmd" in
+                        chmod)              unlock_lesson "chown" ;;
+                        chown)              unlock_lesson "permission_numbers" ;;
+                        permission_numbers) unlock_lesson "useradd" ;;
+                        useradd)            unlock_lesson "groups" ;;
+                        groups)             unlock_lesson "sudo" ;;
+                        sudo)               unlock_lesson "special_permissions" ;;
+                        special_permissions) unlock_lesson "security_audit" ;;
+                    esac
+                    unlock_next_from_chain "$cmd"
+                    echo "  ✅ Lesson '$cmd' completed!"
+                    show_encouragement "day6"
+                    echo "  [1] Next lesson"
+                    echo "  [2] Repeat this lesson"
+                    echo "  [7] Take Day 6 quiz"
+                    echo "  [9] Back to Day 6 menu"
+                    echo "  [0] Main menu"
+                    echo ""
+                    printf "  Your choice: "
+                    read -r next || return 0
+                    case "$next" in
+                        1) cmd_day6_menu ;;
+                        2) load_lesson "day6" "$lesson_file" ;;
+                        7) cmd_quiz_day6 ;;
+                        9) cmd_day6_menu ;;
+                        0) cmd_start ;;
+                    esac
+                else
+                    echo "  🔒 This lesson is locked. Pass the Day 4 quiz first."
+                    cmd_day6_menu
+                fi
+            else
+                echo "  Invalid lesson number."
+                cmd_day6_menu
+            fi
+            ;;
+        9) cmd_start ;;
+        0) return 0 ;;
+        *) echo "  Invalid choice."; cmd_day6_menu ;;
+    esac
+}
+
+cmd_quiz_day6() {
+    detect_course_dir
+    local quiz_file="$COURSE_DIR/day6/quiz6.txt"
+    
+    if run_quiz "$quiz_file"; then
+        save_score "day6_quiz" "passed"
+        unlock_lesson "ip"
+        echo ""
+        echo "========================================="
+        echo "  🎓 Day 6 Quiz — PASSED!"
+        echo ""
+        echo "  You now control permissions, users, and groups."
+        echo "  Day 7 (Networking & SSH) is unlocked!"
+        echo "========================================="
+        echo ""
+    else
+        echo ""
+        echo "  📖 Review the Day 6 lessons and try again."
+        echo ""
+    fi
+}
+
+cmd_day7_menu() {
+    list_lessons "day7"
+    printf "  Your choice: "
+    read -r choice || return 0
+    case "$choice" in
+        [1-8])
+            local lesson_file
+            lesson_file=$(get_lesson_file_by_number "day7" "$choice")
+            if [ -n "$lesson_file" ]; then
+                local cmd
+                cmd=$(get_lesson_command "$lesson_file")
+                if is_unlocked "$cmd"; then
+                    show_lesson_with_context "day7" "$lesson_file" "$cmd"
+                    add_completed "$cmd"
+                    case "$cmd" in
+                        ip)          unlock_lesson "ping_curl" ;;
+                        ping_curl)   unlock_lesson "ss" ;;
+                        ss)          unlock_lesson "ssh" ;;
+                        ssh)         unlock_lesson "scp_rsync" ;;
+                        scp_rsync)   unlock_lesson "apt" ;;
+                        apt)         unlock_lesson "tar" ;;
+                        tar)         unlock_lesson "network_troubleshooting" ;;
+                    esac
+                    unlock_next_from_chain "$cmd"
+                    echo "  ✅ Lesson '$cmd' completed!"
+                    show_encouragement "day7"
+                    echo "  [1] Next lesson  [2] Repeat  [7] Quiz  [9] Back  [0] Menu"
+                    echo ""
+                    printf "  Your choice: "
+                    read -r next || return 0
+                    case "$next" in
+                        1) cmd_day7_menu ;; 2) load_lesson "day7" "$lesson_file" ;;
+                        7) cmd_quiz_day7 ;; 9) cmd_day7_menu ;; 0) cmd_start ;;
+                    esac
+                else
+                    echo "  🔒 Locked. Pass the Day 6 quiz first."
+                    cmd_day7_menu
+                fi
+            else echo "  Invalid."; cmd_day7_menu; fi ;;
+        9) cmd_start ;; 0) return 0 ;;
+        *) echo "  Invalid."; cmd_day7_menu ;;
+    esac
+}
+
+cmd_quiz_day7() {
+    detect_course_dir
+    if run_quiz "$COURSE_DIR/day7/quiz7.txt"; then
+        save_score "day7_quiz" "passed"
+        unlock_lesson "systemctl"
+        echo ""
+        echo "========================================="
+        echo "  🎓 Day 7 Quiz — PASSED!"
+        echo "  You can now connect, transfer, and install."
+        echo "  Day 8 (Services & Scheduling) is unlocked!"
+        echo "========================================="
+        echo ""
+    else
+        echo "  📖 Review Day 7 lessons and try again."
+    fi
+}
+
+cmd_day8_menu() {
+    list_lessons "day8"
+    printf "  Your choice: "
+    read -r choice || return 0
+    case "$choice" in
+        [1-8])
+            local lesson_file
+            lesson_file=$(get_lesson_file_by_number "day8" "$choice")
+            if [ -n "$lesson_file" ]; then
+                local cmd
+                cmd=$(get_lesson_command "$lesson_file")
+                if is_unlocked "$cmd"; then
+                    show_lesson_with_context "day8" "$lesson_file" "$cmd"
+                    add_completed "$cmd"
+                    case "$cmd" in
+                        systemctl)      unlock_lesson "journalctl" ;;
+                        journalctl)     unlock_lesson "cron" ;;
+                        cron)           unlock_lesson "vim" ;;
+                        vim)            unlock_lesson "nano" ;;
+                        nano)           unlock_lesson "awk" ;;
+                        awk)            unlock_lesson "log_management" ;;
+                        log_management) unlock_lesson "daily_routine" ;;
+                    esac
+                    unlock_next_from_chain "$cmd"
+                    echo "  ✅ Lesson '$cmd' completed!"
+                    show_encouragement "day8"
+                    echo "  [1] Next lesson  [2] Repeat  [7] Quiz  [9] Back  [0] Menu"
+                    echo ""
+                    printf "  Your choice: "
+                    read -r next || return 0
+                    case "$next" in
+                        1) cmd_day8_menu ;; 2) load_lesson "day8" "$lesson_file" ;;
+                        7) cmd_quiz_day8 ;; 9) cmd_day8_menu ;; 0) cmd_start ;;
+                    esac
+                else
+                    echo "  🔒 Locked. Pass the Day 7 quiz first."
+                    cmd_day8_menu
+                fi
+            else echo "  Invalid."; cmd_day8_menu; fi ;;
+        9) cmd_start ;; 0) return 0 ;;
+        *) echo "  Invalid."; cmd_day8_menu ;;
+    esac
+}
+
+cmd_quiz_day8() {
+    detect_course_dir
+    if run_quiz "$COURSE_DIR/day8/quiz8.txt"; then
+        save_score "day8_quiz" "passed"
+        echo ""
+        echo "========================================="
+        echo "  🎓 Day 8 Quiz — PASSED!"
+        echo ""
+        echo "  🏆 COURSE COMPLETE!"
+        echo "  You have finished $(get_course_name)."
+        echo "  Run 'practicum certificate' for your credential."
+        echo "========================================="
+        echo ""
+    else
+        echo "  📖 Review Day 8 lessons and try again."
+    fi
+}
+
+cmd_day9_menu() {
+    list_lessons "day9"
+    printf "  Your choice: "
+    read -r choice || return 0
+    case "$choice" in
+        1)
+            local lesson_file
+            lesson_file=$(get_lesson_file_by_number "day9" "1")
+            if [ -n "$lesson_file" ]; then
+                show_lesson_with_context "day9" "$lesson_file" "assess2"
+                echo "  ✅ Assessment 2 instructions read."
+                echo ""
+                echo "  Write your three scripts, then run: practicum assess2"
+            fi
+            ;;
+        9) cmd_start ;; 0) return 0 ;;
+        *) echo "  Invalid."; cmd_day9_menu ;;
+    esac
+}
+
+cmd_assess2() {
+    detect_course_dir
+    local test_script="$COURSE_DIR/day9/assess2_test.sh"
+    echo ""
+    echo -e "${C_PURPLE}=========================================${C_RESET}"
+    echo -e "${C_PURPLE}  📝 Assessment 2 — Advanced Skills${C_RESET}"
+    echo -e "${C_PURPLE}=========================================${C_RESET}"
+    echo ""
+    
+    if bash "$test_script"; then
+        save_score "assess2" "passed"
+        unlock_lesson "review"
+        echo ""
+        echo -e "  ${C_GREEN}🎓 Assessment 2 PASSED!${C_RESET}"
+        echo -e "  ${C_GREEN}  Day 10 (Final Review & Capstone) is unlocked!${C_RESET}"
+    else
+        echo ""
+        echo -e "  ${C_YELLOW}  Review Days 6-8 and try again.${C_RESET}"
+    fi
+    echo ""
+}
+
+cmd_quiz_day9() {
+    detect_course_dir
+    if run_quiz "$COURSE_DIR/day9/quiz9.txt"; then
+        save_score "day9_quiz" "passed"
+        echo ""
+        echo -e "  ${C_GREEN}🎓 Day 9 Quiz — PASSED!${C_RESET}"
+    else
+        echo "  📖 Review Days 6-8 and try again."
+    fi
+}
+
+cmd_quiz_day10() {
+    detect_course_dir
+    if run_quiz "$COURSE_DIR/day10/quiz10.txt"; then
+        save_score "day10_quiz" "passed"
+        echo ""
+        echo -e "  ${C_GREEN}🎓 Day 10 Quiz — PASSED!${C_RESET}"
+        echo -e "  ${C_GREEN}  Now complete the Final Capstone: practicum final-capstone${C_RESET}"
+    else
+        echo "  📖 Review all days and try again."
+    fi
+}
+
+cmd_day10_menu() {
+    list_lessons "day10"
+    printf "  Your choice: "
+    read -r choice || return 0
+    case "$choice" in
+        1)
+            local lesson_file
+            lesson_file=$(get_lesson_file_by_number "day10" "1")
+            [ -n "$lesson_file" ] && show_lesson_with_context "day10" "$lesson_file" "review"
+            echo ""
+            echo "  [1] Continue to Final Capstone"
+            echo "  [9] Back"
+            printf "  Your choice: "
+            read -r next || return 0
+            case "$next" in 1) cmd_day10_menu ;; *) cmd_start ;; esac
+            ;;
+        2)
+            local lesson_file
+            lesson_file=$(get_lesson_file_by_number "day10" "2")
+            [ -n "$lesson_file" ] && show_lesson_with_context "day10" "$lesson_file" "capstone"
+            echo ""
+            echo "  When ready, run: practicum final-capstone"
+            ;;
+        9) cmd_start ;; 0) return 0 ;;
+        *) echo "  Invalid."; cmd_day10_menu ;;
+    esac
+}
+
+cmd_final_capstone() {
+    detect_course_dir
+    local test_script="$COURSE_DIR/day10/final_capstone_test.sh"
+    
+    if bash "$test_script"; then
+        save_score "final_capstone" "passed"
+        echo ""
+        echo -e "  ${C_GREEN}🏆 CONGRATULATIONS!${C_RESET}"
+        echo -e "  ${C_GREEN}  You have completed $(get_course_name).${C_RESET}"
+        echo -e "  ${C_GREEN}  Run 'practicum certificate' for your credential.${C_RESET}"
+        echo ""
+    fi
+}
+
+cmd_final() {
+    echo ""
+    echo "========================================="
+    echo "  📝 Day 5 — Final Assessment"
+    echo "========================================="
+    echo ""
+    
+    if [ ! -f "monitor.sh" ]; then
+        echo "  ❌ monitor.sh not found in current directory."
+        echo ""
+        echo "  Create your script first:"
+        echo "    touch monitor.sh"
+        echo "    chmod +x monitor.sh"
+        echo "    nano monitor.sh  (or vi monitor.sh)"
+        echo ""
+        echo "  Then run: practicum final"
+        echo ""
+        return 1
+    fi
+    
+    echo "  Running tests against monitor.sh..."
+    echo ""
+    
+    detect_course_dir
+    if bash "$COURSE_DIR/day5/capstone_test.sh" "monitor.sh"; then
+        save_score "capstone" "passed"
+        echo ""
+        echo "========================================="
+        echo "  🏆 CAPSTONE PASSED!"
+        echo ""
+        echo "  Congratulations! You have completed the"
+        echo "  $(get_course_name) course."
+        echo ""
+        echo "  Run 'practicum certificate' to generate"
+        echo "  your completion certificate."
+        echo "========================================="
+        echo ""
+    else
+        echo ""
+        echo "  Keep trying! Review the capstone instructions:"
+        echo "  practicum start → Day 5 → Read instructions"
         echo ""
     fi
 }
@@ -319,20 +1296,170 @@ cmd_wizard() {
 cmd_lab() {
     enter_mode "LAB"
     init_sandbox
-    echo "  Sandbox initialized at: ~/.practicum/sandbox/"
-    echo "  Type 'exit' to leave LAB mode."
+    
+    local lab_rc="$HOME/.practicum/lab_bashrc"
+    cat > "$lab_rc" << LABRC
+export PRACTICUM_MODE="LAB"
+export SANDBOX_DIR="$HOME/.practicum/sandbox"
+export PS1='🔬 [LAB] \w\$ '
+source "$SCRIPT_DIR/lib/colors.sh"
+source "$SCRIPT_DIR/lib/wrappers.sh"
+source "$SCRIPT_DIR/lib/apprentice.sh"
+
+# On-demand situational awareness
+situation() {
     echo ""
-    cd "$SANDBOX_DIR" || true
-    export PS1="🔬 [LAB] \w\$ "
-    exec bash --norc --noprofile -i
+    echo -e "\${C_CYAN}  📍 Current Situation\${C_RESET}"
+    echo -e "  \${C_DIM}Directory: \$(pwd)\${C_RESET}"
+    echo -e "  \${C_DIM}Files: \$(ls -1 2>/dev/null | wc -l)\${C_RESET}"
+    echo -e "  \${C_DIM}Disk used here: \$(du -sh . 2>/dev/null | cut -f1)\${C_RESET}"
+    echo ""
+}
+
+# Block practicum from inside lab
+practicum() {
+    echo -e "\${C_YELLOW}  ⚠️  Type 'exit' to leave Lab first, then run practicum.\${C_RESET}"
+}
+
+echo ""
+echo -e "\${C_PURPLE}=========================================\${C_RESET}"
+echo -e "\${C_PURPLE}  🔬 LAB MODE — Safe Sandbox\${C_RESET}"
+echo -e "\${C_PURPLE}=========================================\${C_RESET}"
+echo ""
+echo -e "  \${C_WHITE}All commands affect only the sandbox.\${C_RESET}"
+echo -e "  \${C_CYAN}Sandbox: ~/.practicum/sandbox/\${C_RESET}"
+echo -e "  \${C_DIM}Type 'situation' for system awareness.\${C_RESET}"
+echo -e "  \${C_GREEN}Type 'exit' to leave Lab mode.\${C_RESET}"
+echo ""
+cd "$HOME/.practicum/sandbox"
+LABRC
+    
+    exec bash --rcfile "$lab_rc" -i
 }
 
 cmd_field() {
     enter_mode "FIELD"
-    echo "  Type 'exit' to leave FIELD mode."
+    
+    local field_rc="$HOME/.practicum/field_bashrc"
+    cat > "$field_rc" << FIELDRC
+export PRACTICUM_MODE="FIELD"
+export PS1='🩺 [CLINIC] \w\$ '
+export PRACTICUM_DIR="$SCRIPT_DIR"
+
+# Source diagnostic tools
+source "$SCRIPT_DIR/lib/colors.sh"
+source "$SCRIPT_DIR/lib/state.sh"
+source "$SCRIPT_DIR/lib/lessons.sh"
+source "$SCRIPT_DIR/lib/diagnose.sh"
+init_state
+
+# ── IT Clinic Commands ──
+
+diagnose() {
+    cmd_diagnose
+}
+
+health() {
+    diag_health_check
+}
+
+quick() {
+    diag_health_compact
+}
+
+# Shortcut commands for each category
+perf() { diag_performance; }
+network() { diag_network; }
+storage() { diag_storage; }
+services() { diag_services; }
+security() { diag_permissions; }
+hardware() { diag_hardware_menu; }
+scan() { diag_pattern_match; }
+history() { diag_history; }
+report() { diag_report; }
+reports() { diag_list_reports; }
+
+# Situational awareness
+situation() {
     echo ""
-    export PS1="🌍 [FIELD] \w\$ "
-    exec bash --norc --noprofile -i
+    echo -e "\${C_CYAN}  📍 System Situation\${C_RESET}"
+    echo -e "  \${C_DIM}Host:      \$(hostname)\${C_RESET}"
+    echo -e "  \${C_DIM}User:      \$(whoami)\${C_RESET}"
+    echo -e "  \${C_DIM}Directory: \$(pwd)\${C_RESET}"
+    echo -e "  \${C_DIM}Uptime:    \$(uptime -p 2>/dev/null || uptime)\${C_RESET}"
+    echo ""
+    diag_health_compact
+    echo ""
+}
+
+# History logging
+_log_session() {
+    local logfile="\$HOME/.practicum/clinic_history.log"
+    echo "[\$(date '+%F %T')] SESSION_START host=\$(hostname) user=\$(whoami)" >> "\$logfile"
+}
+_log_session
+
+# Block raw practicum from inside field
+practicum() {
+    echo -e "\${C_YELLOW}  ⚠️  Type 'exit' to leave the IT Clinic first.\${C_RESET}"
+}
+
+# Help
+clinic_help() {
+    echo ""
+    echo -e "\${C_PURPLE}  ══════════════════════════════════════\${C_RESET}"
+    echo -e "\${C_PURPLE}  🩺 IT Clinic — Available Commands\${C_RESET}"
+    echo -e "\${C_PURPLE}  ══════════════════════════════════════\${C_RESET}"
+    echo ""
+    echo -e "  \${C_WHITE}Diagnostics:\${C_RESET}"
+    echo -e "  \${C_CYAN}  diagnose\${C_RESET}     Full diagnostic navigator (guided)"
+    echo -e "  \${C_CYAN}  health\${C_RESET}       Full system health check (A-F grade)"
+    echo -e "  \${C_CYAN}  quick\${C_RESET}        One-line health summary"
+    echo -e "  \${C_CYAN}  scan\${C_RESET}         Auto-detect known error patterns"
+    echo ""
+    echo -e "  \${C_WHITE}Quick access (skip the menu):\${C_RESET}"
+    echo -e "  \${C_CYAN}  perf\${C_RESET}         CPU, memory, swap, load"
+    echo -e "  \${C_CYAN}  network\${C_RESET}      Internet, DNS, ports, SSH, firewall"
+    echo -e "  \${C_CYAN}  storage\${C_RESET}      Disk, inodes, I/O, filesystem, mounts"
+    echo -e "  \${C_CYAN}  services\${C_RESET}     Service status, crash loops, Docker"
+    echo -e "  \${C_CYAN}  security\${C_RESET}     Permissions, sudo, SELinux, audit"
+    echo -e "  \${C_CYAN}  hardware\${C_RESET}     Devices, drivers, kernel, SMART"
+    echo ""
+    echo -e "  \${C_WHITE}History & reports:\${C_RESET}"
+    echo -e "  \${C_CYAN}  history\${C_RESET}      View diagnostic trends over time"
+    echo -e "  \${C_CYAN}  report\${C_RESET}       Generate & save a diagnostic report"
+    echo -e "  \${C_CYAN}  reports\${C_RESET}      List all saved reports"
+    echo ""
+    echo -e "  \${C_WHITE}Context:\${C_RESET}"
+    echo -e "  \${C_CYAN}  situation\${C_RESET}    System overview + health grade"
+    echo -e "  \${C_CYAN}  clinic_help\${C_RESET}  Show this help"
+    echo ""
+    echo -e "  \${C_GREEN}  exit\${C_RESET}         Leave the IT Clinic"
+    echo ""
+}
+
+echo ""
+echo -e "\${C_PURPLE}  ══════════════════════════════════════════════\${C_RESET}"
+echo -e "\${C_PURPLE}  🩺 IT CLINIC — Real System Diagnostics\${C_RESET}"
+echo -e "\${C_PURPLE}  ══════════════════════════════════════════════\${C_RESET}"
+echo ""
+echo -e "  \${C_WHITE}You are operating on the REAL system.\${C_RESET}"
+echo -e "  \${C_DIM}Every command runs live. Diagnostics are read-only.\${C_RESET}"
+echo ""
+echo -e "  \${C_CYAN}  diagnose\${C_RESET}   — guided troubleshooting navigator"
+echo -e "  \${C_CYAN}  scan\${C_RESET}       — auto-detect known error patterns"
+echo -e "  \${C_CYAN}  health\${C_RESET}     — full system health check (A-F grade)"
+echo -e "  \${C_CYAN}  report\${C_RESET}     — generate & save diagnostic report"
+echo -e "  \${C_CYAN}  history\${C_RESET}    — view trends over time"
+echo -e "  \${C_CYAN}  clinic_help\${C_RESET} — all available commands"
+echo ""
+echo -e "  \${C_GREEN}  exit\${C_RESET}       — leave the IT Clinic"
+echo ""
+diag_health_compact
+echo ""
+FIELDRC
+    
+    exec bash --rcfile "$field_rc" -i
 }
 
 cmd_snapshot() {
@@ -376,8 +1503,49 @@ case "$1" in
         cmd_snapshot "$@"
         ;;
     activate)
-        echo "License activation not yet implemented."
-        echo "Contact: support@practicum-cli.dev"
+        activate_license "$2"
+        ;;
+    deactivate)
+        deactivate_license
+        ;;
+    license)
+        license_status
+        ;;
+    certificate|cert)
+        cmd_certificate
+        ;;
+    final)
+        cmd_final
+        ;;
+    assess2)
+        cmd_assess2
+        ;;
+    final-capstone)
+        cmd_final_capstone
+        ;;
+    scenarios|scenario)
+        cmd_scenarios
+        ;;
+    mastery)
+        show_mastery_dashboard
+        ;;
+    course|courses)
+        cmd_course_switch
+        ;;
+    diagnose|diag|clinic)
+        cmd_diagnose
+        ;;
+    scan|pattern|patterns)
+        source "$SCRIPT_DIR/lib/diagnose.sh"
+        diag_pattern_match
+        ;;
+    history)
+        source "$SCRIPT_DIR/lib/diagnose.sh"
+        diag_history
+        ;;
+    report)
+        source "$SCRIPT_DIR/lib/diagnose.sh"
+        diag_report
         ;;
     --help|-h|help)
         show_help
