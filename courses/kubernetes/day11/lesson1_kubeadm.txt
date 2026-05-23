@@ -1,0 +1,119 @@
+# Lesson: kubeadm — Install, Configure & Upgrade Clusters
+
+## [WHEN] You need this when:
+1. You need to set up a Kubernetes cluster from scratch (not kind/minikube).
+2. You need to add worker nodes to an existing cluster.
+3. You need to upgrade a cluster to a newer Kubernetes version.
+4. The CKA exam directly tests kubeadm operations (Domain 1, 25%).
+
+## [INTENT] "Install and upgrade Kubernetes clusters with kubeadm."
+
+## [CONTEXT]
+kind and minikube are for learning. kubeadm is for real clusters.
+kubeadm bootstraps production-grade clusters by:
+  1. Installing control plane components (API Server, etcd, Scheduler, Controller Manager)
+  2. Generating certificates and kubeconfig files
+  3. Configuring the kubelet on each node
+  4. Providing cluster join tokens for worker nodes
+
+## [ACTION] Cluster operations with kubeadm
+
+### Prerequisites (on each node):
+  - Container runtime installed (containerd)
+  - kubelet, kubeadm, kubectl installed
+  - Swap disabled (swapoff -a)
+  - Required ports open (6443, 10250, etc.)
+  - Kernel modules loaded (br_netfilter, overlay)
+  - net.bridge.bridge-nf-call-iptables = 1
+
+### Initialize the control plane:
+  sudo kubeadm init \
+    --pod-network-cidr=10.244.0.0/16 \
+    --kubernetes-version=v1.31.0
+
+  # This outputs:
+  # 1. kubeconfig setup instructions
+  # 2. A join command for worker nodes
+
+  # Set up kubeconfig:
+  mkdir -p $HOME/.kube
+  sudo cp /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+### Install a CNI plugin:
+  # Cluster won't be Ready until a CNI is installed:
+  kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+
+  # Verify:
+  kubectl get nodes    # should show Ready
+
+### Join worker nodes:
+  # On each worker node, run the join command from init output:
+  sudo kubeadm join 10.0.0.1:6443 \
+    --token abcdef.0123456789abcdef \
+    --discovery-token-ca-cert-hash sha256:abc123...
+
+  # Token expired? Generate a new one:
+  kubeadm token create --print-join-command
+
+### Cluster upgrades (CKA-critical):
+  Upgrade order: control plane first, then worker nodes.
+  Upgrade one minor version at a time (1.30 → 1.31, not 1.30 → 1.32).
+
+  # Step 1: Upgrade kubeadm on the control plane:
+  sudo apt-mark unhold kubeadm
+  sudo apt-get update
+  sudo apt-get install -y kubeadm=1.31.0-1.1
+  sudo apt-mark hold kubeadm
+
+  # Step 2: Plan the upgrade:
+  sudo kubeadm upgrade plan
+  # Shows available versions and what will change
+
+  # Step 3: Apply the upgrade:
+  sudo kubeadm upgrade apply v1.31.0
+
+  # Step 4: Drain the control plane node:
+  kubectl drain control-plane --ignore-daemonsets
+
+  # Step 5: Upgrade kubelet and kubectl:
+  sudo apt-get install -y kubelet=1.31.0-1.1 kubectl=1.31.0-1.1
+  sudo systemctl daemon-reload
+  sudo systemctl restart kubelet
+
+  # Step 6: Uncordon the control plane:
+  kubectl uncordon control-plane
+
+  # Step 7: Repeat steps 4-6 for each worker node:
+  #   (on worker) upgrade kubeadm, then:
+  sudo kubeadm upgrade node
+  #   (on control plane) drain worker, then uncordon
+
+### HA control plane (multi-master):
+  kubeadm init with --control-plane-endpoint pointing to a load balancer.
+  Additional control plane nodes join with:
+    kubeadm join --control-plane --certificate-key <key>
+
+  Minimum for HA: 3 control plane nodes (etcd quorum needs odd number).
+
+### Important directories:
+  /etc/kubernetes/manifests/  → static pod manifests for control plane
+  /etc/kubernetes/pki/        → certificates
+  /etc/kubernetes/admin.conf  → admin kubeconfig
+  /var/lib/kubelet/config.yaml → kubelet configuration
+
+### Checking component health:
+  kubectl get componentstatuses     # deprecated but still works
+  kubectl get pods -n kube-system   # control plane pods
+  sudo systemctl status kubelet     # kubelet on current node
+  sudo journalctl -u kubelet        # kubelet logs
+
+## [EXPECTED RESULT]
+You can initialize clusters with kubeadm, join worker nodes,
+perform rolling upgrades, and understand the HA control plane model.
+
+## Technician Tip:
+The CKA exam will ask you to upgrade a cluster. Memorize the order:
+kubeadm upgrade plan → kubeadm upgrade apply → drain → upgrade
+kubelet+kubectl → restart kubelet → uncordon. Practice until it's
+muscle memory.

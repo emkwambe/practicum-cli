@@ -1,0 +1,34 @@
+Q1: SCENARIO: You receive a 500MB JSON file from an API. You need to extract 3 fields from each record and produce a CSV. The pipeline:
+A) Use sqlite3 only
+B) Open in a text editor and copy-paste
+C) jq -r '.[] | [.name, .email, .amount] | @csv' data.json > output.csv
+D) Convert to XML first
+Correct: C
+
+Q2: TRADEOFF: Processing a 2GB CSV — csvkit (Python) takes 45 minutes. xsv (Rust) takes 30 seconds. Why still learn csvkit?
+A) Speed doesn't matter
+B) xsv is deprecated
+C) csvsql lets you run SQL against CSVs directly, and csvkit handles edge cases (encoding, nested quotes) that xsv doesn't — use each where it excels
+D) csvkit is always better
+Correct: C
+
+Q3: The ETL pipeline pattern (Extract → Transform → Load) means:
+A) Encrypt, Transmit, Lock
+B) Export, Transfer, Log
+C) Edit, Test, Launch
+D) Pull raw data (Extract), clean/reshape it (Transform), store in a database or file (Load)
+Correct: D
+
+Q4: DIAGNOSTIC: Your pipeline runs daily but today's output has 0 rows. curl returns an empty response. What should your script do?
+A) Check if the extracted data is empty BEFORE transforming — log a warning, skip the load, alert the operator, exit with non-zero code
+B) Load the empty data anyway
+C) Crash silently
+D) Retry infinitely
+Correct: A
+
+Q5: Data validation in a pipeline should check:
+A) Only file size
+B) Only the first row
+C) Row counts, column presence, null percentages, value ranges, and data types — before loading to production
+D) Nothing — trust the source
+Correct: C

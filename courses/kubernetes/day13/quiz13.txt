@@ -1,0 +1,59 @@
+Q1: The recommended first debugging step for any pod issue is:
+A) Delete and recreate the pod
+B) Check the node
+C) kubectl describe pod — the Events section at the bottom shows exactly what happened: scheduling decisions, image pulls, container starts, failures, and error messages
+D) Restart the cluster
+Correct: C
+
+Q2: SCENARIO: A pod shows CrashLoopBackOff. kubectl logs returns "Error: DATABASE_URL not set." What's the fix?
+A) Rebuild the container image
+B) Add the missing DATABASE_URL environment variable to the pod spec — either directly, from a ConfigMap, or from a Secret. The application crashes because required configuration is missing.
+C) Restart the node
+D) Delete the namespace
+Correct: B
+
+
+
+Q3: DIAGNOSTIC: A Deployment rollout is stuck. kubectl rollout status shows "Waiting for rollout to finish: 1 old replicas are pending termination." kubectl get rs shows the new ReplicaSet has 0 ready pods. What's happening?
+A) The cluster is overloaded
+B) New pods from the updated ReplicaSet are failing (check their status/logs) — the old pods can't terminate because maxUnavailable prevents scaling down until new pods are Ready
+C) The rollout command is wrong
+D) RBAC is blocking it
+Correct: B
+
+
+
+Q4: kubectl get endpoints my-service returns "No resources found." This means:
+A) The Service was deleted
+B) Endpoints are deprecated
+C) The namespace is wrong
+D) The Service's label selector doesn't match any running pod's labels — no pods are registered as backends, so traffic to the Service goes nowhere
+Correct: D
+
+Q5: SCENARIO: The API Server is unreachable — kubectl commands timeout. You SSH into the control plane node. What's your first check?
+A) Reboot the node
+B) Reinstall Kubernetes
+C) Check DNS
+D) sudo systemctl status kubelet and sudo crictl ps | grep kube-api — verify the kubelet is running and the API Server container exists. If the static pod manifest is broken, kubelet can't start it.
+Correct: D
+
+Q6: A node shows NotReady. kubectl describe node shows "KubeletNotReady" condition. After SSHing to the node:
+A) Delete the node from the cluster
+B) Reinstall containerd
+C) Check sudo systemctl status kubelet and sudo journalctl -u kubelet — the kubelet is either stopped, crashed, or can't reach the API Server. Restart it and examine logs for root cause.
+D) Taint the node
+Correct: C
+
+Q7: TRADEOFF: When an application is failing, checking logs (kubectl logs) vs events (kubectl describe):
+A) Events show infrastructure-level issues (scheduling, image pulls, probe failures) while logs show application-level issues (crashes, errors, misconfig). Check events first for platform problems, then logs for app problems.
+B) Logs are always sufficient
+C) Events are deprecated
+D) They show the same information
+Correct: A
+
+Q8: SCENARIO: Control plane static pod manifests live in /etc/kubernetes/manifests/. The kube-scheduler is down. You find a typo in kube-scheduler.yaml. After fixing the typo:
+A) The kubelet automatically detects the manifest change and restarts the scheduler pod — no manual restart needed. Verify with kubectl get pods -n kube-system.
+B) Run kubeadm upgrade
+C) Delete the scheduler pod manually
+D) Restart the entire cluster
+Correct: A

@@ -1,0 +1,74 @@
+# Lesson: Infrastructure as Code — The End of Click-Ops
+
+## [WHEN] You need this when:
+1. Your team provisions servers by clicking through the AWS console.
+2. Nobody knows exactly what's running in production.
+3. Rebuilding the environment after a disaster takes days.
+4. Your staging environment doesn't match production.
+
+## [INTENT] "Understand why infrastructure must be code, not clicks."
+
+## [CONTEXT]
+Infrastructure as Code (IaC) means defining your servers, networks,
+databases, and services in version-controlled configuration files
+instead of creating them manually through a web console.
+
+Before IaC:
+  1. Engineer logs into AWS console
+  2. Clicks "Launch Instance"
+  3. Selects options from dropdowns
+  4. Forgets to document what they did
+  5. Months later: "who created this? what does it do? can we delete it?"
+  6. Disaster: "can we rebuild production?" → "maybe... give me a week"
+
+With IaC:
+  1. Engineer writes a config file defining the infrastructure
+  2. Commits it to Git (reviewed, versioned, auditable)
+  3. Runs a command to provision
+  4. Same file rebuilds identical infrastructure anywhere, anytime
+  5. Disaster: "can we rebuild production?" → "terraform apply (5 minutes)"
+
+## [ACTION] The core principles
+
+### 1. Declarative, not imperative:
+  You describe WHAT you want, not HOW to build it.
+
+  Imperative (scripting):
+    "Create a VPC, then create a subnet in that VPC,
+     then create a security group, then launch an instance
+     in that subnet with that security group..."
+
+  Declarative (IaC):
+    "I want: 1 VPC, 1 subnet, 1 security group, 1 instance.
+     Here are their properties. Figure out the order."
+
+  Terraform handles the dependency graph automatically.
+
+### 2. Idempotent:
+  Running the same config twice produces the same result.
+  If the infrastructure already exists, Terraform does nothing.
+  If something drifted, Terraform fixes it.
+
+### 3. Version controlled:
+  Infrastructure changes go through the same Git workflow as code:
+  branch → commit → PR → review → merge → apply
+
+### 4. Self-documenting:
+  The config files ARE the documentation.
+  "What's running in production?" → Read main.tf
+
+## [EXPECTED RESULT]
+You understand why clicking through a console is a liability,
+and why infrastructure must be code — reviewable, reproducible,
+and recoverable.
+
+## Technician Tip:
+"Click-ops" is industry slang for managing infrastructure through
+a web console. It's the infrastructure equivalent of deploying
+by SSH and git pull. It works until it doesn't.
+
+## Common Pain Point:
+"We've always done it manually and it works fine" → it works
+until someone deletes the wrong resource, or you need to rebuild
+after a disaster, or you need 3 identical environments, or
+an auditor asks "show me every change made to production."

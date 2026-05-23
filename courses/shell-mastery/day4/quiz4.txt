@@ -1,0 +1,55 @@
+Q1: A bash function is defined as:
+A) create backup {}
+B) function = backup() {}
+C) def backup():
+D) backup() { echo "backing up"; }
+Correct: D
+
+Q2: Why use local inside functions?
+A) local is faster
+B) It enables recursion
+C) local variables don't pollute the global scope — without local, function variables overwrite globals unexpectedly
+D) It's required syntax
+Correct: C
+
+Q3: source utils.sh (or . utils.sh) does what?
+A) Executes utils.sh in the CURRENT shell — making its functions and variables available to your script
+B) Copies utils.sh to current directory
+C) Prints the contents of utils.sh
+D) Runs utils.sh in a subshell
+Correct: A
+
+Q4: SCENARIO: Your script has 5 functions. Three of them share helper logic. How do you organize this for production?
+A) Use global variables
+B) Write one giant function
+C) Put shared utilities in a separate file (lib/utils.sh) and source it — keeps functions modular and testable
+D) Copy-paste the shared code into each function
+Correct: C
+
+Q5: DIAGNOSTIC: A function returns the wrong value. You're using echo to "return" data but also echo debug messages inside the function. What breaks?
+A) You need printf instead
+B) Functions can't return strings
+C) All echo output is captured — debug messages mix with the return value. Use echo for data, >&2 for debug messages.
+D) echo doesn't work in functions
+Correct: C
+
+Q6: TRADEOFF: return vs echo for getting data out of a function:
+A) return sends a string back
+B) No difference
+C) echo is only for printing
+D) return sets the exit code (0-255 only); echo sends string data to stdout which the caller captures with $()
+Correct: D
+
+Q7: SCENARIO: Your 500-line script is getting hard to maintain. What's the professional refactoring approach?
+A) Make the functions shorter
+B) Split into: main script (orchestrator), lib/ directory with sourced function files, and a config file for variables
+C) Add more comments
+D) Rewrite in Python
+Correct: B
+
+Q8: A well-structured production script should have:
+A) Only the commands that work
+B) Comments, functions, error handling, usage(), strict mode, clean exit codes, and logging
+C) As few lines as possible
+D) Only one function
+Correct: B

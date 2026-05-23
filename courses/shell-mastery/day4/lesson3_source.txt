@@ -1,0 +1,96 @@
+# Lesson: Source & Libraries — Share Code Between Scripts
+
+## [WHEN] You need this when:
+1. Multiple scripts need the same utility functions.
+2. You want to keep config separate from logic.
+3. You're building a tool with lib/ and bin/ separation.
+4. You want your team to share a common function library.
+
+## [INTENT] "Load functions from one file into another."
+
+## [CONTEXT]
+source (or .) loads another script into the current shell.
+All functions and variables from the sourced file become available.
+
+This is how Practicum CLI works — it sources lib/*.sh files.
+
+## [ACTION] Source patterns
+
+### Basic source:
+  # lib/utils.sh
+  log() { echo "[$(date +%T)] $1"; }
+  die() { echo "ERROR: $1" >&2; exit 1; }
+
+  # main.sh
+  source ./lib/utils.sh      # or: . ./lib/utils.sh
+  log "Starting..."
+  [ -f "$config" ] || die "Config missing"
+
+### Source relative to script location (reliable):
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  source "$SCRIPT_DIR/lib/utils.sh"
+
+  # This works even when called from a different directory:
+  #   cd /tmp && /opt/myapp/main.sh   ← still finds lib/utils.sh
+
+### Config files:
+  # config.sh
+  DB_HOST="localhost"
+  DB_PORT=5432
+  LOG_LEVEL="info"
+
+  # main.sh
+  source ./config.sh
+  echo "Connecting to $DB_HOST:$DB_PORT"
+
+### Guard against double-sourcing:
+  # lib/utils.sh
+  [ -n "$_UTILS_LOADED" ] && return 0
+  _UTILS_LOADED=1
+
+  log() { echo "[$(date +%T)] $1"; }
+
+### Project structure:
+  myapp/
+    bin/
+      myapp           ← main script (executable)
+    lib/
+      utils.sh        ← utility functions
+      config.sh       ← default configuration
+      database.sh     ← database functions
+    etc/
+      myapp.conf      ← user configuration
+    README.md
+
+## [EXPECTED RESULT]
+You can split large scripts into focused files. Each file has a clear
+purpose. Functions are shared without duplication.
+
+## Try it now:
+  mkdir -p /tmp/myapp/lib
+  cat > /tmp/myapp/lib/colors.sh << 'EOF'
+  RED='\033[31m'
+  GREEN='\033[32m'
+  RESET='\033[0m'
+  ok()   { echo -e "${GREEN}✅ $1${RESET}"; }
+  fail() { echo -e "${RED}❌ $1${RESET}"; }
+  EOF
+
+  cat > /tmp/myapp/check.sh << 'EOF'
+  #!/bin/bash
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  source "$SCRIPT_DIR/lib/colors.sh"
+  ok "Colors loaded!"
+  fail "This is a test error"
+  EOF
+
+  chmod +x /tmp/myapp/check.sh
+  /tmp/myapp/check.sh
+
+## Technician Tip:
+BASH_SOURCE[0] vs $0:
+  $0              = the script the USER ran (might be a symlink)
+  BASH_SOURCE[0]  = the file CURRENTLY executing (even if sourced)
+
+For finding the script's own directory, ALWAYS use BASH_SOURCE[0].
+This is what Practicum CLI does on its first line.

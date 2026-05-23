@@ -1,0 +1,87 @@
+# Lesson: Quoting — The Source of 90% of Script Bugs
+
+## [WHEN] You need this when:
+1. Your script breaks on filenames with spaces.
+2. A variable expands when you don't want it to.
+3. You need to preserve special characters literally.
+4. A command argument contains $, `, or *.
+
+## [INTENT] "Control exactly when bash expands variables and special characters."
+
+## [CONTEXT]
+Bash has three quoting styles. Each behaves differently:
+
+  "double quotes"  — variables expand, spaces preserved
+  'single quotes'  — NOTHING expands, everything is literal
+  $'ansi quotes'   — supports escape sequences (\n, \t)
+
+## [ACTION] The three quote types
+
+### Double quotes (most common — USE THESE):
+  name="World"
+  echo "Hello, $name"         # Hello, World (variable expands)
+  echo "Path: $HOME"          # Path: /home/hp
+  echo "Today: $(date +%F)"   # Today: 2026-04-16 (command runs)
+  echo "Tab here:	end"       # preserves whitespace
+
+### Single quotes (literal — nothing special happens):
+  echo 'Hello, $name'         # Hello, $name (literal dollar sign)
+  echo 'Price: $9.99'         # Price: $9.99
+  echo 'No $(command) here'   # No $(command) here
+  echo 'Backtick: `ls`'       # Backtick: `ls`
+
+### When to use which:
+  "double"  → default. Use for strings that contain variables.
+  'single'  → when you need literal text (regex, JSON, SQL, cron).
+  neither   → almost never. Only for simple single-word values.
+
+### Escaping individual characters:
+  echo "Price: \$5"           # Price: $5 (backslash escapes $)
+  echo "She said \"hi\""      # She said "hi"
+  echo "Backslash: \\"        # Backslash: \
+
+### Mixing quotes:
+  echo "It's a beautiful day"     # works (single quote inside double)
+  echo 'He said "hello"'         # works (double quote inside single)
+  echo "She said 'hey'"          # works (single inside double)
+
+### Here-docs (multi-line strings):
+  cat << EOF
+  Hello, $name
+  Today is $(date)
+  EOF
+  # Variables expand (like double quotes)
+
+  cat << 'EOF'
+  Hello, $name
+  No expansion here
+  EOF
+  # Nothing expands (like single quotes) — note the 'EOF'
+
+## [EXPECTED RESULT]
+You control exactly what bash interprets and what it leaves alone.
+No more surprises with spaces, special characters, or unintended expansion.
+
+## Try it now:
+  file="my important file.txt"
+  touch "$file"               # creates ONE file
+  touch $file                 # creates THREE files (my, important, file.txt)
+  ls -la my*
+  rm "$file" my important file.txt 2>/dev/null
+
+## Technician Tip — the golden rule:
+When in doubt, double-quote everything:
+  "$variable"   "$( command )"   "${array[@]}"
+
+The ONLY time you DON'T quote:
+  [[ $var == pattern* ]]        — pattern matching in [[ ]]
+  for f in *.txt                — globbing is intentional
+  (( num + 1 ))                 — arithmetic context
+
+## Common Pain Point:
+"My script works with simple filenames but breaks on files with spaces"
+→ you're not quoting your variables. Always: "$file" not $file.
+
+"My cron job includes $PATH but it's empty in the log"
+→ cron uses sh, not bash. Single-quote to preserve: '$PATH'
+or set it explicitly at the top of your cron script.

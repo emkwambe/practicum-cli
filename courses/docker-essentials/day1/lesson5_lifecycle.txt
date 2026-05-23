@@ -1,0 +1,64 @@
+# Lesson: Lifecycle — stop, start, restart, rm
+
+## [WHEN] You need this when:
+1. You want to stop a container gracefully.
+2. A container crashed and you need to restart it.
+3. You are cleaning up your Docker environment.
+4. A container is hung and you need to force-kill it.
+
+## [INTENT] "Control the state of this container."
+
+## [CONTEXT]
+Containers go through states: Created → Running → Paused → Stopped → Removed.
+
+  docker stop       — graceful shutdown (SIGTERM, then SIGKILL after 10s)
+  docker kill       — immediate SIGKILL (emergency only)
+  docker start      — start a stopped container
+  docker restart    — stop then start (for apps stuck in bad state)
+  docker pause      — freeze the container (cgroup freezer)
+  docker unpause    — resume a paused container
+  docker rm         — delete a stopped container permanently
+  docker rm -f      — force remove even if running
+
+## [ACTION] Container lifecycle commands
+Common patterns:
+  docker stop web                  — graceful stop
+  docker stop -t 30 web            — wait up to 30 seconds
+  docker kill web                  — force kill immediately
+  docker start web                 — start stopped container
+  docker restart web               — stop + start
+  docker rm web                    — delete stopped container
+  docker rm -f web                 — force remove even if running
+  docker rm $(docker ps -aq)       — remove ALL stopped containers
+  docker container prune           — prompted removal of all stopped
+
+## [EXPECTED RESULT]
+stop/start/restart print the container name on success.
+rm prints the container ID (or name) that was deleted.
+Failed operations tell you why (container doesn't exist, still running, etc.)
+
+## Try it now:
+  docker run -d --name web nginx
+  docker stop web
+  docker ps        # web not listed (not running)
+  docker ps -a     # web listed as "Exited"
+  docker start web
+  docker restart web
+  docker rm -f web
+
+## Technician Tip — the safe cleanup sequence:
+  docker ps                        # check what's running
+  docker stop <name>               # graceful stop
+  docker rm <name>                 # then remove
+
+Shortcut: docker rm -f <name>      # force stop + remove in one step
+Risky on production — use plain stop first when data might be lost.
+
+## Common Pain Point:
+"Cannot remove: container is still running" → use -f or stop first.
+"No such container" → check docker ps -a; might be a typo.
+Container keeps exiting immediately → check docker logs, the app is crashing.
+
+## DCA Exam Note:
+Know the default timeout for docker stop is 10 seconds before SIGKILL.
+Know that docker kill sends SIGKILL immediately (no graceful shutdown).

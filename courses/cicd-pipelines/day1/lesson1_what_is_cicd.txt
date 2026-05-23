@@ -1,0 +1,84 @@
+# Lesson: What is CI/CD — The Pipeline That Changed Software
+
+## [WHEN] You need this when:
+1. Your team deploys manually and it takes hours.
+2. A developer merged broken code and nobody caught it until production.
+3. You want to deploy 10 times a day instead of once a month.
+4. Your boss says "we need CI/CD" and you need to know what that means.
+
+## [INTENT] "Understand the CI/CD pipeline and why every team needs one."
+
+## [CONTEXT]
+Before CI/CD:
+  1. Developer writes code locally
+  2. Emails a zip file (or pushes to shared folder)
+  3. Someone manually tests it (maybe)
+  4. Someone manually deploys to production (fingers crossed)
+  5. Production breaks → panic → blame → hotfix → repeat
+
+With CI/CD:
+  1. Developer pushes code to Git
+  2. CI automatically runs tests, linting, security scans
+  3. If tests pass: automatically builds a Docker image
+  4. CD automatically deploys to staging
+  5. After approval: automatically deploys to production
+  6. If something breaks: automatic rollback
+
+CI = Continuous Integration — merge and test code automatically
+CD = Continuous Delivery — deploy automatically (with approval)
+CD = Continuous Deployment — deploy automatically (no approval, fully automated)
+
+Most teams use Continuous Delivery (with a manual approval gate for production).
+
+## [ACTION] The anatomy of a CI/CD pipeline
+
+### Typical pipeline stages:
+
+  1. TRIGGER       → push to branch, pull request opened, tag created
+  2. CHECKOUT      → clone the repo at the specific commit
+  3. INSTALL       → install dependencies (npm install, pip install)
+  4. LINT          → check code style (eslint, shellcheck, flake8)
+  5. TEST          → run unit tests, integration tests
+  6. BUILD         → compile code, build Docker image
+  7. PUSH          → push image to container registry
+  8. DEPLOY STAGING → deploy to staging environment
+  9. TEST STAGING  → smoke tests, integration tests on staging
+  10. APPROVE      → manual gate (human clicks "deploy to prod")
+  11. DEPLOY PROD  → deploy to production
+  12. VERIFY       → health checks, monitoring, rollback if needed
+
+### Not every project needs all 12 stages. A minimal pipeline:
+
+  TRIGGER → INSTALL → TEST → BUILD → DEPLOY
+
+### Pipeline as YAML (the universal format):
+  Every CI/CD platform uses YAML to define pipelines:
+  - GitHub Actions: .github/workflows/*.yml
+  - GitLab CI: .gitlab-ci.yml
+  - Jenkins: Jenkinsfile (Groovy, not YAML)
+  - CircleCI: .circleci/config.yml
+
+### Key vocabulary:
+  Workflow  — the entire pipeline definition
+  Job       — a group of steps that run on one machine
+  Step      — a single command or action
+  Runner    — the machine that executes the job
+  Artifact  — a file produced by one job, used by another
+  Secret    — an encrypted variable (API key, password)
+  Matrix    — run the same job with different configurations
+
+## [EXPECTED RESULT]
+You understand what CI/CD does, why it exists, and can name every
+stage in a pipeline. You know the vocabulary to discuss CI/CD in
+any interview or team meeting.
+
+## Technician Tip:
+CI/CD is not a tool — it's a practice. GitHub Actions is a tool.
+The practice is: every code change is automatically tested and
+deployable. The tool just automates the practice.
+
+## Common Pain Point:
+"We have CI/CD but deployments still break" → your pipeline
+is missing stages. Usually: no staging environment, no integration
+tests, or no rollback strategy. A pipeline is only as strong as
+its weakest stage.

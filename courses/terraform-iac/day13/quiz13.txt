@@ -1,0 +1,59 @@
+Q1: In a Terraform CI/CD pipeline, terraform plan should run on:
+A) Only manually
+B) Only main branch pushes
+C) Every PR — the plan output posted as a PR comment lets reviewers see exactly what will change before approving
+D) Only after apply
+Correct: C
+
+Q2: terraform apply should run in CI only:
+A) On every PR
+B) Never in CI
+C) After merge to main — reviewed and approved changes only, with -auto-approve since the plan was already reviewed
+D) On every commit
+Correct: C
+
+
+
+Q3: SCENARIO: A daily scheduled terraform plan shows unexpected changes. Nobody modified the config. What happened?
+A) The provider updated
+B) The state expired
+C) Terraform has a bug
+D) Configuration drift — someone changed infrastructure manually (console/CLI). The plan caught the drift between code and reality.
+Correct: D
+
+
+
+Q4: OIDC authentication in Terraform CI means:
+A) A module source
+B) No stored cloud credentials — GitHub generates temporary tokens that the cloud provider trusts, eliminating long-lived secrets
+C) A new Terraform command
+D) A type of encryption
+Correct: B
+
+Q5: TRADEOFF: Workspaces vs directory-per-environment. When do directories win?
+A) Only for dev environments
+B) When environments need different AWS accounts, separate permissions, or strict blast radius isolation — directories enforce separation at the filesystem level
+C) Always
+D) Never — workspaces handle everything
+Correct: B
+
+Q6: DIAGNOSTIC: You ran terraform apply in the wrong workspace (prod instead of dev). An instance was upsized. How do you fix it?
+A) Delete the workspace
+B) Change the provider
+C) Restart Terraform
+D) Switch to the correct workspace, check the plan, and re-apply the prod workspace with the correct config to revert the change
+Correct: D
+
+Q7: Drift detection as a scheduled CI job provides:
+A) Automated detection of manual infrastructure changes — alerting the team before drift causes incidents
+B) Better logging
+C) More modules
+D) Faster builds
+Correct: A
+
+Q8: SCENARIO: Your Terraform CI pipeline posts the plan as a PR comment. A reviewer sees "1 to destroy" on a resource they don't recognize. The correct action:
+A) Block the merge, investigate what resource is being destroyed and why, then approve or request changes based on understanding
+B) Re-run the pipeline
+C) Approve — the pipeline knows best
+D) Delete the PR
+Correct: A

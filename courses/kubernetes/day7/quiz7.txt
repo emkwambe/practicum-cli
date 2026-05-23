@@ -1,0 +1,59 @@
+Q1: A Kubernetes Service provides:
+A) Persistent storage
+B) A stable DNS name, IP, and load balancing across pods — even as pods are replaced
+C) Logging
+D) Container images
+Correct: B
+
+
+
+Q2: DIAGNOSTIC: Your Service shows 0 endpoints. Pods are running. What's wrong?
+A) Pods aren't healthy
+B) The namespace is wrong
+C) The Service selector labels don't match the pod labels — compare kubectl describe svc with kubectl get pods --show-labels
+D) The Service is broken
+Correct: C
+
+Q3: ClusterIP vs NodePort vs LoadBalancer:
+A) LoadBalancer is internal
+B) NodePort is always best
+C) They're all the same
+D) ClusterIP is internal-only; NodePort exposes on each node's IP:port; LoadBalancer creates a cloud load balancer with an external IP
+Correct: D
+
+
+
+Q4: SCENARIO: You have 5 microservices, each needing external access. Using LoadBalancer for each means 5 cloud load balancers. The cheaper alternative:
+A) NodePort for all
+B) Remove 4 services
+C) ClusterIP with port forwarding
+D) One Ingress controller with host-based routing — one load balancer routes to all 5 services based on hostname
+Correct: D
+
+Q5: An Ingress controller is:
+A) Built into Kubernetes by default
+B) A separate deployment (nginx, traefik) that reads Ingress resources and configures HTTP routing — must be installed separately
+C) Part of the control plane
+D) The same as a Service
+Correct: B
+
+Q6: TRADEOFF: Ingress with TLS termination means:
+A) Traffic is encrypted end-to-end
+B) No TLS is needed
+C) HTTPS terminates at the Ingress controller — internal cluster traffic is HTTP. Simpler certs, but internal traffic is unencrypted unless you add mTLS.
+D) Each pod needs its own certificate
+Correct: C
+
+Q7: Pod-to-pod DNS resolution in K8s follows the pattern:
+A) service-name.namespace.svc.cluster.local — or just "service-name" within the same namespace
+B) pod-name.cluster
+C) Container name only
+D) Just the pod IP
+Correct: A
+
+Q8: SCENARIO: curl from one pod to another returns "connection refused" but the target pod is Running. What should you check?
+A) Whether a Service exists for the target pod, whether the target port is correct, and whether the app inside is actually listening on that port
+B) DNS settings
+C) The node's firewall
+D) The internet connection
+Correct: A

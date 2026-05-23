@@ -1,0 +1,55 @@
+Q1: git clone URL does what?
+A) Creates an empty repository
+B) Downloads the entire repository including all history and branches
+C) Only downloads the latest files (no history)
+D) Uploads your code
+Correct: B
+
+Q2: git remote -v shows:
+A) The Git version
+B) All remote connections (name + URL) for fetch and push
+C) Verbose commit messages
+D) The number of remotes
+Correct: B
+
+Q3: SCENARIO: You push to origin main and get "rejected — non-fast-forward". What happened?
+A) GitHub is down
+B) Your repo is corrupted
+D) Someone pushed commits to main that you don't have locally — pull first, resolve conflicts, then push
+C) You need to delete the remote
+Correct: D
+
+Q4: The difference between git pull and git fetch is:
+A) No difference
+B) pull downloads AND merges; fetch only downloads without merging — giving you a chance to review first
+C) fetch is faster
+D) pull only works on main
+Correct: B
+
+Q5: A .gitignore file containing node_modules/ means:
+A) Git will delete node_modules
+B) Git will track changes inside node_modules
+C) Git will ignore the node_modules directory — it won't be staged, committed, or pushed
+D) Node.js won't work
+Correct: C
+
+Q6: DIAGNOSTIC: You added node_modules/ to .gitignore but git status STILL shows those files as tracked. Why?
+A) .gitignore doesn't work
+B) .gitignore only prevents NEW files from being tracked — already-tracked files need git rm --cached -r node_modules/
+C) You need to restart Git
+D) The file is in the wrong directory
+Correct: B
+
+Q7: The daily Git workflow in order is:
+A) commit → add → push → pull
+B) push → commit → pull → add
+C) pull → work → add → commit → push
+D) init → clone → push
+Correct: C
+
+Q8: SCENARIO: Your teammate pushed broken code to main. You need their changes but not the broken commit. What's the safest approach?
+A) git pull and fix the broken code yourself
+B) Delete the repo and re-clone
+C) git fetch origin, review with git log origin/main, then cherry-pick only the good commits
+D) Rewrite the teammate's code
+Correct: C

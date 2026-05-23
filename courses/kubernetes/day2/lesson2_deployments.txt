@@ -1,0 +1,99 @@
+# Lesson: Deployments & ReplicaSets — Self-Healing Applications
+
+## [WHEN] You need this when:
+1. You need your app to stay running even when pods crash.
+2. You need to update your app without downtime.
+3. You need multiple replicas for reliability and load balancing.
+
+## [INTENT] "Use Deployments for production workloads with self-healing and rolling updates."
+
+## [CONTEXT]
+A Deployment manages a ReplicaSet, which manages Pods.
+
+  Deployment (strategy, updates)
+      └→ ReplicaSet (ensures N pods exist)
+           └→ Pod, Pod, Pod
+
+You tell the Deployment: "I want 3 replicas of nginx:1.25."
+The ReplicaSet ensures exactly 3 pods run at all times.
+If one crashes, a new one is created. If a node dies, pods
+move to healthy nodes.
+
+## [ACTION] Deployments
+
+### Deployment manifest (deployment.yaml):
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: web
+  spec:
+    replicas: 3
+    selector:
+      matchLabels:
+        app: web
+    template:
+      metadata:
+        labels:
+          app: web
+      spec:
+        containers:
+          - name: nginx
+            image: nginx:1.25-alpine
+            ports:
+              - containerPort: 80
+            resources:
+              requests:
+                memory: "64Mi"
+                cpu: "100m"
+              limits:
+                memory: "128Mi"
+                cpu: "250m"
+
+### Key concepts:
+  spec.replicas: how many pods to maintain
+  spec.selector: how the Deployment finds its pods (by label)
+  spec.template: the pod spec — what each replica looks like
+
+  The selector MUST match the template labels. This is how
+  the Deployment knows which pods belong to it.
+
+### Rolling updates:
+  # Update the image:
+  kubectl set image deployment/web nginx=nginx:1.26-alpine
+
+  # K8s creates new pods with 1.26, terminates old 1.25 pods,
+  # one at a time. Users never see downtime.
+
+  # Watch the rollout:
+  kubectl rollout status deployment/web
+
+  # Rollback if it fails:
+  kubectl rollout undo deployment/web
+
+  # See rollout history:
+  kubectl rollout history deployment/web
+
+### Update strategy:
+  spec:
+    strategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxSurge: 1         # 1 extra pod during update
+        maxUnavailable: 0   # never go below desired count
+
+  maxUnavailable: 0 means zero-downtime updates — K8s creates
+  a new pod BEFORE terminating an old one.
+
+### Self-healing in action:
+  kubectl delete pod web-abc123
+  # The ReplicaSet immediately creates a replacement.
+  # The desired count (3) is maintained automatically.
+
+## [EXPECTED RESULT]
+You can create Deployments, perform rolling updates,
+roll back failed updates, and understand self-healing behavior.
+
+## Technician Tip:
+Always set maxUnavailable: 0 for user-facing services.
+This guarantees zero-downtime updates at the cost of temporarily
+running one extra pod during the rollout.

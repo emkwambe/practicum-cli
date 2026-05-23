@@ -1,0 +1,29 @@
+# Lesson: chown — Change File Ownership
+
+## [WHEN] You need this when:
+1. A web server (www-data) needs to own uploaded files.
+2. Files deployed as root should belong to the app user.
+3. You copied files from another user's home directory.
+4. A backup was restored and all files are now owned by root.
+
+## [INTENT] "This file should belong to a different user or group."
+
+## [CONTEXT]
+Every file has an owner and a group. When you deploy files as root,
+they belong to root — but the application user may need to own them.
+chown (change owner) fixes this. You typically need sudo for chown.
+
+## [ACTION] chown <user>:<group> <file>
+Common patterns:
+  chown alice file.txt              — change owner to alice
+  chown alice:developers file.txt   — change owner AND group
+  chown :developers file.txt        — change group only
+  chown -R www-data:www-data /var/www/  — recursively change ownership
+  sudo chown root:root /etc/config  — requires sudo for system files
+
+## [EXPECTED RESULT]
+ls -la shows the new owner and group. File content is unchanged.
+
+## Try it now:
+  touch myfile.txt
+  ls -la myfile.txt

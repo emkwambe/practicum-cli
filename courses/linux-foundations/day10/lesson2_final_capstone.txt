@@ -1,0 +1,265 @@
+# Final Capstone: The Server Crisis
+
+## THIS IS NOT A HOMEWORK ASSIGNMENT.
+
+This is a simulated professional engagement. You are the sysadmin
+on call. There's no step-by-step guide. You own the outcome.
+
+────────────────────────────────────────────────────
+
+## PHASE 1 — Problem Context
+
+### The Scenario:
+
+BrightPath Academy is a K-8 charter school with 340 students. Their
+student information system runs on an Ubuntu server that also hosts
+their gradebook, attendance tracker, and parent communication portal.
+
+It's Monday morning. The weekend sysadmin left you this note:
+
+```
+WEEKEND NOTES:
+- Server was sluggish Saturday evening
+- Got a "disk full" alert at 11pm, cleared some temp files
+- A teacher reported the gradebook was down Sunday morning
+- I restarted the server and it seemed to come back
+- Didn't have time to investigate further. Good luck.
+```
+
+Report cards are due Friday. If the gradebook goes down again,
+340 families won't get grades on time. The principal is nervous.
+
+### What you know:
+  - Ubuntu 22.04 server, 4 CPU cores, 8GB RAM
+  - Services: nginx (web), postgresql (database), app (Node.js gradebook)
+  - The server has been running for 9 months without maintenance
+  - There are 4 user accounts (admin, teacher1, teacher2, intern)
+  - Log rotation was "set up by the last IT guy" but you've never verified it
+  - Backups run via cron "supposedly"
+
+### What you DON'T know (you must decide):
+  - What actually caused the disk full alert
+  - Whether the gradebook crash was related to the disk issue
+  - Whether the backups are actually running
+  - Whether the intern account has appropriate permissions
+  - What the current security posture looks like
+  - What should be automated vs left manual
+
+────────────────────────────────────────────────────
+
+## PHASE 2 — Requirements Discovery
+
+Before you touch anything, write DISCOVERY.md:
+
+  1. What are the risks to BrightPath if you DON'T investigate?
+     (List at least 4 specific consequences.)
+
+  2. What questions would you ask the weekend sysadmin?
+     (List at least 5 questions.)
+
+  3. What's your triage order? You can't fix everything at once.
+     Rank these by priority and explain why:
+     - Disk space investigation
+     - Gradebook service stability
+     - Backup verification
+     - Security audit of user accounts
+     - Log rotation check
+     - Monitoring setup
+
+  4. What does "success" look like by Friday?
+     Define 3 measurable criteria.
+
+────────────────────────────────────────────────────
+
+## PHASE 3 — Planning & Design
+
+Create SYSADMIN_PLAN.md:
+
+  1. Morning health check procedure (what commands, in what order)
+  2. Disk investigation plan (how you'll find what filled the disk)
+  3. Service stability plan (how you'll prevent gradebook downtime)
+  4. Backup verification approach (how you'll confirm backups work)
+  5. What you'd automate vs handle manually this week
+     (justify tradeoffs — you have limited time)
+
+────────────────────────────────────────────────────
+
+## PHASE 4 — Execution
+
+Do the actual work. Produce these files:
+
+### 4A. Morning Health Check (/tmp/morning_report.txt)
+  - Disk usage (df -h)
+  - Failed services (systemctl --failed)
+  - Error logs since weekend (journalctl -p err --since "2 days ago")
+  - Top CPU/memory consumers (ps aux --sort=-%cpu | head)
+  - Uptime and load average
+  - Write findings, not just command output — interpret what you see
+
+### 4B. Disk Investigation (/tmp/disk_report.txt)
+  - Find what's consuming space (du -sh /* | sort -rh | head)
+  - Identify large files (find / -type f -size +100M)
+  - Check log rotation status (ls -la /var/log/ | head -20)
+  - Recommend what to clean and what to keep
+  - Estimate how much space you can recover
+
+### 4C. Service Hardening (/tmp/service_check.txt)
+  - Check status of nginx, postgresql, and the app service
+  - Verify they're enabled on boot (systemctl is-enabled)
+  - Check recent restarts (journalctl -u app --since "3 days ago")
+  - Document any issues found
+
+### 4D. Automation Script (/tmp/daily_check.sh)
+  - Write a script that performs the morning health check
+  - Include disk space warning (alert if any partition > 85%)
+  - Include service status check (alert if any critical service is down)
+  - Make it executable
+  - Write the cron entry to /tmp/cron_entry.txt
+
+### 4E. Security Quick Audit (/tmp/security_audit.txt)
+  - List all user accounts and their groups
+  - Check intern account permissions (appropriate for role?)
+  - Look for any world-writable files in /opt/ or /var/
+  - Check for unauthorized SSH keys
+  - Flag any concerns
+
+────────────────────────────────────────────────────
+
+## PHASE 5 — Failure Injection
+
+⚠️ SOMETHING GOES WRONG MID-SHIFT.
+
+After completing your health check, simulate ONE of these:
+
+  A) The gradebook service crashes again. When you check the logs,
+     you see "FATAL: could not write to file pg_wal: No space left
+     on device". The disk filled up AGAIN. Your initial cleanup
+     wasn't enough. What's the root cause and permanent fix?
+
+  B) You discover the "backup" cron job points to a script that
+     doesn't exist: /opt/scripts/backup.sh. There are NO backups.
+     Report cards are due Friday. What do you do RIGHT NOW?
+
+  C) You find the intern account has sudo access with no password
+     required (NOPASSWD:ALL). The intern left the school 3 months
+     ago. The account was never deactivated.
+
+Pick ONE. In INCIDENT.md document:
+  1. What you discovered (timeline)
+  2. Immediate action taken
+  3. Root cause
+  4. Permanent fix
+  5. What process failed that allowed this to happen
+
+────────────────────────────────────────────────────
+
+## PHASE 6 — Communication
+
+Create PRINCIPAL_UPDATE.md — a brief update for the principal
+(non-technical person who cares about grades being delivered Friday):
+
+  - What you found this morning (plain language)
+  - What you fixed
+  - Whether report cards are at risk
+  - What you're still working on
+  - What you need from them (if anything)
+
+Also create SHIFT_HANDOFF.md for the next sysadmin:
+  - What the server looked like when you arrived
+  - What you investigated and found
+  - What you fixed, changed, or automated
+  - What still needs attention
+  - How to run and verify the new automation
+
+────────────────────────────────────────────────────
+
+## PHASE 7 — Reflection
+
+At the bottom of PRINCIPAL_UPDATE.md, add:
+
+### Lessons Learned
+  - What was the riskiest thing about BrightPath's server setup?
+  - What would you prioritize if you had a full month instead of one week?
+  - What monitoring would prevent this crisis from happening again?
+  - If the school grows to 500 students, what breaks first?
+
+────────────────────────────────────────────────────
+
+## SCORING RUBRIC
+
+### System Diagnostics (20%)
+  [ ] Morning report is thorough with interpreted findings
+  [ ] Disk investigation identifies root cause
+  [ ] Service status documented accurately
+  [ ] Commands used correctly
+
+### Problem Resolution (20%)
+  [ ] Disk space issue addressed with permanent solution
+  [ ] Services verified and enabled on boot
+  [ ] Backup status verified (or gap identified)
+  [ ] Security concerns flagged
+
+### Automation & Prevention (15%)
+  [ ] daily_check.sh works and includes alerts
+  [ ] Script is executable and cron entry is correct
+  [ ] Disk threshold warning included
+  [ ] Service monitoring included
+
+### Security Awareness (10%)
+  [ ] User accounts audited
+  [ ] Inappropriate permissions identified
+  [ ] SSH keys checked
+  [ ] Recommendations are actionable
+
+### Failure Response (15%)
+  [ ] Incident scenario completed
+  [ ] Root cause correctly identified
+  [ ] Immediate and permanent fixes documented
+  [ ] Process failure identified
+
+### Communication (10%)
+  [ ] Principal update is clear and non-technical
+  [ ] Business impact addressed (report cards Friday)
+  [ ] Shift handoff is actionable for next sysadmin
+  [ ] Honest about what's not yet fixed
+
+### Professional Judgment (10%)
+  [ ] Triage priority is reasonable
+  [ ] Tradeoffs explained
+  [ ] Reflection shows systems thinking
+  [ ] Scalability considered
+
+### Score Interpretation:
+  90-100%  Operational competence — ready for a junior sysadmin role
+  75-89%   Strong foundation — ready with mentorship
+  60-74%   Developing — review weak dimensions and retry
+  Below 60% Review Days 1-8 before reattempting
+
+────────────────────────────────────────────────────
+
+## FINAL DELIVERABLES
+
+  /tmp/morning_report.txt
+  /tmp/disk_report.txt
+  /tmp/service_check.txt
+  /tmp/daily_check.sh (executable)
+  /tmp/cron_entry.txt
+  /tmp/security_audit.txt
+  DISCOVERY.md
+  SYSADMIN_PLAN.md
+  INCIDENT.md
+  PRINCIPAL_UPDATE.md (includes Lessons Learned)
+  SHIFT_HANDOFF.md
+
+Total: 11 deliverables. Every file is scored.
+
+────────────────────────────────────────────────────
+
+## THE STANDARD
+
+  "If I showed this work in a junior sysadmin interview,
+   would the hiring manager take me seriously?"
+
+If yes — you've passed. Not just the capstone. The course.
+
+## 🎓 Generate your certificate: practicum certificate

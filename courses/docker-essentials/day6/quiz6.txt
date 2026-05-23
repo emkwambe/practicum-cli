@@ -1,0 +1,55 @@
+Q1: A container registry stores:
+A) Source code
+B) Docker configuration files
+C) Docker images that can be pushed, pulled, and versioned
+D) Container runtime logs
+Correct: C
+
+Q2: SCENARIO: Production image tagged myapp:latest. Deploy fails. Why can't you reliably roll back?
+A) Latest is slow to pull
+B) Latest doesn't work in production
+C) There's no problem with :latest
+D) :latest is mutable — it changes with every push. You can't trace which code is running. Use specific version tags.
+Correct: D
+
+Q3: A good image tagging strategy uses:
+A) Only :latest for simplicity
+B) Random names for uniqueness
+C) Dates only
+D) Version tags (v1.2.3) AND commit SHAs — tracing exactly which code is in each image
+Correct: D
+
+Q4: DIAGNOSTIC: docker push fails with "denied: access forbidden". Most common cause:
+A) Docker Hub is down
+B) The image is too large to push
+C) You're not logged in, or the image name doesn't match your registry username/organization
+D) Push is globally disabled
+Correct: C
+
+Q5: TRADEOFF: When should you use a private registry over Docker Hub?
+A) Always — Docker Hub is insecure
+B) When images contain proprietary code, secrets, or company-specific configurations that shouldn't be public
+C) Never — Docker Hub handles everything
+D) Only for images larger than 1GB
+Correct: B
+
+Q6: Image scanning (Trivy, Docker Scout) detects:
+A) Code logic bugs
+B) Network connectivity issues
+C) Known security vulnerabilities (CVEs) in base images and dependencies before deployment
+D) Performance bottlenecks
+Correct: C
+
+Q7: SCENARIO: CI pushes images automatically. 200 old images consume 50GB. The fix:
+A) Delete the entire registry
+B) Stop building images temporarily
+C) A retention policy that removes images older than N days or keeps only the last N tags
+D) Compress all old images
+Correct: C
+
+Q8: docker pull nginx:1.25-alpine vs nginx:latest for production:
+A) :latest — always has newest security patches
+B) They're equivalent in practice
+C) Neither — always build from scratch
+D) :1.25-alpine — pinned version means reproducible builds; you control when to upgrade
+Correct: D

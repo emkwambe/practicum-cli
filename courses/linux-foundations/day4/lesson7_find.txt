@@ -1,0 +1,43 @@
+# Lesson: find — Search for Files by Name, Size, or Date
+
+## [WHEN] You need this when:
+1. You need to locate a file but forgot which directory it is in.
+2. You want to find all files larger than a certain size (disk cleanup).
+3. You need to find files modified in the last 24 hours.
+4. You want to delete all .tmp files across an entire directory tree.
+5. You need to find config files that contain a specific setting.
+
+## [INTENT] "Find files that match these criteria."
+
+## [CONTEXT]
+find walks a directory tree and tests each file against your criteria.
+Unlike ls (which only looks at one directory), find searches recursively.
+find is powerful but the syntax is different from most commands —
+it uses expressions like -name, -size, -type, -mtime.
+
+## [ACTION] find <path> <expression>
+Common patterns:
+  find . -name "*.txt"                — all .txt files below current dir
+  find . -name "*.log" -size +1M      — log files larger than 1MB
+  find /tmp -type f -mtime +7         — files in /tmp older than 7 days
+  find . -name "*.tmp" -delete        — find and delete all .tmp files
+  find . -size +100k                  — files larger than 100KB
+  find . -type d                      — directories only
+  find . -name "*.conf" -exec grep "port" {} \;  — find configs mentioning port
+
+Size suffixes: c=bytes, k=kilobytes, M=megabytes, G=gigabytes
+
+## [EXPECTED RESULT]
+A list of file paths matching your criteria, one per line.
+If nothing matches, no output (silence means no results).
+
+## Try it now:
+  find /etc -name "*.conf" 2>/dev/null | head -5
+  find . -type f -size +0c
+
+## Real-world example:
+Server disk is full. Find the biggest files:
+  find / -type f -size +100M 2>/dev/null | head -10
+
+## Next:
+Type menu to continue. find + xargs is a powerful combination.

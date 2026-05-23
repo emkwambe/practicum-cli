@@ -1,0 +1,103 @@
+# Lesson: Providers & Resources — The Building Blocks
+
+## [WHEN] You need this when:
+1. You need to create your first infrastructure resource.
+2. You need to understand what providers and resources are.
+3. You want to provision Docker containers with Terraform (no cloud account needed).
+
+## [INTENT] "Understand providers and resources, then create your first infrastructure."
+
+## [CONTEXT]
+Two concepts power everything in Terraform:
+
+  Provider: a plugin that talks to an API (AWS, Docker, GitHub, etc.)
+  Resource: a thing you want to create (server, container, DNS record)
+
+  provider "aws" {}                    → tells Terraform to use AWS
+  resource "aws_instance" "web" {}     → creates an EC2 instance
+
+## [ACTION] Providers and resources
+
+### Provider configuration:
+  # AWS provider:
+  provider "aws" {
+    region = "us-east-1"
+  }
+
+  # Docker provider (local, no cloud account needed):
+  provider "docker" {}
+
+  # GitHub provider:
+  provider "github" {
+    token = var.github_token
+  }
+
+### Resource syntax:
+  resource "TYPE" "NAME" {
+    property = "value"
+  }
+
+  TYPE = provider_resource (e.g., aws_instance, docker_container)
+  NAME = your local reference name (used to connect resources)
+
+### Example — Docker container (no cloud needed):
+
+  resource "docker_image" "nginx" {
+    name = "nginx:latest"
+  }
+
+  resource "docker_container" "web" {
+    name  = "practicum-web"
+    image = docker_image.nginx.image_id
+
+    ports {
+      internal = 80
+      external = 8080
+    }
+  }
+
+  # docker_container.web references docker_image.nginx
+  # Terraform builds the dependency graph automatically
+
+### Resource references:
+  Resources reference each other with: TYPE.NAME.ATTRIBUTE
+
+  docker_image.nginx.image_id  → the image ID of the nginx image
+  aws_instance.web.public_ip   → the public IP of the web server
+  aws_vpc.main.id              → the ID of the VPC
+
+  Terraform uses these references to determine the order of operations.
+  It knows: create the image BEFORE the container.
+
+### Multiple resources with dependencies:
+  resource "aws_vpc" "main" {
+    cidr_block = "10.0.0.0/16"
+  }
+
+  resource "aws_subnet" "public" {
+    vpc_id     = aws_vpc.main.id    # depends on VPC
+    cidr_block = "10.0.1.0/24"
+  }
+
+  resource "aws_instance" "web" {
+    subnet_id = aws_subnet.public.id  # depends on subnet
+    ami       = "ami-0c55b159cbfafe1f0"
+    instance_type = "t3.micro"
+  }
+
+  # Terraform builds: VPC → Subnet → Instance (automatic ordering)
+
+## [EXPECTED RESULT]
+You can write provider and resource blocks, understand reference
+syntax, and let Terraform handle dependency ordering.
+
+## Technician Tip:
+Start with the Docker provider for learning. It's free, local,
+and instant. You don't need an AWS account to learn Terraform.
+Everything in Days 1-4 works with just Docker.
+
+## Common Pain Point:
+"Resource references are confusing" → read them left to right:
+  docker_image.nginx.image_id
+  ↑ type       ↑ name  ↑ attribute
+  "The image_id of the resource called nginx of type docker_image"

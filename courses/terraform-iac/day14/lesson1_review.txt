@@ -1,0 +1,60 @@
+# Lesson: Terraform Mastery Review — Before the Capstone
+
+## [INTENT] "Review the complete IaC lifecycle before building the capstone."
+
+## The infrastructure lifecycle:
+
+  Manual provisioning (click-ops)
+        │
+        ▼ "Never again"
+  ┌──────────────────────┐
+  │ WRITE                │  HCL config files
+  │  - providers.tf      │
+  │  - variables.tf      │
+  │  - main.tf           │
+  │  - outputs.tf        │
+  └──────────┬───────────┘
+             │
+             ▼
+  ┌──────────────────────┐
+  │ INIT                 │  Download providers, init backend
+  └──────────┬───────────┘
+             │
+             ▼
+  ┌──────────────────────┐
+  │ PLAN                 │  Preview changes (PR comment)
+  │  + create            │
+  │  ~ modify            │
+  │  - destroy           │
+  └──────────┬───────────┘
+             │ review
+             ▼
+  ┌──────────────────────┐
+  │ APPLY                │  Provision infrastructure
+  └──────────┬───────────┘
+             │
+             ▼
+  ┌──────────────────────┐
+  │ VERIFY               │  Outputs, health checks
+  └──────────┬───────────┘
+             │
+             ▼
+  ┌──────────────────────┐
+  │ MONITOR              │  Drift detection (scheduled plan)
+  └──────────┬───────────┘
+             │ drift detected?
+             ▼
+  ┌──────────────────────┐
+  │ ITERATE              │  Fix config → PR → plan → apply
+  └──────────────────────┘
+
+## Key principles:
+  1. CONFIG IS TRUTH — if it's not in .tf files, it doesn't exist
+  2. PLAN BEFORE APPLY — always read the plan
+  3. STATE IS SACRED — remote, locked, encrypted, backed up
+  4. MODULES FOR REUSE — DRY infrastructure
+  5. CI/CD FOR SAFETY — humans review plans, machines apply
+  6. ENVIRONMENTS FROM VARIABLES — same code, different values
+  7. VERSION EVERYTHING — providers, modules, Terraform itself
+
+## Now build it in the capstone.

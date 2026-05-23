@@ -1,0 +1,41 @@
+# Lesson: git diff — See Exactly What Changed
+
+## [WHEN] You need this when:
+1. You modified a file and want to see exactly what you changed.
+2. You are about to commit and want to review your work.
+3. You want to compare two versions of a file.
+4. A code review requires seeing the exact changes.
+
+## [INTENT] "Show me exactly what changed, line by line."
+
+## [CONTEXT]
+git diff shows the line-by-line differences between file versions.
+Lines added show with + (green), lines removed show with - (red).
+This is the same format you see in GitHub pull requests.
+There are three levels of diff:
+  Working dir vs staged: git diff
+  Staged vs last commit: git diff --staged
+  Between any two commits: git diff abc123 def456
+
+## [ACTION] git diff
+Common patterns:
+  git diff                          — unstaged changes vs staged
+  git diff --staged                 — staged changes vs last commit
+  git diff HEAD                     — all changes vs last commit
+  git diff abc123 def456            — between two specific commits
+  git diff main feature-branch      — between two branches
+
+## [EXPECTED RESULT]
+Shows which files changed and the exact lines added/removed.
++lines are additions (green). -lines are removals (red).
+@@ markers show the location in the file.
+
+## Try it now:
+  echo "New line" >> hello.txt
+  git diff
+  git add hello.txt
+  git diff --staged
+
+## Next:
+Type menu to return. You have completed Day 1!
+You can now create repos, track changes, and view history.

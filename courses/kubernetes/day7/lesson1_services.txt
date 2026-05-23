@@ -1,0 +1,86 @@
+# Lesson: Services — Stable Endpoints for Moving Pods
+
+## [WHEN] You need this when:
+1. Your frontend pods need to talk to backend pods.
+2. Pod IPs change every time a pod restarts — you need a stable address.
+3. You need load balancing across multiple replicas.
+4. You need to expose an app outside the cluster.
+
+## [INTENT] "Use Services for stable networking between and into pods."
+
+## [CONTEXT]
+Pod IPs are ephemeral. When a pod dies and is replaced, the new pod
+gets a different IP. You can't hardcode pod IPs.
+
+A Service provides:
+  - A stable DNS name (web-service.default.svc.cluster.local)
+  - A stable IP (ClusterIP)
+  - Load balancing across all matching pods
+  - Service discovery via DNS
+
+## [ACTION] Service types
+
+### ClusterIP (default — internal only):
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: backend
+  spec:
+    selector:
+      app: api          # finds pods with label app=api
+    ports:
+      - port: 80        # service port
+        targetPort: 3000 # container port
+
+  # Other pods reach the API at: http://backend:80
+  # K8s DNS resolves "backend" to the service's ClusterIP
+
+### NodePort (expose on every node's IP):
+  spec:
+    type: NodePort
+    selector:
+      app: web
+    ports:
+      - port: 80
+        targetPort: 80
+        nodePort: 30080  # accessible at NODE_IP:30080
+
+  # Useful for development. Not for production (ugly ports, no TLS).
+
+### LoadBalancer (cloud load balancer):
+  spec:
+    type: LoadBalancer
+    selector:
+      app: web
+    ports:
+      - port: 80
+        targetPort: 80
+
+  # Cloud provider creates an external load balancer.
+  # kubectl get svc shows EXTERNAL-IP when ready.
+
+### How service discovery works:
+  Pod A wants to reach Pod B:
+  1. Pod B is behind Service "backend"
+  2. Pod A calls http://backend:80
+  3. K8s DNS resolves "backend" to the Service's ClusterIP
+  4. kube-proxy routes traffic to a healthy Pod B replica
+  5. If Pod B crashes and restarts, the Service still works
+     (new pod gets the same label, Service auto-discovers it)
+
+### Debugging services:
+  kubectl get svc                    # list services
+  kubectl describe svc backend       # endpoints, selectors
+  kubectl get endpoints backend      # which pods are backing this?
+
+  # If endpoints is empty: labels don't match.
+  # The service selector must match pod labels EXACTLY.
+
+## [EXPECTED RESULT]
+You can create ClusterIP, NodePort, and LoadBalancer services,
+understand DNS-based service discovery, and debug connectivity.
+
+## Technician Tip:
+When a service has no endpoints, the problem is ALWAYS labels.
+Compare: kubectl describe svc NAME (check Selector) against
+kubectl get pods --show-labels. They must match exactly.

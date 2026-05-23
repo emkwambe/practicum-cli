@@ -1,0 +1,14 @@
+Day 1: Why Kubernetes — Architecture & kubectl
+Day 2: Pods, Deployments & Scaling
+Day 3: Jobs, CronJobs & DaemonSets
+Day 4: Scheduling — Affinity, Taints & Tolerations
+Day 5: Configuration — ConfigMaps, Secrets & Probes
+Day 6: RBAC — Role-Based Access Control
+Day 7: Services, Ingress & Gateway API
+Day 8: NetworkPolicies & DNS Debugging
+Day 9: Assessment 1 — Foundations Review
+Day 10: Storage — Volumes, PVCs & StatefulSets
+Day 11: Cluster Operations — kubeadm & etcd
+Day 12: Extending Kubernetes — CRDs, Helm & Kustomize
+Day 13: Troubleshooting — Applications & Cluster Components
+Day 14: Troubleshooting Networking, Review & Capstone

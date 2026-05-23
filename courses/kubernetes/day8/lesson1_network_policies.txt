@@ -1,0 +1,127 @@
+# Lesson: NetworkPolicies — Zero-Trust Pod Networking
+
+## [WHEN] You need this when:
+1. All pods can talk to all pods — that's a security risk.
+2. Compliance requires network segmentation (HIPAA, PCI-DSS).
+3. A compromised pod shouldn't be able to reach the database directly.
+4. You need to restrict egress (what pods can call externally).
+
+## [INTENT] "Restrict pod-to-pod and pod-to-external traffic with NetworkPolicies."
+
+## [CONTEXT]
+Default Kubernetes networking: every pod can reach every other pod.
+That's convenient for development. It's a liability in production.
+
+NetworkPolicy acts as a firewall for pod traffic:
+  - Ingress: who can talk TO this pod
+  - Egress: who can this pod talk TO
+
+⚠️ NetworkPolicies require a CNI plugin that supports them
+(Calico, Cilium, Weave). The default kubenet does NOT enforce them.
+
+## [ACTION] NetworkPolicies
+
+### Default deny all (start here):
+  # Deny ALL ingress to pods in namespace "prod":
+  apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    name: deny-all-ingress
+    namespace: prod
+  spec:
+    podSelector: {}          # applies to ALL pods in namespace
+    policyTypes:
+      - Ingress              # block all incoming traffic
+
+  # Now NOTHING can reach any pod in "prod" unless explicitly allowed.
+
+### Allow specific traffic:
+  # Allow web pods to reach API pods:
+  apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    name: allow-web-to-api
+    namespace: prod
+  spec:
+    podSelector:
+      matchLabels:
+        app: api             # this policy applies to api pods
+    policyTypes:
+      - Ingress
+    ingress:
+      - from:
+          - podSelector:
+              matchLabels:
+                app: web     # only web pods can reach api
+        ports:
+          - protocol: TCP
+            port: 3000
+
+### Allow from a different namespace:
+  # Allow monitoring namespace to scrape metrics:
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              purpose: monitoring
+          podSelector:
+            matchLabels:
+              app: prometheus
+      ports:
+        - port: 9090
+
+  # The namespace needs the label:
+  kubectl label namespace monitoring purpose=monitoring
+
+### Egress policy:
+  # API pods can only talk to the database and external HTTPS:
+  spec:
+    podSelector:
+      matchLabels:
+        app: api
+    policyTypes:
+      - Egress
+    egress:
+      - to:
+          - podSelector:
+              matchLabels:
+                app: postgres
+        ports:
+          - port: 5432
+      - to:                  # allow DNS (required!)
+          - namespaceSelector: {}
+        ports:
+          - port: 53
+            protocol: UDP
+          - port: 53
+            protocol: TCP
+
+  ⚠️ ALWAYS allow DNS (port 53) in egress policies.
+  Without it, pods can't resolve service names.
+
+### Production pattern (defense in depth):
+  1. Default deny all ingress AND egress per namespace
+  2. Explicitly allow only needed traffic
+  3. Always allow DNS in egress
+  4. Label namespaces for cross-namespace policies
+
+### Debugging NetworkPolicies:
+  kubectl get networkpolicies -n prod
+  kubectl describe networkpolicy allow-web-to-api -n prod
+
+  # Test connectivity:
+  kubectl exec -it web-pod -- curl -v http://api:3000
+  # Timeout? → NetworkPolicy blocking it
+  # Connection refused? → different problem (service/app)
+
+  # Common mistake: forgetting to allow DNS in egress
+  # Symptom: "could not resolve host" errors
+
+## [EXPECTED RESULT]
+You can implement default-deny, whitelist specific pod traffic,
+handle cross-namespace policies, and debug connectivity.
+
+## Technician Tip:
+Test NetworkPolicies in a staging namespace first. A misconfigured
+policy can silently break all communication. Use kubectl exec + curl
+to verify connectivity after every policy change.

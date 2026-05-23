@@ -1,0 +1,55 @@
+Q1: docker run -d starts a container in:
+A) Debug mode
+B) Download mode
+C) Detached mode — it runs in the background and returns the container ID
+D) Dry-run mode
+Correct: C
+
+Q2: SCENARIO: A developer says "my container crashed immediately." What's the FIRST diagnostic command?
+A) docker restart container
+B) docker logs container — shows what the application printed before crashing
+C) docker build again
+D) docker inspect container
+Correct: B
+
+Q3: The difference between docker ps and docker ps -a:
+A) No difference
+B) docker ps -a includes all running containers
+C) docker ps shows running containers; docker ps -a shows ALL including stopped/exited ones
+D) docker ps -a is faster
+Correct: C
+
+Q4: SCENARIO: Nginx is running in a container. You need to debug its config files interactively. Which command?
+A) docker run nginx bash
+B) docker logs nginx
+C) docker inspect nginx
+D) docker exec -it container_name bash — opens a shell inside the running container
+Correct: D
+
+Q5: docker stop gives a container how long to shut down gracefully before force-killing it?
+A) 1 second
+B) 10 seconds (SIGTERM, then SIGKILL after timeout)
+C) 60 seconds
+D) It kills immediately
+Correct: B
+
+Q6: DIAGNOSTIC: You need the IP address of a running container. Which command?
+A) docker ip container
+B) docker inspect -f '{{.NetworkSettings.IPAddress}}' container
+C) docker logs container
+D) docker ps --ip
+Correct: B
+
+Q7: A container is stuck and docker stop hangs. What forces immediate termination?
+A) Close the terminal
+B) docker restart
+C) docker kill container — sends SIGKILL immediately, no grace period
+D) Reboot the server
+Correct: C
+
+Q8: TRADEOFF: Why should containerized applications log to stdout/stderr instead of files?
+A) Files are faster
+B) Docker captures stdout/stderr automatically with docker logs — files inside containers are lost when the container stops
+C) It's a Docker requirement
+D) stdout is more secure
+Correct: B

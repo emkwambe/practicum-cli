@@ -1,0 +1,63 @@
+Q1: The Terraform state file contains:
+A) The mapping between your config and real infrastructure — including resource IDs, attributes, and sensitive values
+B) Git history
+C) Provider documentation
+D) Only the config files
+Correct: A
+
+
+
+Q2: SCENARIO: You accidentally deleted terraform.tfstate. What happens on the next terraform apply?
+A) Terraform destroys everything
+B) An error prevents any action
+C) Terraform thinks no infrastructure exists and tries to create duplicates — causing conflicts and potential data loss
+D) Nothing — Terraform rebuilds state automatically
+Correct: C
+
+Q3: terraform import is used to:
+A) Import state from another project
+B) Import variables from a file
+C) Bring existing infrastructure (created manually or by another tool) under Terraform management
+D) Download modules
+Correct: C
+
+
+
+Q4: DIAGNOSTIC: Two engineers run terraform apply simultaneously. Engineer A's changes overwrite B's. What should prevent this?
+A) State locking — a remote backend with DynamoDB (AWS) or built-in locking prevents concurrent applies
+B) Different branches
+C) Communication
+D) Separate laptops
+Correct: A
+
+
+
+Q5: Why should terraform.tfstate NEVER be committed to Git?
+A) It changes too often
+B) Git can't handle JSON
+C) It's too large
+D) It contains sensitive data (passwords, keys) in plain text and should be stored in an encrypted remote backend
+Correct: D
+
+Q6: TRADEOFF: Remote state in S3 vs Terraform Cloud. When is S3 better?
+A) Only for small projects
+B) When you need full control over storage, encryption, and access — and your team already uses AWS infrastructure
+C) Never — Terraform Cloud is always better
+D) Always
+Correct: B
+
+
+
+Q7: terraform state mv aws_instance.old aws_instance.new does what?
+A) Moves a server to a new region
+B) Renames a resource in state without destroying and recreating it
+C) Deletes the old resource
+D) Creates a copy
+Correct: B
+
+Q8: State file organization — why split state by component (network, database, compute)?
+A) Terraform requires it
+B) It's faster
+C) State files have a size limit
+D) Smaller blast radius — a bad apply to the network stack can't accidentally destroy the database
+Correct: D

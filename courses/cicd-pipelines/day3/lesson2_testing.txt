@@ -1,0 +1,109 @@
+# Lesson: Automated Testing — Your Safety Net
+
+## [WHEN] You need this when:
+1. A code change broke something that wasn't obvious.
+2. You need confidence that merging a PR won't break production.
+3. You want to test across multiple environments automatically.
+4. Your team skips testing because "it takes too long."
+
+## [INTENT] "Run tests automatically on every push so broken code never merges."
+
+## [CONTEXT]
+Tests in CI catch regressions — code that USED to work but broke
+when someone changed something. Without automated tests, you find
+bugs in production. With them, you find bugs in the PR.
+
+Test pyramid:
+  Unit tests (fast, many)     → test individual functions
+  Integration tests (medium)  → test components together
+  E2E tests (slow, few)       → test the whole system
+
+## [ACTION] Testing in CI
+
+### Basic test step:
+  - name: Run tests
+    run: npm test
+
+### With coverage reporting:
+  - name: Run tests with coverage
+    run: npm test -- --coverage
+  - name: Upload coverage
+    uses: actions/upload-artifact@v4
+    with:
+      name: coverage-report
+      path: coverage/
+
+### Python tests (pytest):
+  - name: Run tests
+    run: |
+      pip install pytest pytest-cov
+      pytest -v --cov=src --cov-report=html
+  - uses: actions/upload-artifact@v4
+    with:
+      name: coverage
+      path: htmlcov/
+
+### Shell script tests:
+  - name: Test shell scripts
+    run: |
+      # Syntax check all scripts
+      for f in *.sh lib/*.sh; do
+        bash -n "$f" || exit 1
+      done
+      # Run test suite
+      bash tests/run_tests.sh
+
+### Test with services (database):
+  jobs:
+    test:
+      runs-on: ubuntu-latest
+      services:
+        postgres:
+          image: postgres:16
+          env:
+            POSTGRES_PASSWORD: test
+          ports:
+            - 5432:5432
+          options: >-
+            --health-cmd pg_isready
+            --health-interval 10s
+            --health-timeout 5s
+            --health-retries 5
+      steps:
+        - uses: actions/checkout@v4
+        - run: npm ci
+        - name: Run integration tests
+          run: npm run test:integration
+          env:
+            DATABASE_URL: postgresql://postgres:test@localhost:5432/test
+
+### Fail fast — stop on first failure:
+  strategy:
+    fail-fast: true        # cancel other matrix jobs if one fails
+
+### Test report as PR comment:
+  - name: Test Report
+    uses: dorny/test-reporter@v1
+    if: always()           # run even if tests fail
+    with:
+      name: Test Results
+      path: 'test-results/*.xml'
+      reporter: 'jest-junit'
+
+## [EXPECTED RESULT]
+Every PR shows a green checkmark (tests pass) or red X (tests fail).
+Broken code is caught before it reaches main branch.
+
+## Technician Tip:
+Keep CI tests under 5 minutes. If tests take longer:
+  1. Run slow tests in a separate nightly job
+  2. Parallelize with matrix or test splitting
+  3. Only run tests for changed files (nx affected, jest --changedSince)
+
+## Common Pain Point:
+"Tests pass locally but fail in CI" → environment difference.
+CI uses a clean machine every time. Check:
+  - Hardcoded paths (/Users/you/project → use relative paths)
+  - Missing environment variables
+  - Timezone differences (use UTC in CI)
+  - Race conditions (tests depend on execution order)

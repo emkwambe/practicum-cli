@@ -1,0 +1,97 @@
+# Lesson: Provider Versioning & the Dependency Lock File
+
+## [WHEN] You need this when:
+1. A provider update breaks your infrastructure.
+2. Team members get different behavior from the same config.
+3. The exam tests provider versioning and lock files (Obj 2a).
+
+## [INTENT] "Pin provider versions and manage the dependency lock file."
+
+## [CONTEXT]
+Providers are actively developed. A new version might change behavior,
+rename arguments, or deprecate resources. Without version pinning,
+terraform init grabs the latest — which might break everything.
+
+## [ACTION] Provider versioning
+
+### Version constraints:
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"     # >= 5.0, < 6.0 (recommended)
+    }
+  }
+
+  Constraint operators:
+    = 5.31.0      Exact version only
+    != 5.30.0     Exclude a specific version
+    > 5.0         Greater than
+    >= 5.0        Greater than or equal
+    < 6.0         Less than
+    <= 5.99       Less than or equal
+    ~> 5.0        Pessimistic — allows 5.x but not 6.0
+    ~> 5.31.0     Allows 5.31.x but not 5.32.0
+    >= 5.0, < 6.0 Combined constraints
+
+  ~> (pessimistic) is the most common. It allows patch/minor
+  updates but prevents major version jumps that break APIs.
+
+### The dependency lock file (.terraform.lock.hcl):
+  Created by terraform init. Records:
+  - Exact provider versions installed
+  - Platform checksums (hashes) for integrity verification
+  - Source addresses
+
+  # .terraform.lock.hcl (auto-generated):
+  provider "registry.terraform.io/hashicorp/aws" {
+    version     = "5.31.0"
+    constraints = "~> 5.0"
+    hashes = [
+      "h1:abc123...",
+      "zh:def456...",
+    ]
+  }
+
+### Lock file rules:
+  1. COMMIT .terraform.lock.hcl to version control
+  2. terraform init respects the lock file — installs exact versions
+  3. terraform init -upgrade ignores the lock and gets latest within constraints
+  4. Team members get identical provider versions via the lock file
+
+### Upgrading providers:
+  # Check what's available:
+  terraform init -upgrade
+
+  # This updates .terraform.lock.hcl with new versions.
+  # Review changes, test, then commit the updated lock file.
+
+### Provider source addresses:
+  source = "hashicorp/aws"
+  # Full form: registry.terraform.io/hashicorp/aws
+  #            registry / namespace / type
+
+  # Third-party providers:
+  source = "cloudflare/cloudflare"
+  source = "integrations/github"
+
+  # Private registry:
+  source = "app.terraform.io/my-org/my-provider"
+
+### terraform init internals:
+  terraform init does:
+  1. Downloads providers to .terraform/providers/
+  2. Installs modules to .terraform/modules/
+  3. Configures the backend
+  4. Creates/updates .terraform.lock.hcl
+
+  .terraform/ is local, never committed (like node_modules).
+  .terraform.lock.hcl IS committed (like package-lock.json).
+
+## [EXPECTED RESULT]
+You can pin provider versions with constraints, understand the
+lock file's purpose, and upgrade providers safely.
+
+## Technician Tip:
+Think of it like npm: required_providers is package.json (what you
+want), .terraform.lock.hcl is package-lock.json (what you have),
+and .terraform/ is node_modules/ (local install, never committed).

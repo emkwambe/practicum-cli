@@ -1,0 +1,57 @@
+Q1: A pod in Kubernetes is:
+A) A server
+B) The smallest deployable unit — one or more tightly-coupled containers sharing network and storage
+C) A container
+D) A virtual machine
+Correct: B
+
+Q2: SCENARIO: You create a bare pod (not a Deployment). It crashes. What happens?
+A) K8s restarts it automatically
+B) The node restarts
+C) Nothing — bare pods aren't managed. It stays dead. That's why you use Deployments.
+D) K8s creates a new pod
+Correct: C
+
+Q3: A Deployment manages:
+A) Nodes
+B) Services
+C) Pods directly
+D) A ReplicaSet, which manages Pods — providing self-healing, scaling, and rolling updates
+Correct: D
+
+Q4: kubectl rollout undo deployment/web does:
+A) Scales to zero
+B) Pauses the deployment
+C) Deletes the deployment
+D) Reverts to the previous working version — K8s redeploys the old image
+Correct: D
+
+
+
+Q5: DIAGNOSTIC: After a rolling update, new pods are in CrashLoopBackOff. The old pods were terminated. Users see errors. What should you have configured?
+A) A different image tag
+B) maxUnavailable: 0 — ensures old pods aren't terminated until new pods pass health checks. With it set to 0, CrashLoopBackOff wouldn't have impacted users.
+C) More replicas
+D) A bigger node
+Correct: B
+
+Q6: The Deployment spec.selector.matchLabels must:
+A) Be alphabetical
+B) Match the namespace name
+C) Match the spec.template.metadata.labels — this is how the Deployment knows which pods belong to it
+D) Be unique across the cluster
+Correct: C
+
+Q7: kubectl scale deployment web --replicas=10 does:
+A) Adjusts the desired replica count to 10 — K8s creates or removes pods to match
+B) Scales the node
+C) Creates 10 services
+D) Creates 10 new deployments
+Correct: A
+
+Q8: TRADEOFF: The Horizontal Pod Autoscaler (HPA) requires resource requests on pods. Why?
+A) HPA calculates utilization as a percentage of the request — without requests, it can't determine current vs target usage
+B) It's a Kubernetes bug
+C) Limits are optional
+D) Requests make pods faster
+Correct: A

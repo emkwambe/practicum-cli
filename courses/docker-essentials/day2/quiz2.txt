@@ -1,0 +1,55 @@
+Q1: The correct Dockerfile instruction order for a Node.js app is:
+A) COPY . . → FROM node → RUN npm install
+B) RUN npm install → FROM node → COPY . .
+C) FROM node:20-alpine → COPY package*.json . → RUN npm ci → COPY . .
+D) FROM node → COPY . . → RUN npm install (works but poor caching)
+Correct: C
+
+Q2: DIAGNOSTIC: Your Docker build takes 5 minutes every time, even when only app code changed. Why?
+A) COPY . . before RUN npm install — every code change invalidates the install layer. Copy package.json first.
+B) Docker is inherently slow
+C) The image is too large
+D) You need a faster machine
+Correct: A
+
+Q3: Each Dockerfile instruction creates:
+A) A new container
+B) A new file
+C) A new layer — layers are cached and reused when unchanged
+D) A new network
+Correct: C
+
+Q4: Multi-stage builds help because they:
+A) Run tests automatically
+B) Require fewer Dockerfile lines
+C) Are faster to build
+D) Build in one stage (with dev tools) and copy only the output to a minimal final stage — smaller images
+Correct: D
+
+Q5: SCENARIO: Your image is 1.2GB, teammate's is 150MB for the same app. What's different?
+A) They have less code
+B) They compressed the image
+C) They used alpine base, multi-stage build, and .dockerignore excluding node_modules and .git
+D) Their app has fewer features
+Correct: C
+
+Q6: docker build -t myapp:v1.0 . — what does the . mean?
+A) The current directory is the build context — Docker sends these files to the build engine
+B) Build everything recursively
+C) Use the default Dockerfile only
+D) It's optional punctuation
+Correct: A
+
+Q7: TRADEOFF: FROM node:20 (900MB) vs FROM node:20-alpine (150MB). Alpine risk:
+A) Doesn't support Node.js
+B) Is slower than the full image
+C) May lack system libraries (glibc vs musl) that native modules need — test before switching
+D) Costs more on registries
+Correct: C
+
+Q8: .dockerignore matters because:
+A) It's a Docker requirement
+B) It replaces .gitignore
+C) It makes images smaller automatically
+D) It prevents large/sensitive files (node_modules, .git, .env) from entering the build context — faster builds, safer images
+Correct: D

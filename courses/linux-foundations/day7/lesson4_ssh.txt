@@ -1,0 +1,34 @@
+# Lesson: ssh — Remote Access to Servers
+
+## [WHEN] You need this when:
+1. You need to manage a cloud server (AWS, GCP, Azure).
+2. You are deploying code to a production server.
+3. You need to fix something on a remote machine urgently.
+4. You want to run commands on multiple servers.
+
+## [INTENT] "Log into a remote server securely."
+
+## [CONTEXT]
+SSH (Secure Shell) encrypts everything between you and the server.
+Most cloud servers only allow SSH access (no GUI).
+Authenticate with a password or (better) an SSH key pair.
+
+## [ACTION] ssh user@hostname
+  ssh user@192.168.1.50            — connect with password
+  ssh -i ~/.ssh/key.pem user@host  — connect with key file
+  ssh user@host 'command'          — run one command remotely
+
+SSH key setup (do once):
+  ssh-keygen -t ed25519            — generate key pair
+  ssh-copy-id user@host            — copy public key to server
+
+Pro tip: Use tmux on the remote server to keep sessions alive
+if your connection drops.
+
+## [EXPECTED RESULT]
+You get a shell prompt on the remote machine.
+Type exit or Ctrl+D to disconnect.
+
+## Try it now:
+  ssh-keygen -t ed25519 -f /tmp/test_key -N ""
+  ls -la /tmp/test_key*

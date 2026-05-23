@@ -1,0 +1,37 @@
+# Lesson: head and tail — View the Start or End of Files
+
+## [WHEN] You need this when:
+1. You want to see the first few lines of a large file (headers, format check).
+2. You need to see the most recent entries in a log file.
+3. You want to skip the header line of a CSV before processing.
+4. You are monitoring a log file in real time as new entries appear.
+5. You need to extract a specific range of lines from a file.
+
+## [INTENT] "Show me the beginning" or "Show me the end."
+
+## [CONTEXT]
+head shows the first N lines of a file (default: 10).
+tail shows the last N lines (default: 10).
+tail -f follows a file in real time — new lines appear as they are written.
+tail -n +2 skips the first line (useful for removing CSV headers).
+
+## [ACTION] head/tail [options] file
+Common patterns:
+  head file.txt                   — first 10 lines
+  head -5 file.txt                — first 5 lines
+  tail file.txt                   — last 10 lines
+  tail -20 file.txt               — last 20 lines
+  tail -f /var/log/syslog         — follow log in real time (Ctrl+C to stop)
+  tail -n +2 data.csv             — skip header row
+  head -1 data.csv                — show only the header
+
+## [EXPECTED RESULT]
+Only the requested lines are printed.
+The file is never modified — head and tail are read-only.
+
+## Try it now:
+  echo -e "line1\nline2\nline3\nline4\nline5" | head -3
+  echo -e "line1\nline2\nline3\nline4\nline5" | tail -2
+
+## Next:
+Type menu to continue. head and tail are essential in pipelines.

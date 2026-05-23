@@ -1,0 +1,61 @@
+Q1: ConfigMaps are for:
+A) Storing secrets
+B) Non-sensitive configuration (database hostnames, feature flags, log levels) injected into pods at runtime
+C) Network rules
+D) Container images
+Correct: B
+
+
+
+Q2: Kubernetes Secrets are base64-encoded, not encrypted. This means:
+A) base64 is strong encryption
+B) They can't be decoded
+C) Anyone with API access can decode them — for real security, enable encryption at rest and use RBAC to restrict access
+D) They're completely secure
+Correct: C
+
+Q3: SCENARIO: You update a ConfigMap but the running pods still use old values. Why?
+A) The ConfigMap is broken
+B) K8s caches everything
+C) ConfigMaps can't be updated
+D) Environment variables are injected at pod start — they don't update live. Restart pods, or mount ConfigMaps as files (kubelet watches for changes).
+Correct: D
+
+
+
+Q4: Resource requests vs limits:
+A) They're the same
+B) Requests are only for CPU
+C) Limits are optional
+D) Requests are the guaranteed minimum (used by the scheduler for placement); limits are the hard ceiling (CPU throttled, memory OOMKilled if exceeded)
+Correct: D
+
+Q5: DIAGNOSTIC: A pod is OOMKilled repeatedly. kubectl describe shows "OOMKilled" in the last state. What should you do?
+A) Add more replicas
+B) Either increase the memory limit or investigate the app for memory leaks — OOMKilled means the container exceeded its memory limit
+C) Reduce CPU
+D) Delete the pod
+Correct: B
+
+
+
+Q6: The readiness probe determines:
+A) If the image is correct
+B) If the pod is using too much CPU
+C) If the pod should receive traffic — a failing readiness probe removes the pod from Service endpoints without killing it
+D) If the pod should be restarted
+Correct: C
+
+Q7: TRADEOFF: Liveness probe on a slow-starting Java app with a 30-second startup. Risk?
+A) Liveness kills pods that fail the check — if the app hasn't started yet, liveness kills it before it's ready. Use a startup probe first.
+B) The app starts faster
+C) No risk
+D) Liveness is disabled during startup
+Correct: A
+
+Q8: The difference between liveness and readiness:
+A) Liveness: "is this pod broken? → restart it." Readiness: "can this pod serve traffic? → don't route to it until it can."
+B) Liveness controls traffic
+C) They do the same thing
+D) Readiness restarts pods
+Correct: A

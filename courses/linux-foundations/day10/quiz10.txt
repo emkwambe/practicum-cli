@@ -1,0 +1,55 @@
+Q1: You see -rwxr-x--- on a file. Who can execute it?
+A) Only the owner
+B) Everyone on the system
+C) Owner and group members (owner has rwx, group has r-x, others have ---)
+D) Nobody — execute permission isn't set
+Correct: C
+
+Q2: SCENARIO: A service won't start. What TWO commands give you the most diagnostic information?
+A) ps aux and top
+B) systemctl status nginx and journalctl -u nginx
+C) ping localhost and curl localhost
+D) df -h and du -sh
+Correct: B
+
+Q3: SCENARIO: You need to count how many unique IP addresses appear in an access log where IP is the first field. Which pipeline?
+A) cat access.log | sort | uniq
+B) grep IP access.log | wc -l
+C) awk access.log | count
+D) cut -d' ' -f1 access.log | sort -u | wc -l
+Correct: D
+
+Q4: A backup script must run every Sunday at 3 AM. The cron entry is:
+A) 0 3 * * 0 /opt/scripts/backup.sh
+B) 3 0 * * 7 /opt/scripts/backup.sh
+C) * 3 * * sun /opt/scripts/backup.sh
+D) 0 3 0 0 0 /opt/scripts/backup.sh
+Correct: A
+
+Q5: DIAGNOSTIC: A developer says "permission denied" when running deploy.sh. What's your first check?
+A) Run it as root immediately — fixes everything
+B) Check file permissions with ls -la deploy.sh — see if execute bit is set and who owns it
+C) Delete and recreate the file
+D) Restart the server
+Correct: B
+
+Q6: SCENARIO: Server disk is 95% full. You need to find what's consuming the space. Which command?
+A) ls -la /
+B) df -h (shows the problem but not WHERE)
+C) du -sh /* | sort -rh | head — shows largest directories at the root level
+D) find / -name "*.log"
+Correct: C
+
+Q7: TRADEOFF: You need to sync files to a backup server daily. rsync -avz is better than scp for ongoing backups because:
+A) rsync encrypts better
+B) rsync only transfers changed files — saving bandwidth and time on subsequent runs
+C) scp doesn't work with large files
+D) rsync is newer
+Correct: B
+
+Q8: SCENARIO: Your monitoring script should exit with code 1 if disk usage exceeds 90%, code 0 otherwise. Which is correct?
+A) return 1
+B) error 1
+C) exit 1
+D) quit 1
+Correct: C

@@ -1,0 +1,45 @@
+# Assessment 1: Provision a Network + Server from Scratch
+
+## [INTENT] "Prove you can write Terraform config that provisions real infrastructure."
+
+## [ACTION] Complete these tasks:
+
+### Scenario:
+Your company needs a development environment. Using the Docker
+provider (no cloud account needed), provision:
+
+### Task 1: Create a Docker network
+  - Name: "practicum-dev"
+  - Driver: bridge
+
+### Task 2: Create a database container
+  - Image: postgres:16-alpine
+  - Name: "practicum-db"
+  - Network: practicum-dev
+  - Environment variables: POSTGRES_PASSWORD, POSTGRES_DB
+  - Named volume for data persistence
+
+### Task 3: Create a web application container
+  - Image: nginx:alpine
+  - Name: "practicum-web"
+  - Network: practicum-dev
+  - Port: 8080 (host) → 80 (container)
+  - Depends on the database (reference the network)
+
+### Task 4: Use variables
+  - db_password (sensitive)
+  - web_port (default: 8080)
+  - environment (default: "dev", validated: dev/staging/prod)
+
+### Task 5: Create outputs
+  - web_url: "http://localhost:PORT"
+  - db_host: container name on the network
+
+### Grading:
+  [ ] terraform validate passes
+  [ ] terraform plan shows correct resources
+  [ ] terraform apply creates 4 resources (network, volume, db, web)
+  [ ] Variables are typed and validated
+  [ ] Outputs display correctly
+  [ ] terraform destroy cleans up everything
+  [ ] db_password is marked sensitive

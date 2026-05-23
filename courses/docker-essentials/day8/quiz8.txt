@@ -1,0 +1,55 @@
+Q1: Docker Swarm turns multiple Docker hosts into:
+A) A single virtual cluster that schedules and distributes containers across nodes
+B) A file server
+C) A monitoring system
+D) A container registry
+Correct: A
+
+Q2: docker service create --replicas 3 myapp:1.0 does what?
+A) Creates 3 images
+B) Creates 3 swarm nodes
+C) Runs 3 container instances distributed across swarm nodes with built-in load balancing
+D) Builds 3 Dockerfiles
+Correct: C
+
+Q3: SCENARIO: You push a bad image update. Containers crash. failure_action: rollback is configured. What happens?
+A) All containers stop permanently
+B) You must roll back manually
+C) Swarm automatically reverts to the previous working image — no intervention needed
+D) The swarm shuts down
+Correct: C
+
+Q4: A 5-manager swarm can tolerate how many manager failures?
+A) 1
+B) 4
+C) 2 (majority quorum: 3 of 5 must be alive)
+D) 5
+Correct: C
+
+Q5: DIAGNOSTIC: docker stack deploy succeeds but service shows 0/3 replicas with "no suitable node" errors. What's wrong?
+A) The image is broken
+B) Placement constraints don't match available nodes — check constraints against actual node labels
+C) Swarm is disabled
+D) The network is down
+Correct: B
+
+Q6: Swarm secrets vs environment variables — secrets are better because:
+A) They're faster
+B) Environment variables don't work in Swarm
+C) Secrets are encrypted in transit and at rest, mounted at /run/secrets/, never visible in inspect or logs
+D) No difference
+Correct: C
+
+Q7: The overlay network driver is needed in Swarm to:
+A) Replace bridge networks
+B) It's required for volumes
+C) It's faster than bridge
+D) Enable containers on DIFFERENT physical hosts to communicate as if on the same network
+Correct: D
+
+Q8: TRADEOFF: Docker Swarm vs Kubernetes. Swarm is better when:
+A) Always
+B) Never — Kubernetes is always better
+C) You have 1000+ containers
+D) Smaller teams need built-in orchestration without Kubernetes' complexity — same compose YAML works
+Correct: D

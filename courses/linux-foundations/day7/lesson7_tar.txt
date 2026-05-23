@@ -1,0 +1,33 @@
+# Lesson: tar & gzip — Archive and Compress Files
+
+## [WHEN] You need this when:
+1. You need to create a backup of a project directory.
+2. You downloaded a .tar.gz file and need to extract it.
+3. You want to send multiple files as one compressed archive.
+4. You need to compress log files to save disk space.
+
+## [INTENT] "Bundle these files together" or "Extract this archive."
+
+## [CONTEXT]
+tar combines files into a single file. gzip compresses it.
+Together they create .tar.gz files. Think of tar as putting files
+in a box, gzip as shrinking the box.
+
+## [ACTION] tar [options] archive files
+  tar czf backup.tar.gz folder/    — create compressed archive
+  tar xzf backup.tar.gz            — extract
+  tar tzf backup.tar.gz            — list contents
+  gzip large_file.txt              — compress single file
+  gunzip large_file.txt.gz         — decompress
+  zip -r archive.zip folder/       — create zip
+  unzip archive.zip                — extract zip
+
+Flags: c=create, x=extract, t=list, z=gzip, f=filename, v=verbose
+
+## [EXPECTED RESULT]
+tar czf: creates a .tar.gz file. tar xzf: extracts files.
+
+## Try it now:
+  mkdir -p /tmp/test_tar && touch /tmp/test_tar/{a,b,c}.txt
+  tar czf /tmp/test.tar.gz -C /tmp test_tar
+  tar tzf /tmp/test.tar.gz

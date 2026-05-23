@@ -1,0 +1,131 @@
+# Lesson: Docker Build in CI — From Code to Container Automatically
+
+## [WHEN] You need this when:
+1. You want every merge to main to produce a deployable Docker image.
+2. You need to tag images with version numbers or commit SHAs.
+3. You want to push images to Docker Hub or GitHub Container Registry.
+4. You're building the bridge between CI (test) and CD (deploy).
+
+## [INTENT] "Automatically build, tag, and push Docker images on every merge."
+
+## [CONTEXT]
+The build stage is the bridge between testing and deployment.
+Tests prove the code works. The build stage packages it into
+a deployable artifact — usually a Docker image.
+
+Flow: push → test → BUILD IMAGE → push to registry → deploy from registry
+
+## [ACTION] Docker in CI
+
+### Basic Docker build + push:
+
+  jobs:
+    build:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+
+        - name: Log in to Docker Hub
+          uses: docker/login-action@v3
+          with:
+            username: ${{ secrets.DOCKER_USERNAME }}
+            password: ${{ secrets.DOCKER_TOKEN }}
+
+        - name: Build and push
+          uses: docker/build-push-action@v5
+          with:
+            context: .
+            push: true
+            tags: myuser/myapp:latest
+
+### Smart tagging (version + commit SHA + latest):
+
+  - name: Docker metadata
+    id: meta
+    uses: docker/metadata-action@v5
+    with:
+      images: myuser/myapp
+      tags: |
+        type=ref,event=branch
+        type=sha,prefix=
+        type=semver,pattern={{version}}
+
+  - name: Build and push
+    uses: docker/build-push-action@v5
+    with:
+      context: .
+      push: true
+      tags: ${{ steps.meta.outputs.tags }}
+
+  # Produces tags like:
+  #   myuser/myapp:main
+  #   myuser/myapp:abc1234
+  #   myuser/myapp:1.2.3 (if tagged)
+
+### GitHub Container Registry (free for public repos):
+
+  - name: Log in to GHCR
+    uses: docker/login-action@v3
+    with:
+      registry: ghcr.io
+      username: ${{ github.actor }}
+      password: ${{ secrets.GITHUB_TOKEN }}
+
+  - name: Build and push to GHCR
+    uses: docker/build-push-action@v5
+    with:
+      context: .
+      push: true
+      tags: ghcr.io/${{ github.repository }}:latest
+
+### Multi-stage build (smaller images):
+
+  # Dockerfile:
+  # Stage 1: Build
+  # FROM node:20 AS builder
+  # WORKDIR /app
+  # COPY . .
+  # RUN npm ci && npm run build
+  #
+  # Stage 2: Production (small image)
+  # FROM node:20-alpine
+  # COPY --from=builder /app/dist ./dist
+  # CMD ["node", "dist/server.js"]
+
+### Build caching (speed up rebuilds):
+
+  - name: Build and push
+    uses: docker/build-push-action@v5
+    with:
+      context: .
+      push: true
+      tags: myuser/myapp:latest
+      cache-from: type=gha
+      cache-to: type=gha,mode=max
+
+  # GitHub Actions cache for Docker layers
+  # First build: 5 minutes. Subsequent: 30 seconds.
+
+### Only build on main (not PRs):
+
+  build:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+## [EXPECTED RESULT]
+Every merge to main automatically builds a Docker image, tags it
+with the commit SHA and version, and pushes it to a registry.
+Ready for deployment.
+
+## Technician Tip:
+Never use :latest in production deployments. Always use a specific
+tag (commit SHA or semver). :latest is mutable — you can't roll back.
+  ❌ docker pull myapp:latest      (which version is this?)
+  ✅ docker pull myapp:abc1234     (this exact commit)
+
+## Common Pain Point:
+"Docker build takes 10 minutes in CI" → layer caching.
+Add cache-from/cache-to with type=gha. Also: order Dockerfile
+commands from least-changing to most-changing. COPY package.json
+BEFORE COPY . so npm install only reruns when dependencies change.

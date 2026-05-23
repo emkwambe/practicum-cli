@@ -1,0 +1,108 @@
+# Lesson: Multiple Providers — Multi-Cloud & Multi-Region
+
+## [WHEN] You need this when:
+1. Your infrastructure spans AWS + GCP, or AWS us-east + AWS eu-west.
+2. You need to manage DNS on Cloudflare but compute on AWS.
+3. The exam tests writing config with multiple providers (Obj 2c).
+
+## [INTENT] "Configure Terraform with multiple and aliased providers."
+
+## [CONTEXT]
+A provider is a plugin that translates Terraform config into API calls.
+Most beginners use one provider (aws). Real infrastructure often needs
+multiple: one for compute, another for DNS, another for monitoring.
+Even a single cloud may need multiple provider instances for
+multi-region or multi-account patterns.
+
+## [ACTION] Working with multiple providers
+
+### Multiple different providers:
+  terraform {
+    required_providers {
+      aws = {
+        source  = "hashicorp/aws"
+        version = "~> 5.0"
+      }
+      cloudflare = {
+        source  = "cloudflare/cloudflare"
+        version = "~> 4.0"
+      }
+    }
+  }
+
+  provider "aws" {
+    region = "us-east-1"
+  }
+
+  provider "cloudflare" {
+    api_token = var.cloudflare_token
+  }
+
+  resource "aws_instance" "web" {
+    ami           = "ami-0c55b159cbfafe1f0"
+    instance_type = "t3.micro"
+  }
+
+  resource "cloudflare_record" "web_dns" {
+    zone_id = var.zone_id
+    name    = "web"
+    content = aws_instance.web.public_ip
+    type    = "A"
+  }
+
+  # Cross-provider reference: Cloudflare DNS points to AWS instance IP.
+
+### Provider aliases (same provider, different config):
+  # Two AWS regions in one config:
+  provider "aws" {
+    region = "us-east-1"
+  }
+
+  provider "aws" {
+    alias  = "eu"
+    region = "eu-west-1"
+  }
+
+  resource "aws_instance" "us_web" {
+    ami           = "ami-0c55b159cbfafe1f0"
+    instance_type = "t3.micro"
+    # Uses default provider (us-east-1)
+  }
+
+  resource "aws_instance" "eu_web" {
+    provider      = aws.eu              # Uses the aliased provider
+    ami           = "ami-0abcdef1234567890"
+    instance_type = "t3.micro"
+  }
+
+### How Terraform resolves providers:
+  1. Reads required_providers block → knows which plugins to download
+  2. terraform init → downloads provider binaries to .terraform/
+  3. Each resource uses the provider matching its type prefix
+     ("aws_instance" → aws provider, "cloudflare_record" → cloudflare)
+  4. Aliased providers must be explicitly referenced with provider = X.Y
+
+### Plugin architecture:
+  Terraform Core ←→ Provider Plugin (gRPC)
+  
+  Core handles: state, graph, execution order
+  Provider handles: API calls, CRUD operations, schema validation
+  
+  Providers are separate binaries — Terraform downloads them from
+  the registry during init. This is why Terraform is cloud-agnostic:
+  add a provider, get that cloud's resources.
+
+### Provider configuration best practices:
+  - Never hardcode credentials in provider blocks
+  - Use environment variables (AWS_ACCESS_KEY_ID) or shared credentials
+  - Pin provider versions (avoid breaking changes)
+  - Use required_providers for explicit dependency declaration
+
+## [EXPECTED RESULT]
+You can configure multiple providers, use aliases for multi-region,
+and understand how Terraform's plugin architecture works.
+
+## Technician Tip:
+The exam tests whether you know that "aws_instance" automatically
+maps to the "aws" provider — the resource type prefix determines
+the provider. Aliases require explicit provider = aws.alias_name.

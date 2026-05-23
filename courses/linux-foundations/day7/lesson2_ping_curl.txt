@@ -1,0 +1,30 @@
+# Lesson: ping & curl — Test Connectivity
+
+## [WHEN] You need this when:
+1. A server cannot download updates and you need to check internet access.
+2. An API call is failing and you want to test the endpoint directly.
+3. You need to verify DNS is resolving hostnames correctly.
+4. You want to measure latency to another server.
+
+## [INTENT] "Can this server reach the internet or another machine?"
+
+## [CONTEXT]
+ping sends small packets to test basic network reachability.
+curl makes HTTP requests to test web service reachability.
+Together they diagnose most connectivity issues:
+  ping fails = network/routing problem
+  ping works but curl fails = firewall/service/DNS problem
+
+## [ACTION] ping / curl / dig
+  ping -c 4 google.com             — send 4 pings
+  curl -I https://google.com       — fetch HTTP headers only
+  curl -s https://api.example.com  — silent mode
+  dig google.com                   — DNS lookup
+
+## [EXPECTED RESULT]
+ping: round-trip time in ms. 0% loss = reachable.
+curl: HTTP response. 200 = OK, timeout = unreachable.
+
+## Try it now:
+  ping -c 3 localhost
+  curl -I https://github.com 2>/dev/null | head -3

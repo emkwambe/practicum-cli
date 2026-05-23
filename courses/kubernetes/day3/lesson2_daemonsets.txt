@@ -1,0 +1,113 @@
+# Lesson: DaemonSets — One Pod Per Node
+
+## [WHEN] You need this when:
+1. Every node needs a logging agent (Fluentd, Filebeat).
+2. Every node needs a monitoring agent (node-exporter, Datadog).
+3. Every node needs a network plugin (Calico, Cilium).
+4. You need cluster-wide infrastructure, not application replicas.
+
+## [INTENT] "Use DaemonSets to run exactly one pod on every (or selected) node."
+
+## [CONTEXT]
+Deployments: "run N replicas somewhere in the cluster"
+DaemonSets: "run exactly ONE pod on EVERY node"
+
+When a new node joins the cluster, the DaemonSet automatically
+schedules a pod on it. When a node is removed, the pod is garbage
+collected. No manual scaling needed.
+
+## [ACTION] DaemonSets
+
+### DaemonSet manifest:
+  apiVersion: apps/v1
+  kind: DaemonSet
+  metadata:
+    name: log-collector
+    namespace: monitoring
+  spec:
+    selector:
+      matchLabels:
+        app: log-collector
+    template:
+      metadata:
+        labels:
+          app: log-collector
+      spec:
+        containers:
+          - name: fluentd
+            image: fluentd:v1.16-1
+            resources:
+              requests:
+                memory: "128Mi"
+                cpu: "100m"
+              limits:
+                memory: "256Mi"
+                cpu: "200m"
+            volumeMounts:
+              - name: varlog
+                mountPath: /var/log
+                readOnly: true
+        volumes:
+          - name: varlog
+            hostPath:
+              path: /var/log
+
+### Targeting specific nodes:
+  By default: every node gets a pod.
+  Use nodeSelector to limit:
+
+  spec:
+    template:
+      spec:
+        nodeSelector:
+          disk: ssd           # only nodes labeled disk=ssd
+
+  Or use affinity for complex rules (same syntax as Deployments).
+
+### DaemonSet vs Deployment:
+  Use DaemonSet when:
+    - Every node needs this (logging, monitoring, networking)
+    - The workload is node-specific infrastructure
+    - Pod count = node count automatically
+
+  Use Deployment when:
+    - You control replica count explicitly
+    - Pods are application logic, not infrastructure
+    - Pod placement doesn't matter (scheduler decides)
+
+### Updating DaemonSets:
+  Same rolling update strategy as Deployments:
+
+  spec:
+    updateStrategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxUnavailable: 1    # update one node at a time
+
+  Or type: OnDelete — pods only update when manually deleted.
+
+### System DaemonSets:
+  kube-proxy is a DaemonSet (runs on every node for networking).
+  CNI plugins (Calico, Cilium) run as DaemonSets.
+  These live in kube-system namespace:
+    kubectl get daemonsets -n kube-system
+
+### Managing DaemonSets:
+  kubectl get ds                    # list DaemonSets
+  kubectl get ds -n kube-system     # system DaemonSets
+  kubectl describe ds log-collector
+  kubectl rollout status ds/log-collector
+
+## [EXPECTED RESULT]
+You can create DaemonSets, target them to specific nodes,
+understand update strategies, and know when DaemonSet vs Deployment.
+
+## Technician Tip:
+DaemonSets ignore most scheduling constraints — they MUST run on
+every matching node. This means they can schedule on nodes that
+Deployments can't (e.g., tainted nodes, if the DaemonSet has
+the matching toleration).
+
+## Common Pain Point:
+"DaemonSet pod not running on a node" → the node has a taint that
+the DaemonSet doesn't tolerate. Add a toleration to the DaemonSet spec.

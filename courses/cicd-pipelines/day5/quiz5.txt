@@ -1,0 +1,34 @@
+Q1: SCENARIO: A teammate's CI workflow runs: checkout → test → lint → build. What's wrong with the order?
+A) Lint should run BEFORE tests — fast check catches obvious errors before wasting time on slow tests
+B) The order is correct
+C) Checkout should be last
+D) Build should be first
+Correct: A
+
+Q2: npm ci is preferred over npm install in CI because:
+A) npm ci installs fewer packages
+B) npm ci only works on Linux
+C) npm ci does a clean install from the lockfile — reproducible, deterministic, no surprises
+D) npm ci is newer
+Correct: C
+
+Q3: Adding "needs: test" to a build job makes it:
+A) Run simultaneously with the test job
+B) Skip if tests are slow
+D) Wait for the test job to pass before starting
+C) Optional
+Correct: D
+
+Q4: TRADEOFF: Branch protection rules prevent direct pushes to main. Developers resist the friction. Why enforce them anyway?
+A) GitHub requires it for all repos
+B) Every change gets tested and reviewed before merging — preventing broken code in main is worth the extra steps
+C) It saves money on runners
+D) It's not worth it — direct pushes are fine for small teams
+Correct: B
+
+Q5: DIAGNOSTIC: Your workflow builds Docker on PR events, wasting 5 min per PR. How do you limit it to main-branch pushes only?
+A) Remove Docker from the project
+B) Switch to a different CI platform
+C) Add if: github.event_name == 'push' && github.ref == 'refs/heads/main' on the build job
+D) Build Docker on every commit — it's fine
+Correct: C

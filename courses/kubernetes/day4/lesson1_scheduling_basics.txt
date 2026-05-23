@@ -1,0 +1,116 @@
+# Lesson: Pod Scheduling — nodeSelector, Affinity & Anti-Affinity
+
+## [WHEN] You need this when:
+1. Certain pods must run on GPU nodes, SSD nodes, or specific zones.
+2. You want pods to prefer (but not require) certain nodes.
+3. You want pods to spread across zones for high availability.
+4. Two pods should (or should not) run on the same node.
+
+## [INTENT] "Control WHERE pods are scheduled using selectors and affinity rules."
+
+## [CONTEXT]
+By default, the scheduler places pods wherever resources are available.
+But production needs control:
+  - "Database pods → SSD-labeled nodes only"
+  - "Web pods → spread across availability zones"
+  - "Cache pods → same node as the API pods they serve"
+  - "Two database replicas → NEVER on the same node"
+
+K8s provides three mechanisms, from simple to complex:
+  nodeSelector → simple label matching
+  Node affinity → flexible label rules with soft/hard constraints
+  Pod affinity/anti-affinity → place relative to other pods
+
+## [ACTION] Scheduling controls
+
+### nodeSelector (simplest):
+  # First, label the node:
+  kubectl label nodes worker-1 disk=ssd
+
+  # Then require it in the pod spec:
+  spec:
+    nodeSelector:
+      disk: ssd
+
+  # Pod ONLY runs on nodes with disk=ssd label.
+  # If no node matches → pod stays Pending.
+
+### Node affinity (flexible):
+  spec:
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:   # HARD rule
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: topology.kubernetes.io/zone
+                  operator: In
+                  values:
+                    - us-east-1a
+                    - us-east-1b
+        preferredDuringSchedulingIgnoredDuringExecution:  # SOFT rule
+          - weight: 80
+            preference:
+              matchExpressions:
+                - key: disk
+                  operator: In
+                  values:
+                    - ssd
+
+  required = MUST match (like nodeSelector but more expressive)
+  preferred = TRY to match, but schedule anyway if no match
+
+  Operators: In, NotIn, Exists, DoesNotExist, Gt, Lt
+
+### Pod affinity (co-location):
+  "Run this cache pod on the same node as the API pod"
+
+  spec:
+    affinity:
+      podAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                    - api
+            topologyKey: kubernetes.io/hostname
+
+  topologyKey defines "same" — hostname = same node, zone = same zone
+
+### Pod anti-affinity (spreading):
+  "NEVER run two database replicas on the same node"
+
+  spec:
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                    - postgres
+            topologyKey: kubernetes.io/hostname
+
+  This is critical for HA — if a node dies and both DB replicas
+  are on it, you lose ALL replicas. Anti-affinity prevents this.
+
+### Quick reference:
+  nodeSelector:    simple, hard constraint, node labels only
+  Node affinity:   flexible, soft+hard, node labels
+  Pod affinity:    co-locate with other pods (same node/zone)
+  Pod anti-affinity: spread apart from other pods (HA)
+
+## [EXPECTED RESULT]
+You can use nodeSelector, node affinity (required/preferred),
+and pod anti-affinity to control scheduling for production.
+
+## Technician Tip:
+Always use pod anti-affinity for database replicas and critical
+services. Without it, the scheduler might place all replicas on
+one node — one node failure kills everything.
+
+## Common Pain Point:
+"Pod stuck in Pending after adding affinity" → no nodes match
+the required constraint. Check labels: kubectl get nodes --show-labels.

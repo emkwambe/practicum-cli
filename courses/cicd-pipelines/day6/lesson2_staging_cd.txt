@@ -1,0 +1,149 @@
+# Lesson: Staging Environments & CD Workflows
+
+## [WHEN] You need this when:
+1. You need a place to test deployments before production.
+2. You want automatic deploys to staging but manual approval for prod.
+3. Your team needs to demo features before release.
+4. You need environment-specific configuration (staging DB, prod DB).
+
+## [INTENT] "Build a CD workflow with staging and production environments."
+
+## [CONTEXT]
+Most teams use at least two environments:
+  Staging — mirrors production, used for final testing
+  Production — real users, real data, real consequences
+
+The CD pipeline: build → deploy staging → test → approve → deploy prod
+
+## [ACTION] CD workflows
+
+### GitHub Actions with environments:
+
+  jobs:
+    deploy-staging:
+      needs: build
+      runs-on: ubuntu-latest
+      environment: staging          # ← environment with its own secrets
+      steps:
+        - name: Deploy to staging
+          run: |
+            echo "Deploying ${{ github.sha }} to staging"
+            # deploy script here
+          env:
+            DEPLOY_HOST: ${{ secrets.STAGING_HOST }}
+            DEPLOY_KEY: ${{ secrets.STAGING_SSH_KEY }}
+
+    deploy-production:
+      needs: deploy-staging
+      runs-on: ubuntu-latest
+      environment: production       # ← can require approval
+      steps:
+        - name: Deploy to production
+          run: |
+            echo "Deploying ${{ github.sha }} to production"
+          env:
+            DEPLOY_HOST: ${{ secrets.PROD_HOST }}
+            DEPLOY_KEY: ${{ secrets.PROD_SSH_KEY }}
+
+### Environment protection rules (GitHub Settings):
+  production environment:
+    - Required reviewers: @devops-team (at least 1 approval)
+    - Wait timer: 5 minutes (cool-down before deploy)
+    - Deployment branches: only main
+
+### Smoke tests after staging deploy:
+
+  smoke-test:
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    steps:
+      - name: Health check
+        run: |
+          sleep 10  # wait for deploy to settle
+          status=$(curl -sf -o /dev/null -w "%{http_code}" https://staging.example.com/health)
+          if [ "$status" != "200" ]; then
+            echo "Staging health check FAILED"
+            exit 1
+          fi
+
+      - name: API smoke test
+        run: |
+          response=$(curl -sf https://staging.example.com/api/version)
+          echo "Version: $response"
+          echo "$response" | grep -q "${{ github.sha }}" || {
+            echo "Wrong version deployed!"
+            exit 1
+          }
+
+### Full CD workflow (complete):
+
+  name: CD
+  on:
+    push:
+      branches: [main]
+
+  jobs:
+    test:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - run: npm ci && npm test
+
+    build:
+      needs: test
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - uses: docker/build-push-action@v5
+          with:
+            push: true
+            tags: ghcr.io/${{ github.repository }}:${{ github.sha }}
+
+    deploy-staging:
+      needs: build
+      environment: staging
+      runs-on: ubuntu-latest
+      steps:
+        - name: Deploy
+          run: echo "Deploy to staging"
+
+    smoke-test:
+      needs: deploy-staging
+      runs-on: ubuntu-latest
+      steps:
+        - name: Verify
+          run: curl -sf https://staging.example.com/health
+
+    deploy-production:
+      needs: smoke-test
+      environment: production      # requires manual approval
+      runs-on: ubuntu-latest
+      steps:
+        - name: Deploy
+          run: echo "Deploy to production"
+
+    verify-production:
+      needs: deploy-production
+      runs-on: ubuntu-latest
+      steps:
+        - name: Health check
+          run: curl -sf https://example.com/health
+
+## [EXPECTED RESULT]
+Merges to main automatically deploy to staging. After smoke tests
+pass, a human approves the production deployment. If prod health
+check fails, you roll back.
+
+## Technician Tip:
+Staging should be as close to production as possible:
+  - Same Docker image (just different config)
+  - Same database schema (different data)
+  - Same network topology
+  - Same monitoring
+The more staging differs from prod, the less useful it is.
+
+## Common Pain Point:
+"It works on staging but breaks in prod" → configuration drift.
+Use the SAME Docker image in both environments. Only change:
+environment variables (database URL, API keys, feature flags).
+Never rebuild the image for production.

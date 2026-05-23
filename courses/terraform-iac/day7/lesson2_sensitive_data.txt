@@ -1,0 +1,124 @@
+# Lesson: Sensitive Data & Secrets Management
+
+## [WHEN] You need this when:
+1. Your Terraform config needs database passwords and API keys.
+2. You need to prevent secrets from appearing in plan output or logs.
+3. You want to integrate with HashiCorp Vault for dynamic secrets.
+4. The exam tests sensitive data management (Obj 4h).
+
+## [INTENT] "Protect secrets throughout the Terraform workflow."
+
+## [CONTEXT]
+Secrets in Terraform are everywhere: database passwords, API tokens,
+TLS private keys, SSH keys. The challenge: Terraform must KNOW them
+to provision resources, but they shouldn't appear in:
+  - Plan output (visible to anyone reading the terminal)
+  - State file (stored in S3, Terraform Cloud, or locally)
+  - Version control (git commits persist forever)
+  - CI/CD logs (publicly accessible in some systems)
+
+## [ACTION] Sensitive data management
+
+### Marking variables as sensitive:
+  variable "db_password" {
+    type      = string
+    sensitive = true    # hides value in plan/apply output
+  }
+
+  # In plan output:
+  #   password = (sensitive value)
+  # Instead of:
+  #   password = "MyS3cr3tP@ss!"
+
+### Sensitive outputs:
+  output "db_connection_string" {
+    value     = "postgresql://${var.db_user}:${var.db_password}@${aws_db_instance.main.endpoint}"
+    sensitive = true
+  }
+
+  # terraform output shows: <sensitive>
+  # terraform output -json still reveals the value (intentional)
+  # terraform output db_connection_string → requires explicit access
+
+### Sensitive values in state:
+  ⚠️ State files ALWAYS contain sensitive values in plaintext.
+  Even with sensitive = true, the state file stores the actual value.
+  This is why state files must be:
+    1. Stored in encrypted backends (S3 + SSE, Terraform Cloud)
+    2. Never committed to version control
+    3. Access-controlled (IAM policies, Terraform Cloud teams)
+
+### Methods for providing secrets:
+
+  # 1. Environment variables (recommended for CI/CD):
+  export TF_VAR_db_password="MyS3cr3tP@ss!"
+  terraform apply
+  # Terraform reads TF_VAR_<name> automatically
+
+  # 2. .tfvars files (NEVER commit these):
+  # secrets.tfvars:
+  db_password = "MyS3cr3tP@ss!"
+
+  terraform apply -var-file="secrets.tfvars"
+
+  # .gitignore:
+  *.tfvars
+  !example.tfvars
+
+  # 3. Interactive prompt (no value in files):
+  terraform apply
+  # var.db_password: _
+
+  # 4. HashiCorp Vault (production-grade):
+  data "vault_generic_secret" "db" {
+    path = "secret/data/prod/database"
+  }
+
+  resource "aws_db_instance" "main" {
+    password = data.vault_generic_secret.db.data["password"]
+  }
+
+### Vault provider integration:
+  provider "vault" {
+    address = "https://vault.example.com:8200"
+    # Auth via VAULT_TOKEN env var or AppRole
+  }
+
+  # Dynamic database credentials (Vault generates temporary creds):
+  data "vault_generic_secret" "db_creds" {
+    path = "database/creds/app-role"
+  }
+
+  # These credentials automatically expire — no static passwords.
+
+### Ephemeral values (Terraform 1.12, new in 004):
+  # Ephemeral values exist only during a single plan/apply.
+  # They're never written to state.
+
+  variable "temporary_token" {
+    type      = string
+    ephemeral = true     # never stored in state
+  }
+
+  # Write-only arguments:
+  resource "aws_db_instance" "main" {
+    password = var.db_password   # write-only: sent to API, not stored
+  }
+
+### Security checklist:
+  1. Mark all secret variables as sensitive = true
+  2. Use environment variables (TF_VAR_*) in CI/CD
+  3. Never commit .tfvars with secrets (add to .gitignore)
+  4. Encrypt state at rest (S3 SSE, Terraform Cloud)
+  5. Use Vault for production secrets when possible
+  6. Rotate secrets regularly (Vault dynamic secrets automate this)
+  7. Audit state access (who can read the state file?)
+
+## [EXPECTED RESULT]
+You can protect sensitive data in variables, outputs, and state,
+and understand Vault integration for production secrets management.
+
+## Technician Tip:
+Exam trap: sensitive = true hides values from OUTPUT but NOT from
+state. The state file always contains the real value. Encrypting
+the state backend is the only protection for secrets in state.

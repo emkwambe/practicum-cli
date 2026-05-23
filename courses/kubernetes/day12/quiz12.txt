@@ -1,0 +1,59 @@
+Q1: A Custom Resource Definition (CRD) lets you:
+A) Create custom Docker images
+B) Define entirely new resource types in Kubernetes — after creating a CRD, you can kubectl apply custom resources just like Deployments or Services
+C) Customize node configurations
+D) Override built-in resources
+Correct: B
+
+
+
+Q2: SCENARIO: You see resources like Certificate and ClusterIssuer in a cluster. These aren't built-in K8s resources. What explains their presence?
+A) A Kubernetes upgrade added them
+B) The cluster is misconfigured
+C) They're aliases for Secrets
+D) An Operator (cert-manager) installed CRDs that define these custom resource types, and a controller watches them to automatically provision TLS certificates
+Correct: D
+
+Q3: CNI, CSI, and CRI are:
+A) Plugin interfaces — CNI handles pod networking, CSI handles storage provisioning, CRI handles container runtime operations. Each lets you swap implementations without changing Kubernetes core.
+B) Container image formats
+C) Monitoring tools
+D) Security frameworks
+Correct: A
+
+Q4: DIAGNOSTIC: kubectl get pods shows ContainerCreating for 5 minutes. kubectl describe shows "network plugin is not ready." What's wrong?
+A) The container is large
+B) The image doesn't exist
+C) Docker is down
+D) The CNI plugin (Calico, Cilium, Flannel) is not installed or its DaemonSet pods are crashing — without a working CNI, pods can't get network interfaces
+Correct: D
+
+Q5: Helm and Kustomize differ in approach:
+A) They do the same thing
+B) Kustomize replaced Helm
+C) Helm uses templating — generating YAML from templates plus values. Kustomize uses patching — starting with base YAML and overlaying changes. Helm is better for packaging; Kustomize for simple environment customization.
+D) Helm is for external apps only
+Correct: C
+
+Q6: kubectl apply -k ./overlays/prod/ does:
+A) Installs a Helm chart
+B) Applies the Kustomize overlay — Kustomize is built into kubectl, so -k processes the kustomization.yaml, merges base with patches, and applies the result
+C) Creates a new namespace
+D) Runs a kubectl plugin
+Correct: B
+
+
+
+Q7: TRADEOFF: Using Helm charts from public repositories vs building your own:
+A) Public charts save time for well-known software (Prometheus, PostgreSQL) but may include unnecessary defaults. Custom charts give full control but require maintenance. Most teams use public for third-party and custom for in-house apps.
+B) Always use public charts
+C) Custom charts are always better
+D) Public charts are more secure
+Correct: A
+
+Q8: SCENARIO: You need the same app in dev (1 replica, no TLS) and prod (5 replicas, TLS enabled). Which tool fits best?
+A) Helm only
+B) Copy-paste the YAML
+C) Kustomize — create a base with the app manifests, then overlays for dev and prod that patch replicas, add TLS, and set namespace. No templating syntax needed, just YAML patches.
+D) Use separate clusters
+Correct: C

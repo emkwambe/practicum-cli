@@ -1,0 +1,55 @@
+Q1: git init does what to a directory?
+A) Uploads it to GitHub
+B) Deletes the directory
+C) Creates a hidden .git/ folder that starts tracking changes in this directory
+D) Downloads a repository
+Correct: C
+
+Q2: The three states a file moves through in Git are:
+A) Created, saved, deleted
+B) Working directory → staging area → committed
+C) Uploaded, downloaded, archived
+D) Branch, merge, push
+Correct: A
+
+Q3: SCENARIO: You modified 5 files but only want to commit 2 of them. What do you do?
+A) git add . (stages everything)
+B) git commit -a (commits everything)
+D) git add file1.txt file2.txt — stage only the two files, then commit
+C) You can't commit a subset of changes
+Correct: D
+
+Q4: Which commit message follows best practices?
+A) "fix"
+B) "updated stuff"
+C) "Add user authentication with JWT tokens"
+D) "asdfgh"
+Correct: C
+
+Q5: git log --oneline shows:
+C) The full diff of every commit
+B) Nothing — it's not a real command
+A) A compact list of commits with short SHAs and messages
+D) Only the most recent commit
+Correct: A
+
+Q6: DIAGNOSTIC: You run git diff and see nothing, but you KNOW you changed a file. What happened?
+A) Git is broken
+B) The file was deleted
+C) You already staged the change — use git diff --staged to see staged changes
+D) The file isn't tracked
+Correct: C
+
+Q7: git status on a clean repository (no changes) shows:
+A) An error
+B) A list of all files
+C) All commits
+D) "nothing to commit, working tree clean"
+Correct: D
+
+Q8: In git diff output, lines starting with + mean:
+A) The file was deleted
+B) Lines that were removed
+C) Lines that were added
+D) Comments
+Correct: C

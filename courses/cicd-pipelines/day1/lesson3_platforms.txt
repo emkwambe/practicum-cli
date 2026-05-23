@@ -1,0 +1,82 @@
+# Lesson: CI/CD Platforms — Choosing the Right Tool
+
+## [WHEN] You need this when:
+1. You're starting a new project and need to pick a CI/CD platform.
+2. Your team is evaluating GitHub Actions vs GitLab CI vs Jenkins.
+3. An interviewer asks "what CI/CD tools have you used?"
+
+## [INTENT] "Know the major CI/CD platforms and when to use each."
+
+## [CONTEXT]
+Every CI/CD platform does the same core thing: run your pipeline.
+The differences are in hosting, pricing, ecosystem, and complexity.
+This course focuses on GitHub Actions (most popular in 2026), but
+the concepts transfer to any platform.
+
+## [ACTION] Platform comparison
+
+### GitHub Actions (our focus)
+  Config:      .github/workflows/*.yml
+  Hosting:     GitHub-hosted runners (free for public repos)
+  Strengths:   Tight GitHub integration, massive marketplace
+  Best for:    Teams already on GitHub (most teams)
+  Free tier:   2,000 minutes/month (private repos)
+  Key feature: Matrix builds, reusable workflows, OIDC auth
+
+### GitLab CI/CD
+  Config:      .gitlab-ci.yml
+  Hosting:     GitLab SaaS or self-hosted runners
+  Strengths:   Built-in container registry, SAST/DAST scanning
+  Best for:    Teams wanting everything in one platform
+  Free tier:   400 minutes/month
+  Key feature: Auto DevOps (auto-detect and build any project)
+
+### Jenkins
+  Config:      Jenkinsfile (Groovy DSL)
+  Hosting:     Self-hosted only (you manage the server)
+  Strengths:   Infinitely customizable, 1,800+ plugins
+  Best for:    Enterprise teams with custom requirements
+  Free tier:   Free (open source) but you pay for infrastructure
+  Key feature: Pipeline as code, distributed builds
+
+### CircleCI
+  Config:      .circleci/config.yml
+  Hosting:     Cloud or self-hosted runners
+  Strengths:   Fast builds, good caching, Docker-first
+  Best for:    Teams that need speed above all else
+  Free tier:   6,000 minutes/month
+  Key feature: Docker layer caching, SSH debugging
+
+### Which to learn first?
+  GitHub Actions. Reasons:
+  - Most popular platform (2024-2026)
+  - Free for public repos (unlimited minutes)
+  - Every open-source project uses it
+  - Transferable concepts to any other platform
+  - The YAML structure is nearly identical across platforms
+
+### YAML is universal — learn one, know all:
+
+  GitHub Actions:                GitLab CI:
+  jobs:                          stages:
+    build:                         - build
+      runs-on: ubuntu-latest     build:
+      steps:                       stage: build
+        - run: npm test            script:
+                                     - npm test
+
+  The commands are the same. Only the wrapper changes.
+
+## [EXPECTED RESULT]
+You can name the major CI/CD platforms, explain their tradeoffs,
+and justify choosing GitHub Actions for this course.
+
+## Technician Tip:
+In interviews, say: "I primarily use GitHub Actions, but the
+pipeline concepts are platform-agnostic. The stages, triggers,
+and deployment strategies are the same everywhere."
+
+## Common Pain Point:
+"Should I learn Jenkins?" → Only if the job requires it.
+Jenkins is powerful but complex. GitHub Actions or GitLab CI
+cover 90% of use cases with 20% of the complexity.

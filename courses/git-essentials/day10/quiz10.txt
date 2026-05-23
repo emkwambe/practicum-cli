@@ -1,0 +1,55 @@
+Q1: The correct way to release version 2.0.0:
+A) Push to main and tell the team
+B) git tag v2.0.0 (lightweight, no metadata)
+C) git tag -a v2.0.0 -m "Release 2.0.0" — annotated tag with metadata, then git push origin --tags
+D) Create a branch called v2.0.0
+Correct: C
+
+Q2: A CHANGELOG.md should document:
+A) Every git commit message
+B) User-facing changes organized by version (Added, Changed, Fixed, Removed) so users know what's new
+C) Internal code notes
+D) Meeting minutes
+Correct: B
+
+Q3: git merge --no-ff ensures:
+A) A faster merge
+B) The branch is deleted
+C) A merge commit is always created — preserving the branch history even if a fast-forward was possible
+D) Conflicts are skipped
+Correct: C
+
+Q4: SCENARIO: Your team lead says "submit a PR." What does this require?
+A) Push directly to main
+B) A branch with your changes pushed to the remote, then open a pull request in GitHub's UI for review
+C) Send an email with your code
+D) Run git pull-request
+Correct: B
+
+Q5: The MIT License's main characteristic is:
+A) No one can use the code
+B) Commercial use is prohibited
+C) It's highly permissive — anyone can use, modify, and distribute, even commercially, with attribution
+D) It requires all changes to be open-sourced
+Correct: C
+
+Q6: DIAGNOSTIC: You lost a commit after a bad rebase. Your teammate says "it's gone forever." Are they right?
+A) Yes — rebased commits are permanently deleted
+B) No — git reflog keeps references to every HEAD position for 30-90 days. Find the SHA and recover it.
+C) Only if it was pushed
+D) Only the repo owner can recover it
+Correct: B
+
+Q7: The professional daily Git workflow is:
+A) Code all week, commit on Friday
+B) Pull → branch → work → add → commit → push → PR
+C) Push everything to main
+D) Commit once at end of day
+Correct: B
+
+Q8: SCENARIO: Your repository has no README, no LICENSE, no .gitignore, and commit messages like "fix" and "stuff". A hiring manager looks at it. What's their impression?
+A) They won't look at the code
+B) They'll focus on the code quality only
+C) Missing docs, messy history, and no license signal unprofessional habits — the repo itself IS a professional artifact
+D) It doesn't matter for hiring
+Correct: C

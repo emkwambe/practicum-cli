@@ -1,0 +1,59 @@
+Q1: The Terraform type that preserves insertion order and allows duplicates is:
+A) set
+B) list — ordered collection where elements are accessed by numeric index and duplicate values are allowed
+C) map
+D) object
+Correct: B
+
+Q2: SCENARIO: You need a variable holding key-value pairs where keys are environment names and values are instance types. Which type?
+A) map(string) — keys like "dev", "staging", "prod" mapped to values like "t3.micro", "t3.small", "t3.large"
+B) set(string)
+C) tuple
+D) list(string)
+Correct: A
+
+Q3: The key difference between count and for_each for creating multiple resources:
+A) count is newer
+B) count supports maps
+C) They produce identical results
+D) for_each uses keys (removing "api" only affects that resource) while count uses indices (removing item 1 re-indexes items 2+ causing unnecessary recreation)
+Correct: D
+
+Q4: lookup({ a = 1, b = 2 }, "c", "default") returns:
+A) null
+B) An error
+C) "default" — the third argument is the fallback value returned when the key doesn't exist in the map
+D) "c"
+Correct: C
+
+
+
+Q5: DIAGNOSTIC: terraform plan shows "Invalid for_each argument: set includes values that cannot be determined until apply." How do you fix this?
+A) Use count instead
+B) Delete the resource
+C) Ensure the for_each value is known at plan time — for_each keys must be static or from data sources, not from resource attributes that don't exist yet
+D) Run apply first
+Correct: C
+
+
+
+Q6: The cidrsubnet("10.0.0.0/16", 8, 2) function returns:
+A) "10.0.0.2/16"
+B) "10.0.2.0/24" — takes a base CIDR, adds 8 bits to the prefix (making /24), and selects subnet index 2
+C) "10.0.0.0/24"
+D) "10.2.0.0/24"
+Correct: B
+
+Q7: Dynamic blocks in Terraform are used to:
+A) Programmatically generate repeated nested blocks within a resource — like creating multiple ingress rules in a security group from a variable list
+B) Generate infrastructure at runtime
+C) Create dynamic providers
+D) Enable dynamic typing
+Correct: A
+
+Q8: TRADEOFF: Using the any type for a variable vs a specific type constraint:
+A) any is always safer
+B) Specific types are too rigid
+C) They compile the same way
+D) Specific types catch errors early (wrong type = immediate error) while any accepts anything and errors surface later during plan/apply — specific types are better for production code
+Correct: D

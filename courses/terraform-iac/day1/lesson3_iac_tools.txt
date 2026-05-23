@@ -1,0 +1,71 @@
+# Lesson: IaC Tool Landscape — Choosing the Right Tool
+
+## [WHEN] You need this when:
+1. Your team needs to choose between Terraform, Pulumi, CloudFormation, Ansible.
+2. An interviewer asks "what IaC tools have you used?"
+3. You need to understand what Terraform does vs what Ansible does.
+
+## [INTENT] "Know the IaC landscape and why this course focuses on Terraform."
+
+## [CONTEXT]
+IaC tools fall into two categories:
+
+### Provisioning tools (create infrastructure):
+  - Terraform (HashiCorp) — multi-cloud, declarative, HCL language
+  - Pulumi — multi-cloud, imperative, uses real languages (Python, TS)
+  - CloudFormation — AWS only, declarative, JSON/YAML
+  - CDK — AWS, uses real languages, compiles to CloudFormation
+
+### Configuration management tools (configure existing servers):
+  - Ansible — agentless, YAML playbooks, SSH-based
+  - Chef — Ruby DSL, agent-based
+  - Puppet — declarative, agent-based
+  - Salt — Python, event-driven
+
+### Key distinction:
+  Terraform: "Create a server with these properties"
+  Ansible: "On this existing server, install nginx and configure it"
+
+  They're complementary, not competing.
+  Terraform provisions. Ansible configures. Many teams use both.
+
+### Why Terraform wins for this course:
+
+  1. Multi-cloud: AWS, GCP, Azure, Docker, Kubernetes, GitHub, Cloudflare
+     (CloudFormation = AWS only, locked in)
+
+  2. Declarative: describe what you want, not how to build it
+     (Pulumi = imperative, requires programming language knowledge)
+
+  3. State-based: knows what exists, what changed, what to do
+     (Ansible = stateless, runs every task every time)
+
+  4. Most popular: most IaC job postings in 2026 specify Terraform
+
+  5. HashiCorp Terraform Associate certification — widely respected
+
+  6. CLI-native: terraform init, plan, apply, destroy — fits Practicum
+
+### HCL (HashiCorp Configuration Language):
+  resource "aws_instance" "web" {
+    ami           = "ami-0c55b159cbfafe1f0"
+    instance_type = "t3.micro"
+
+    tags = {
+      Name = "web-server"
+    }
+  }
+
+  Not a programming language. Not JSON. Not YAML.
+  HCL is purpose-built for infrastructure definition.
+  Readable, composable, with type checking.
+
+## [EXPECTED RESULT]
+You can explain the IaC tool landscape, justify choosing Terraform,
+and distinguish between provisioning and configuration management.
+
+## Technician Tip:
+In interviews, say: "Terraform for provisioning infrastructure,
+Ansible for configuring it. They solve different problems.
+I'd use Terraform to create the servers and Ansible to install
+software on them."

@@ -1,0 +1,99 @@
+# Lesson: case — Clean Multi-Way Branching
+
+## [WHEN] You need this when:
+1. You have 5+ if/elif branches matching one variable.
+2. You're building a command-line tool with subcommands.
+3. You're parsing flags like --verbose, --help, --output.
+4. You need pattern matching (not just exact equality).
+
+## [INTENT] "Match a variable against multiple patterns cleanly."
+
+## [CONTEXT]
+case replaces long if/elif chains. It matches patterns (globs),
+not just exact strings. Much more readable for 3+ branches.
+
+Syntax:
+  case "$variable" in
+      pattern1) commands ;;
+      pattern2) commands ;;
+      *)        default commands ;;
+  esac
+
+## [ACTION] case patterns
+
+### Basic command dispatcher:
+  #!/bin/bash
+  case "$1" in
+      start)   echo "Starting service..." ;;
+      stop)    echo "Stopping service..." ;;
+      restart) echo "Restarting..."; $0 stop; $0 start ;;
+      status)  echo "Running" ;;
+      *)       echo "Usage: $0 {start|stop|restart|status}"; exit 1 ;;
+  esac
+
+### Pattern matching with globs:
+  case "$filename" in
+      *.tar.gz)  echo "Compressed tarball" ;;
+      *.zip)     echo "ZIP archive" ;;
+      *.txt)     echo "Text file" ;;
+      *.sh)      echo "Shell script" ;;
+      *)         echo "Unknown type" ;;
+  esac
+
+### Multiple patterns per branch:
+  case "$answer" in
+      y|Y|yes|YES) echo "Confirmed" ;;
+      n|N|no|NO)   echo "Cancelled" ;;
+      *)           echo "Please answer y or n" ;;
+  esac
+
+### Parsing flags:
+  #!/bin/bash
+  VERBOSE=0
+  OUTPUT=""
+  while [ "$#" -gt 0 ]; do
+      case "$1" in
+          -v|--verbose) VERBOSE=1 ;;
+          -o|--output)  OUTPUT="$2"; shift ;;
+          -h|--help)    echo "Usage: $0 [-v] [-o file]"; exit 0 ;;
+          -*)           echo "Unknown flag: $1"; exit 1 ;;
+          *)            ARGS+=("$1") ;;
+      esac
+      shift
+  done
+
+### Case-insensitive matching (bash 4+):
+  shopt -s nocasematch
+  case "$input" in
+      yes) echo "Confirmed" ;;
+      no)  echo "Cancelled" ;;
+  esac
+  shopt -u nocasematch
+
+## [EXPECTED RESULT]
+The matching branch runs, all others are skipped.
+The *) default catches anything that didn't match.
+
+## Try it now:
+  #!/bin/bash
+  echo "What OS are you on?"
+  read -p "[l]inux / [m]ac / [w]indows: " os
+  case "$os" in
+      l|L|linux)   echo "Great choice! Try: uname -a" ;;
+      m|M|mac)     echo "Decent. Try: sw_vers" ;;
+      w|W|windows) echo "Bold. Try: WSL!" ;;
+      *)           echo "Unknown: $os" ;;
+  esac
+
+## Technician Tip:
+case is the standard pattern for init scripts and CLI tools.
+Look at any /etc/init.d/ script — they all use case for start/stop.
+Your practicum script itself uses case extensively!
+
+## Common Pain Point:
+"Missing ;;" → every branch MUST end with ;; (double semicolon).
+  ✅ pattern) echo "match" ;;
+  ❌ pattern) echo "match"       # syntax error
+
+For fall-through (rare): use ;& instead of ;;
+  pattern) echo "match" ;&       # continues to next branch

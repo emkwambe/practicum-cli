@@ -1,0 +1,91 @@
+# Lesson: Resource Limits, Requests & Health Probes
+
+## [WHEN] You need this when:
+1. A runaway pod is consuming all node memory and crashing neighbors.
+2. The scheduler can't place pods because it doesn't know their needs.
+3. You need K8s to detect unhealthy pods and restart them.
+
+## [INTENT] "Set resource boundaries and health checks for production stability."
+
+## [CONTEXT]
+Without resource limits: one misbehaving pod can consume all node
+memory, triggering OOM kills on unrelated pods.
+
+Without health probes: K8s only knows if the process is running,
+not if the application is actually healthy and serving traffic.
+
+## [ACTION] Resources and probes
+
+### Resource requests and limits:
+  resources:
+    requests:
+      memory: "128Mi"     # scheduler reserves this
+      cpu: "100m"         # 100 millicores = 0.1 CPU
+    limits:
+      memory: "256Mi"     # hard ceiling — OOMKilled if exceeded
+      cpu: "500m"         # throttled if exceeded
+
+  Requests: guaranteed minimum. The scheduler uses these to place pods.
+  Limits: hard ceiling. The pod can't exceed these.
+
+  CPU: throttled (slowed down) when over limit
+  Memory: OOMKilled (terminated) when over limit — no gradual slowdown
+
+### Liveness probe (is the process stuck?):
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 3000
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    failureThreshold: 3
+
+  # If 3 consecutive checks fail: K8s KILLS the pod and restarts it.
+  # Use for: deadlocks, infinite loops, unresponsive processes.
+
+### Readiness probe (can it receive traffic?):
+  readinessProbe:
+    httpGet:
+      path: /ready
+      port: 3000
+    initialDelaySeconds: 5
+    periodSeconds: 3
+
+  # If readiness fails: K8s removes the pod from the Service endpoints.
+  # The pod stays running but gets NO traffic until it passes again.
+  # Use for: app starting up, loading cache, waiting for DB connection.
+
+### Startup probe (slow-starting apps):
+  startupProbe:
+    httpGet:
+      path: /health
+      port: 3000
+    failureThreshold: 30
+    periodSeconds: 10
+
+  # Gives the app 30 × 10 = 300 seconds to start.
+  # Until the startup probe passes, liveness and readiness are disabled.
+  # Use for: Java apps, ML model loading, large database migrations.
+
+### Probe types:
+  httpGet:   HTTP GET to a path (most common for web apps)
+  tcpSocket: TCP connect to a port (databases, Redis)
+  exec:      run a command inside the container
+
+### The difference matters:
+  Liveness: "is this pod broken?" → restart it
+  Readiness: "can this pod serve traffic?" → don't route to it
+  Startup: "has this pod finished starting?" → give it time
+
+  Wrong choice has consequences:
+  - Liveness on a slow-starting app → kills it before it's ready
+  - No readiness → sends traffic to pods that aren't ready → user errors
+
+## [EXPECTED RESULT]
+You can set resource boundaries, configure all three probe types,
+and understand when each probe type is appropriate.
+
+## Technician Tip:
+Always set readiness probes on web apps. Without them, K8s sends
+traffic to pods that are still starting, causing errors during
+rolling updates.

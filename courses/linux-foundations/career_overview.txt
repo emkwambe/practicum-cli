@@ -1,0 +1,72 @@
+# Linux Foundations — What You're Training For
+# ============================================
+
+## 🎯 This course prepares you for real Junior Linux roles
+
+After completing all 8 days, you will be able to handle these
+responsibilities that 85-95% of employers require:
+
+  ✅ SYSTEM ADMINISTRATION (95% of job postings)
+     - Navigate servers, manage files and directories
+     - Install, update, and remove software packages
+     - Monitor disk space, CPU, and memory usage
+
+  ✅ MONITORING & TROUBLESHOOTING (90% of job postings)
+     - Read and analyze system logs to find errors
+     - Diagnose high CPU, full disks, and failed services
+     - Follow a systematic troubleshooting pipeline
+
+  ✅ SECURITY & COMPLIANCE (85% of job postings)
+     - Set file permissions (chmod, chown)
+     - Manage user accounts and group access
+     - Audit who has access to what
+
+  ✅ USER & PERMISSION MANAGEMENT (85% of job postings)
+     - Create/modify/lock user accounts
+     - Configure sudo access and SSH keys
+     - Manage shared directories for teams
+
+  ✅ AUTOMATION & SCRIPTING (75% of job postings)
+     - Write Bash scripts to automate tasks
+     - Schedule cron jobs for backups and health checks
+     - Build text processing pipelines (grep, awk, sed)
+
+  ✅ NETWORKING (70% of job postings)
+     - Check IPs, ports, and connectivity
+     - SSH into remote servers securely
+     - Transfer files with scp and rsync
+
+  ✅ DOCUMENTATION (85% of job postings)
+     - Write clear reports and health check summaries
+     - Document what you did and why
+
+## 📋 Skills You Will Develop (by day)
+
+  Day 1: pwd, ls, cd, mkdir, touch, rm
+  Day 2: grep, cut, sort, uniq, wc, pipes, sed, head/tail
+  Day 3: variables, if/then, for/while loops, functions
+  Day 4: ps, kill, jobs, env, alias, PATH, find, du/df
+  Day 5: Capstone — build a real monitoring script
+  Day 6: chmod, chown, useradd, groups, sudo, security audit
+  Day 7: ip, ping, curl, ss, ssh, scp, rsync, apt, tar
+  Day 8: systemctl, journalctl, cron, vim, nano, awk
+
+## 🏆 By the end, you can:
+
+  - SSH into a production server and not break anything
+  - Diagnose and fix common system issues
+  - Write scripts that automate your daily tasks
+  - Pass the LFCS certification exam
+  - Handle your first week as a Junior Linux Admin
+
+## 💼 Roles this prepares you for:
+
+  - Junior Linux System Administrator
+  - Junior Linux Engineer
+  - IT Support Technician (Linux)
+  - DevOps Intern / Junior DevOps Engineer
+  - Cloud Support Associate
+
+  Average salary range: $55,000 - $75,000 (entry level)
+
+## ▶ Ready? Type any key to begin.

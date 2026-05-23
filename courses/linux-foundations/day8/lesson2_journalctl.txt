@@ -1,0 +1,33 @@
+# Lesson: journalctl — Read System Logs
+
+## [WHEN] You need this when:
+1. A service will not start and you need to see the error message.
+2. You are investigating a security incident.
+3. You want to follow logs in real time (like tail -f but better).
+4. You need logs from a specific time window.
+
+## [INTENT] "What went wrong? Show me the logs."
+
+## [CONTEXT]
+journalctl reads logs from systemd's journal. Every service that runs
+under systemd sends its output here. It is more powerful than reading
+/var/log files directly because you can filter by unit, priority, time.
+
+## [ACTION] journalctl [options]
+  journalctl                         — all logs (oldest first)
+  journalctl -f                      — follow in real time (like tail -f)
+  journalctl -u nginx                — logs for nginx only
+  journalctl -u nginx --since today  — nginx logs from today
+  journalctl -p err                  — only errors and above
+  journalctl -p err -b               — errors since last boot
+  journalctl --since "1 hour ago"    — last hour
+  journalctl --disk-usage            — how much space logs use
+  journalctl --vacuum-size=100M      — shrink logs to 100MB
+
+## [EXPECTED RESULT]
+Log entries with timestamp, hostname, service name, and message.
+Use q to exit the pager. Arrow keys to scroll.
+
+## Try it now:
+  journalctl --since "10 minutes ago" | tail -5
+  journalctl --disk-usage

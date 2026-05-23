@@ -1,0 +1,233 @@
+# Final Capstone: The Automation Contract
+
+## THIS IS NOT A HOMEWORK ASSIGNMENT.
+
+You are a freelance sysadmin. A client just hired you to build
+one tool. Your reputation depends on it.
+
+────────────────────────────────────────────────────
+
+## PHASE 1 — Problem Context
+
+### The Scenario:
+
+GreenLeaf Nursery is a family-owned plant nursery with 3 locations.
+They have a single Linux server running their inventory system,
+point-of-sale, and website. The owner's nephew "set it up" two
+years ago and hasn't touched it since.
+
+The owner, Maria, calls you:
+
+```
+"The server has crashed twice this month. Both times we lost a
+full day of sales because nobody knew it was down until a
+customer complained. I need something that checks the server
+every morning and tells me — in plain English — if something
+is wrong. I also need it to run automatically. I'm not a
+computer person. I just need to know: is the server healthy?"
+```
+
+### What you know:
+  - Ubuntu 22.04, 2 cores, 4GB RAM
+  - Services: nginx (website), mysql (inventory), node (POS app)
+  - Disk was 87% full last time it crashed
+  - No monitoring exists
+  - No log rotation configured
+  - Maria reads email, not terminals
+
+### What you DON'T know:
+  - What caused the two crashes specifically
+  - What "healthy" means in Maria's terms (uptime? response time? disk?)
+  - How the alert should reach Maria (email? file? SMS?)
+  - Whether the nephew's cron setup still works
+  - What thresholds make sense for this server
+
+────────────────────────────────────────────────────
+
+## PHASE 2 — Requirements Discovery
+
+Write DISCOVERY.md:
+
+  1. What questions would you ask Maria before writing any code?
+     (At least 5 — remember she's non-technical.)
+
+  2. Define "server healthy" in measurable terms.
+     (What metrics, what thresholds?)
+
+  3. What are the risks if you DON'T build this tool?
+     (List at least 3 business impacts.)
+
+  4. What does the output need to look like for Maria?
+     (She's not going to read terminal output.)
+
+────────────────────────────────────────────────────
+
+## PHASE 3 — Planning & Design
+
+Create TOOL_DESIGN.md:
+
+  1. Script architecture (what functions, what flow)
+  2. What checks to include and why
+  3. Thresholds and alert levels (INFO, WARNING, CRITICAL)
+  4. Output format (how Maria will read it)
+  5. Automation plan (cron schedule, alert delivery)
+  6. What you'd add in Phase 2 (if Maria signs a second contract)
+
+────────────────────────────────────────────────────
+
+## PHASE 4 — Execution
+
+Build server-report.sh that:
+
+### 4A. Script fundamentals
+  - Shebang, set -euo pipefail
+  - trap for cleanup of temp files
+  - usage() function with -h flag
+  - Accept flags: -o FILE, -t THRESHOLD, -v verbose, -h help
+  - Logging function with timestamps
+
+### 4B. Health checks (separate functions)
+  - check_cpu() — usage, top 3 consumers
+  - check_memory() — RAM and swap with percentage
+  - check_disk() — all filesystems, warn above threshold
+  - check_services() — nginx, mysql, node status
+  - check_network() — can we reach the internet?
+  - check_logs() — recent error-level entries
+
+### 4C. Report generation
+  - Formatted output with headers, sections, status icons
+  - Summary at the bottom: total warnings, total criticals
+  - Plain-language explanation for each issue found
+  - Exit code: 0 if clean, 1 if warnings, 2 if critical
+
+### 4D. Automation
+  - Write the cron entry (to /tmp/cron_entry.txt)
+  - Script the output redirect to a dated report file
+  - Document how Maria would be notified
+
+────────────────────────────────────────────────────
+
+## PHASE 5 — Failure Injection
+
+⚠️ SOMETHING GOES WRONG.
+
+After building and testing your script, simulate ONE:
+
+  A) Your script works locally but when run from cron produces
+     garbled output. Color codes render as escape sequences.
+     Also, jq is "not found" even though it's installed.
+     Fix both issues and document why cron environments differ.
+
+  B) The disk check shows /var at 93%. You investigate and find
+     mysql logs have grown to 4.2GB because log rotation was
+     never configured. Fix the immediate problem AND set up
+     prevention.
+
+  C) Maria calls: "The report says everything is OK but the
+     website is down!" You check: nginx is running (systemctl
+     shows active) but curl localhost returns connection refused.
+     The health check missed this because it only checked
+     service status, not actual HTTP response. Fix the gap.
+
+Pick ONE. Document in INCIDENT.md:
+  1. What happened
+  2. Root cause
+  3. Fix
+  4. What you changed in the script to prevent recurrence
+
+────────────────────────────────────────────────────
+
+## PHASE 6 — Communication
+
+Create MARIA_README.md — written for Maria (non-technical):
+  - What the tool does in plain English
+  - What the report looks like (sample output)
+  - What WARNING and CRITICAL mean
+  - What she should do when she sees each level
+  - Who to call if she sees CRITICAL
+
+Create HANDOFF.md — for the next technician:
+  - Where the script lives and how it runs
+  - Cron schedule and log file locations
+  - How to modify thresholds
+  - Known limitations
+  - How to add new checks
+
+────────────────────────────────────────────────────
+
+## PHASE 7 — Reflection
+
+At the bottom of MARIA_README.md:
+
+### Lessons Learned
+  - What was the hardest part of building this tool?
+  - What would break if GreenLeaf opens a 4th location?
+  - If you had a second contract, what would you build next?
+  - What's the weakest check in your script?
+
+────────────────────────────────────────────────────
+
+## SCORING RUBRIC
+
+### Script Quality (25%)
+  [ ] Strict mode, trap, clean structure
+  [ ] Functions with local variables
+  [ ] Flag parsing (getopts)
+  [ ] Logging with timestamps
+  [ ] Appropriate exit codes
+
+### Health Checks (20%)
+  [ ] CPU, memory, disk, services, network covered
+  [ ] Thresholds produce correct WARNING/CRITICAL
+  [ ] Output is human-readable
+  [ ] Summary section at the bottom
+
+### Automation (10%)
+  [ ] Cron entry is correct
+  [ ] Output redirected to dated file
+  [ ] Notification approach documented
+
+### Failure Response (15%)
+  [ ] Incident scenario completed
+  [ ] Root cause identified
+  [ ] Script improved to prevent recurrence
+
+### Communication (15%)
+  [ ] Maria's README is plain English — no jargon
+  [ ] Handoff doc is actionable for a technician
+  [ ] Sample output shown
+
+### Professional Judgment (15%)
+  [ ] Requirements discovery is thorough
+  [ ] Tool design justifies decisions
+  [ ] Tradeoffs explained
+  [ ] Reflection shows growth
+
+### Score Interpretation:
+  90-100%  Ready to take freelance automation contracts
+  75-89%   Strong — ready with mentorship
+  60-74%   Developing — review weak dimensions
+  Below 60% Review Days 1-7
+
+────────────────────────────────────────────────────
+
+## FINAL DELIVERABLES
+
+  server-report.sh (executable, working)
+  /tmp/cron_entry.txt
+  DISCOVERY.md
+  TOOL_DESIGN.md
+  INCIDENT.md
+  MARIA_README.md (includes Lessons Learned)
+  HANDOFF.md
+
+Total: 7 deliverables.
+
+────────────────────────────────────────────────────
+
+## THE STANDARD
+
+  "If Maria referred me to another small business owner,
+   could I show this work as proof I deliver professional tools?"
+
+## 🎓 Generate your certificate: practicum certificate

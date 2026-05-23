@@ -1,0 +1,23 @@
+COURSE: Kubernetes Orchestration
+CERTIFICATION_ALIGNMENT: Certified Kubernetes Administrator (CKA) — CNCF
+CERT_DOMAINS: Cluster Architecture Installation & Configuration (25%), Workloads & Scheduling (15%), Services & Networking (20%), Storage (10%), Troubleshooting (30%)
+TAGLINE: "From kubectl to CKA — master cluster administration"
+TOTAL_DAYS: 14
+TOTAL_LESSONS: 33
+PREREQS: Docker & Containers
+CAPSTONE: MediCluster — HA Medical Records Platform
+
+SKILLS:
+  k8s_architecture, kubectl, pods, labels_selectors,
+  deployments, rolling_updates, hpa, autoscaling,
+  jobs, cronjobs, daemonsets,
+  scheduling, node_affinity, pod_affinity, taints_tolerations, priority_classes,
+  configmaps, secrets, resource_limits, probes, qos,
+  rbac, roles, rolebindings, service_accounts,
+  services, clusterip, nodeport, loadbalancer,
+  ingress, gateway_api, network_policies, coredns,
+  volumes, pvc, storage_classes, statefulsets,
+  kubeadm, cluster_upgrades, etcd_backup, etcd_restore, ha_control_plane,
+  crds, operators, cni_csi_cri, helm, kustomize,
+  troubleshoot_pods, troubleshoot_cluster, troubleshoot_networking,
+  troubleshoot_dns, troubleshoot_services, node_repair

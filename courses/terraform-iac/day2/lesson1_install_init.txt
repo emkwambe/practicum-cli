@@ -1,0 +1,80 @@
+# Lesson: Installing Terraform & Your First Init
+
+## [WHEN] You need this when:
+1. You need Terraform installed and verified.
+2. You're starting a new Terraform project.
+3. You need to understand the project file structure.
+
+## [INTENT] "Set up Terraform and initialize your first project."
+
+## [CONTEXT]
+Terraform is a single binary. No runtime, no dependencies, no daemon.
+Download it, put it in your PATH, and it works.
+
+## [ACTION] Installation and initialization
+
+### Install on Ubuntu/WSL:
+  wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+  echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+  sudo apt update && sudo apt install terraform
+
+### Verify:
+  terraform version
+  # Terraform v1.8.x
+
+### Project structure:
+  my-infra/
+  ├── main.tf          # primary resources
+  ├── variables.tf     # input variables
+  ├── outputs.tf       # output values
+  ├── providers.tf     # provider configuration
+  ├── terraform.tfvars # variable values (gitignored for secrets)
+  └── .terraform/      # plugins (auto-created by init)
+
+### terraform init:
+  mkdir my-infra && cd my-infra
+
+  # Create a minimal config:
+  cat > main.tf << 'EOF'
+  terraform {
+    required_providers {
+      docker = {
+        source  = "kreuzwerker/docker"
+        version = "~> 3.0"
+      }
+    }
+  }
+
+  provider "docker" {}
+  EOF
+
+  terraform init
+  # Downloads the Docker provider plugin
+  # Creates .terraform/ directory
+  # Creates .terraform.lock.hcl (lockfile — commit this to Git)
+
+### What init does:
+  1. Reads required_providers from config
+  2. Downloads provider plugins to .terraform/
+  3. Creates .terraform.lock.hcl (version lockfile)
+  4. Validates the configuration syntax
+
+### .gitignore for Terraform:
+  .terraform/          # provider plugins (large, auto-downloaded)
+  *.tfstate            # state files (contain sensitive data)
+  *.tfstate.backup
+  terraform.tfvars     # may contain secrets
+  .terraform.lock.hcl  # some teams commit this, some don't
+
+## [EXPECTED RESULT]
+Terraform installed, first project initialized, provider downloaded.
+
+## Technician Tip:
+Always commit .terraform.lock.hcl to Git. It pins exact provider
+versions — like package-lock.json for npm. Without it, teammates
+might get different provider versions.
+
+## Common Pain Point:
+"terraform init fails with 'provider not found'" → check the
+source path. It's "hashicorp/aws" not just "aws". Check the
+Terraform Registry for exact source names.

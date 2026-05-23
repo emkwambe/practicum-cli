@@ -1,0 +1,48 @@
+# Lesson: docker logs — Read Container Output
+
+## [WHEN] You need this when:
+1. A container crashed right after starting and you don't know why.
+2. Your app returns 500 errors and you need to see the stack trace.
+3. A background container isn't responding and you need to diagnose.
+4. You want to watch logs in real time like tail -f.
+
+## [INTENT] "Show me what this container has written to stdout/stderr."
+
+## [CONTEXT]
+Docker captures everything your container writes to stdout and stderr.
+Those logs are the #1 troubleshooting tool for containers.
+No logs = you're blind. This is why you should NEVER have your
+app write to a log file inside the container — write to stdout,
+let Docker (or your logging driver) handle it.
+
+## [ACTION] docker logs <container>
+Common patterns:
+  docker logs web                  — all logs since container started
+  docker logs -f web               — follow (like tail -f), stream in real-time
+  docker logs --tail 50 web        — just the last 50 lines
+  docker logs --since 5m web       — logs from the last 5 minutes
+  docker logs --timestamps web     — prepend timestamps
+  docker logs -f --tail 20 web     — last 20 lines, then follow
+
+## [EXPECTED RESULT]
+Raw stdout/stderr from the container. Whatever the app printed, you see.
+If container crashed immediately, logs show WHY (stack trace, error message).
+
+## Try it now:
+  docker run -d --name web nginx
+  curl localhost         # might fail if no port published
+  docker logs web
+  docker logs -f web     # Ctrl+C to exit
+  docker stop web && docker rm web
+
+## Technician Tip:
+When a container keeps restarting, you MUST use --tail:
+  docker logs --tail 100 <container>
+Without it, you might see hours of restart loop noise. Last 100 lines
+usually contain the actual error.
+
+## Common Pain Point:
+"docker logs returns nothing" usually means:
+  1. The app writes to a file inside the container (bad practice)
+  2. The app hasn't actually started yet (check docker ps status)
+  3. The container already exited (check docker ps -a)

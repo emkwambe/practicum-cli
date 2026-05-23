@@ -1,0 +1,64 @@
+Q1: SCENARIO: Your config has instance_type = "t3.micro" hardcoded. Dev needs micro, prod needs large. The fix:
+A) Edit the config before each apply
+B) Maintain two separate config files
+C) Use a variable: var.instance_type with different .tfvars per environment
+D) Use comments to switch
+Correct: C
+
+Q2: A sensitive = true variable:
+A) Can't be used in resources
+B) Can only be a string
+C) Is encrypted everywhere
+D) Is hidden from plan/apply terminal output but still stored in state
+Correct: D
+
+Q3: Which variable type is correct for a list of port numbers?
+A) type = number
+B) type = string
+C) type = list(number)
+D) type = array
+Correct: C
+
+Q4: DIAGNOSTIC: terraform apply fails with "variable 'region' not set." You declared it in variables.tf. What's missing?
+A) You declared it but never provided a value — add a default, use terraform.tfvars, -var flag, or TF_VAR_region env var
+B) You need to run init again
+C) The variable declaration is wrong
+D) Terraform can't use variables
+Correct: A
+
+Q5: Outputs in Terraform are used to:
+A) Export values (like IP addresses) that other configs or humans can consume after apply
+B) Define variables
+C) Print error messages
+D) Delete resources
+Correct: A
+
+
+
+Q6: A data source differs from a resource because:
+A) Data sources READ existing infrastructure without managing it; resources CREATE and manage infrastructure
+B) Data sources create infrastructure; resources read it
+C) Data sources are faster
+D) They're the same
+Correct: A
+
+Q7: terraform output -raw web_ip is useful for:
+A) Debugging
+B) Scripting — it outputs the raw value without quotes, ready to pipe to other commands
+C) Formatting
+D) Destroying resources
+Correct: B
+
+Q8: TRADEOFF: Setting variables via terraform.tfvars (committed) vs environment variables (TF_VAR_). When should you use env vars?
+A) Only on Linux
+B) Always
+C) Never — tfvars is always better
+D) For sensitive values like passwords and API keys that shouldn't be in any file committed to Git
+Correct: D
+
+Q9: A validation block inside a variable definition:
+A) Is only for production
+B) Checks the variable value at plan time — condition = contains(["dev","staging","prod"], var.env) rejects invalid inputs before anything is created
+C) Validates the state file
+D) Only works with strings
+Correct: B

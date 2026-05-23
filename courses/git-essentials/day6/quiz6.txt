@@ -1,0 +1,55 @@
+Q1: git stash does what?
+A) Permanently deletes uncommitted changes
+B) Commits all changes with a default message
+C) Temporarily saves uncommitted changes and cleans the working directory — recoverable with stash pop
+D) Creates a new branch
+Correct: C
+
+Q2: TRADEOFF: When should you NOT rebase?
+A) On your local feature branch (always safe)
+B) On commits that have been pushed and shared — rebase rewrites history and will cause conflicts for others
+C) Rebasing is always safe
+D) Before merging
+Correct: B
+
+Q3: git cherry-pick abc123 does what?
+A) Deletes commit abc123
+B) Merges two branches
+C) Copies a single specific commit from one branch and applies it to your current branch
+D) Creates a new branch at abc123
+Correct: C
+
+Q4: SCENARIO: A test used to pass but now fails. You have 500 commits since then. What tool finds the exact commit that broke it?
+A) git log and check each commit manually
+B) git diff HEAD~500
+D) git bisect — binary search through commits, testing each one, finds the bad commit in ~9 steps
+C) git reset to the beginning
+Correct: D
+
+Q5: DIAGNOSTIC: You ran git reset --hard HEAD~3 and lost 3 commits. Are they gone forever?
+A) Yes — reset --hard is permanent
+B) No — git reflog shows every HEAD position. Find the lost commit SHA and git cherry-pick or git reset --hard to recover it
+C) Only if you pushed them
+D) You need to re-clone
+Correct: B
+
+Q6: git commit --amend does what?
+A) Creates a new branch
+B) Undoes the last commit entirely
+C) Replaces the most recent commit with a new one (new message, added files) — changes the commit hash
+D) Pushes to the server
+Correct: C
+
+Q7: You want to update your feature branch with main's latest changes WITHOUT a merge commit:
+A) git merge main (creates a merge commit)
+B) git pull main
+C) git rebase main — replays your commits on top of main's latest, keeping linear history
+D) git reset main
+Correct: C
+
+Q8: SCENARIO: A junior developer asks "I messed up my branch badly. Can I just start over from main?" The cleanest approach is:
+A) Delete the repo and re-clone
+B) git checkout main && git branch -D messy-branch && git switch -c fresh-branch
+C) Edit files manually to undo everything
+D) Push the mess and hope for the best
+Correct: B

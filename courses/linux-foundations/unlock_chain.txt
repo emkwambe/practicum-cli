@@ -1,0 +1,53 @@
+# Unlock chains: completed_command -> next_unlocked_command
+# Day 1
+pwd|ls
+ls|cd
+cd|mkdir
+mkdir|touch
+touch|rm
+# Day 2
+grep|cut
+cut|sort
+sort|uniq
+uniq|wc
+wc|pipes
+pipes|sed
+sed|head_tail
+# Day 3
+variables|conditionals
+conditionals|for_loop
+for_loop|while_loop
+while_loop|functions
+functions|exit_codes
+# Day 4
+ps|kill
+kill|jobs
+jobs|env
+env|alias
+alias|path
+path|find
+find|du_df
+# Day 6
+chmod|chown
+chown|octal
+octal|useradd
+useradd|groups
+groups|sudo
+sudo|setuid_sticky
+setuid_sticky|audit
+# Day 7
+ip|ping_curl
+ping_curl|ss
+ss|ssh
+ssh|scp_rsync
+scp_rsync|apt
+apt|tar
+tar|diagnostic
+# Day 8
+systemctl|journalctl
+journalctl|cron
+cron|vim
+vim|nano
+nano|awk
+awk|logs
+logs|routine

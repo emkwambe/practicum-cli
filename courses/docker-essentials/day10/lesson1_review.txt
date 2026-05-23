@@ -1,0 +1,95 @@
+# Lesson: Docker Course Final Review
+
+## [WHEN] You need this when:
+You've reached the end of the Docker course. Time to consolidate.
+
+## [INTENT] "Review every key concept and prepare for the DCA exam."
+
+## [CONTEXT]
+You've covered the full Docker stack from "what is a container" to
+"deploy a hardened multi-service stack to Swarm." This review maps
+your skills to the DCA exam domains and to real job requirements.
+
+## [DCA EXAM DOMAIN COVERAGE]
+
+### 1. Orchestration (25% of exam)
+✅ Day 8: Swarm init, services, stacks, rolling updates, secrets, nodes
+Key facts to remember:
+  - (N-1)/2 fault tolerance formula for managers
+  - Odd number of managers (3 or 5) for HA
+  - Replicated vs global service modes
+  - depends_on does NOT wait for app ready (use service_healthy condition)
+  - Routing mesh: published port works on every node
+
+### 2. Image Creation, Management, and Registry (20%)
+✅ Day 2: Dockerfile, build, layers, multi-stage, tagging
+✅ Day 6: Registries, pull, push, scanning, prune
+Key facts:
+  - Multi-stage builds keep production images small
+  - COPY vs ADD: prefer COPY (predictable)
+  - Layer caching: order from least to most volatile
+  - Tags are mutable, digests (sha256:...) are immutable
+  - docker image prune (dangling) vs prune -a (all unused)
+
+### 3. Installation and Configuration (15%)
+✅ Day 1: docker run with proper flags
+Key facts:
+  - Daemon config: /etc/docker/daemon.json
+  - Default storage driver: overlay2 (Linux)
+  - dockerd runs as root by default
+  - Rootless Docker available for non-root daemon
+
+### 4. Networking (15%)
+✅ Day 3: bridge, host, none, port mapping
+✅ Day 4: compose networks
+Key facts:
+  - Default bridge: NO automatic name resolution
+  - User-defined bridge: containers find each other by name
+  - Overlay networks: required for multi-host swarm
+  - EXPOSE in Dockerfile is documentation only — does NOT publish
+  - -P (capital) auto-publishes EXPOSEd ports to random hosts
+
+### 5. Security (15%)
+✅ Day 7: non-root, secrets, capabilities, signing, hardening
+Key facts:
+  - --user UID:GID drops from root
+  - --cap-drop=ALL --cap-add=X for least privilege
+  - Secrets via /run/secrets, NOT env vars
+  - --read-only + --tmpfs for stateless apps
+  - --security-opt=no-new-privileges blocks setuid escalation
+
+### 6. Storage and Volumes (10%)
+✅ Day 3: volumes, bind mounts, tmpfs
+✅ Day 4: compose volumes
+Key facts:
+  - Named volumes: Docker-managed, persist across container removal
+  - Bind mounts: host path, good for dev (live reload)
+  - tmpfs: in-memory, never persists
+  - Volume drivers (local, NFS, etc.) for advanced storage
+  - "compose down" keeps volumes; "compose down -v" removes them
+
+## [REAL-WORLD SKILLS YOU CAN NOW DO]
+
+  ✅ Run any Docker Hub image in seconds
+  ✅ Write a production-quality Dockerfile from scratch
+  ✅ Debug a misbehaving container (logs, exec, inspect)
+  ✅ Manage volumes for stateful applications
+  ✅ Network containers across user-defined bridges and overlays
+  ✅ Use Compose for multi-service development
+  ✅ Push to private registries (GHCR, ECR, GitLab)
+  ✅ Scan images for vulnerabilities and harden them
+  ✅ Deploy and manage Swarm services with rolling updates
+  ✅ Handle secrets safely in production
+
+## [TYPICAL DCA EXAM TRAPS TO REMEMBER]
+
+  - "depends_on waits for app ready" — FALSE without health condition
+  - "EXPOSE publishes the port" — FALSE, just documentation
+  - "--latest is fine in production" — FALSE, use specific tags or digests
+  - "Default bridge supports name resolution" — FALSE, use user-defined
+  - "Secrets work in standalone containers" — FALSE, only in Swarm services
+  - "Containers run as non-root by default" — FALSE, default is root
+  - "docker stop kills immediately" — FALSE, sends SIGTERM, waits 10s, then SIGKILL
+  - "Two managers is good for HA" — FALSE, need ODD number (no quorum with 2)
+
+## Type menu, then continue to the final capstone.

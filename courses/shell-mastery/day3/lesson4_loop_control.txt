@@ -1,0 +1,81 @@
+# Lesson: Loop Control — break, continue, select
+
+## [WHEN] You need this when:
+1. You need to exit a loop early when a condition is met.
+2. You want to skip certain items in a loop.
+3. You're building an interactive menu.
+
+## [INTENT] "Control flow inside loops."
+
+## [CONTEXT]
+  break    — exit the loop immediately
+  continue — skip the rest of this iteration, go to next
+  select   — built-in menu loop (rarely used but useful)
+
+## [ACTION] Loop control
+
+### break — stop when found:
+  for f in /var/log/*; do
+      if [ -s "$f" ] && grep -q "CRITICAL" "$f" 2>/dev/null; then
+          echo "Found CRITICAL in: $f"
+          break     # stop looking, we found one
+      fi
+  done
+
+### continue — skip unwanted items:
+  for f in /etc/*; do
+      [ ! -f "$f" ] && continue     # skip directories
+      [[ "$f" == *.bak ]] && continue  # skip backups
+      echo "Config: $(basename "$f")"
+  done
+
+### break N — exit nested loops:
+  for i in {1..3}; do
+      for j in {1..3}; do
+          echo "$i-$j"
+          [ "$j" -eq 2 ] && break 2    # breaks BOTH loops
+      done
+  done
+
+### select — instant menu:
+  echo "Choose an action:"
+  select action in "Start" "Stop" "Restart" "Quit"; do
+      case "$action" in
+          Start)   echo "Starting..."; break ;;
+          Stop)    echo "Stopping..."; break ;;
+          Restart) echo "Restarting..."; break ;;
+          Quit)    echo "Bye!"; break ;;
+          *)       echo "Invalid choice" ;;
+      esac
+  done
+
+### Practical: process files with progress:
+  files=(/var/log/*.log)
+  total=${#files[@]}
+  count=0
+  for f in "${files[@]}"; do
+      ((count++))
+      [ ! -f "$f" ] && continue
+      echo "[$count/$total] Processing $(basename "$f")..."
+  done
+
+## [EXPECTED RESULT]
+break exits the loop. continue skips to the next iteration.
+select creates an interactive numbered menu automatically.
+
+## Try it now:
+  select fruit in Apple Banana Cherry Quit; do
+      [[ "$fruit" == "Quit" ]] && break
+      echo "You picked: $fruit"
+  done
+
+## Technician Tip:
+select is perfect for quick interactive scripts:
+  select server in $(cat /etc/servers.list) "Exit"; do
+      [[ "$server" == "Exit" ]] && break
+      ssh "$server"
+  done
+
+## Next:
+Type menu to return. You have completed Day 3!
+You can now loop, iterate, and process collections of data.

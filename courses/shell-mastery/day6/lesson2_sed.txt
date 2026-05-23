@@ -1,0 +1,73 @@
+# Lesson: sed — Stream Editor for Search & Replace
+
+## [WHEN] You need this when:
+1. You need to find and replace text in files (config changes).
+2. You want to delete, insert, or modify specific lines.
+3. You're transforming data formats (CSV to TSV, etc.).
+4. You need to edit files non-interactively (in scripts).
+
+## [INTENT] "Find and replace text, or transform lines, without opening an editor."
+
+## [CONTEXT]
+sed reads input line by line, applies transformations, and outputs.
+Most common use: s/old/new/ (substitute).
+
+## [ACTION] sed patterns
+
+### Search and replace:
+  echo "Hello World" | sed 's/World/Bash/'          # Hello Bash
+  sed 's/error/ERROR/g' app.log                      # g = global (all occurrences)
+  sed -i 's/old/new/g' config.txt                    # -i = edit file in place
+
+### Replace with regex:
+  echo "2026-04-16" | sed 's/\([0-9]*\)-\([0-9]*\)-\([0-9]*\)/\3\/\2\/\1/'
+  # 16/04/2026
+
+  # Extended regex (-E):
+  echo "port=8080" | sed -E 's/port=([0-9]+)/PORT: \1/'   # PORT: 8080
+
+### Delete lines:
+  sed '/^#/d' config.txt                  # delete comment lines
+  sed '/^$/d' file.txt                    # delete empty lines
+  sed '1d' file.txt                       # delete first line
+  sed '$d' file.txt                       # delete last line
+  sed '5,10d' file.txt                    # delete lines 5-10
+
+### Insert and append:
+  sed '1i\# This is a header' file.txt    # insert before line 1
+  sed '$a\# End of file' file.txt         # append after last line
+  sed '/\[server\]/a\port = 8080' config  # append after matching line
+
+### Print specific lines:
+  sed -n '5p' file.txt                    # only line 5
+  sed -n '10,20p' file.txt               # lines 10-20
+  sed -n '/START/,/END/p' file.txt        # between patterns
+
+### Chain operations:
+  sed -e 's/foo/bar/g' -e '/^$/d' -e 's/#.*//' file.txt
+  # Replace foo→bar, delete empty lines, strip comments
+
+### In-place with backup:
+  sed -i.bak 's/old/new/g' config.txt     # creates config.txt.bak
+
+## [EXPECTED RESULT]
+sed transforms text streams. With -i, it edits files directly.
+Essential for scripted config changes.
+
+## Try it now:
+  # Strip comments and empty lines from a config:
+  sed -e '/^#/d' -e '/^$/d' -e 's/#.*//' /etc/ssh/sshd_config 2>/dev/null | head -10
+
+## Technician Tip:
+When editing config files in scripts, always make a backup:
+  cp config.txt config.txt.bak
+  sed -i 's/old_value/new_value/' config.txt
+
+Or use sed's built-in backup: sed -i.bak 's/old/new/' config.txt
+
+## Common Pain Point:
+"sed: -e expression: unknown option to `s'" → your delimiter conflicts.
+If replacing a path (/var/log/...), use a different delimiter:
+  ❌ sed 's//var/log//var/backup/' file
+  ✅ sed 's|/var/log|/var/backup|' file
+  ✅ sed 's#/var/log#/var/backup#' file

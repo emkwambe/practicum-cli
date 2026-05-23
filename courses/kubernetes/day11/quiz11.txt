@@ -1,0 +1,59 @@
+Q1: The correct order for upgrading a Kubernetes cluster with kubeadm is:
+A) Upgrade workers first, then control plane
+B) Upgrade kubeadm → kubeadm upgrade plan → kubeadm upgrade apply → drain node → upgrade kubelet+kubectl → restart kubelet → uncordon — control plane first, then workers
+C) Just run apt upgrade on all nodes
+D) Delete the cluster and recreate it
+Correct: B
+
+
+
+Q2: SCENARIO: You need to upgrade from Kubernetes 1.30 to 1.32. What's the right approach?
+A) Upgrade one minor version at a time — first 1.30 → 1.31, verify everything works, then 1.31 → 1.32. Skipping versions is unsupported and risks incompatibilities.
+B) Upgrade directly to 1.32
+C) Downgrade to 1.29 first
+D) It doesn't matter, any jump works
+Correct: A
+
+Q3: kubeadm token create --print-join-command is used when:
+A) Initializing a new cluster
+B) Creating ServiceAccounts
+C) Upgrading the cluster
+D) The original join token has expired (24h default) and you need a fresh token+command to add worker nodes to the existing cluster
+Correct: D
+
+Q4: DIAGNOSTIC: After running kubeadm upgrade apply, the node shows NotReady. What did you forget?
+A) Running kubeadm init again
+B) Rebooting the node
+C) Installing a new CNI
+D) Upgrading the kubelet package and restarting it — kubeadm upgrades control plane components but the kubelet is a separate package that must be upgraded and restarted manually
+Correct: D
+
+Q5: etcd stores:
+A) Container images and logs
+B) Pod filesystem data
+C) ALL Kubernetes cluster state — every Deployment, Service, ConfigMap, Secret, RBAC rule, and namespace definition. Losing etcd means losing all cluster configuration.
+D) Node operating system configuration
+Correct: C
+
+Q6: SCENARIO: You need to perform a risky cluster change. What should you do first?
+A) Document the change
+B) Take an etcd snapshot backup (etcdctl snapshot save) — if the change breaks the cluster, you can restore to the pre-change state in minutes
+C) Scale down all workloads
+D) Notify the team
+Correct: B
+
+
+
+Q7: When restoring an etcd snapshot, you must restore to a NEW data directory because:
+A) Restoring over the existing directory can cause corruption — using a new directory (--data-dir=/var/lib/etcd-restored) and updating the etcd manifest is the safe approach
+B) The old directory is locked
+C) etcd requires fresh directories
+D) Kubernetes creates the directory automatically
+Correct: A
+
+Q8: TRADEOFF: Running etcd on the same nodes as the control plane (stacked) vs. dedicated etcd nodes (external):
+A) Stacked is always better
+B) External is always better
+C) Stacked is simpler but a node failure loses both a control plane member AND an etcd member. External etcd provides better fault isolation but adds operational complexity and more infrastructure.
+D) There's no difference
+Correct: C

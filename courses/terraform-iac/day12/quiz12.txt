@@ -1,0 +1,57 @@
+Q1: HCP Terraform workspaces differ from CLI workspaces because:
+A) HCP workspaces are full environments with their own state, variables, permissions, VCS connections, and run history — CLI workspaces are just separate state files in one directory
+B) They're the same concept
+C) CLI workspaces are more powerful
+D) HCP workspaces don't support state
+Correct: A
+
+Q2: SCENARIO: Your team needs shared credentials across 15 workspaces without duplicating them. Which HCP Terraform feature?
+A) Copy-paste into each workspace
+B) Shared modules
+C) Variable sets — define credentials once and apply the set to multiple workspaces. Changes propagate to all attached workspaces automatically.
+D) Remote state
+Correct: C
+
+
+
+Q3: In HCP Terraform's VCS-driven workflow, a pull request triggers:
+A) An automatic apply
+B) A workspace deletion
+C) A speculative plan — a preview that shows what would change if merged, without actually applying. The plan result appears as a PR check.
+D) A policy evaluation only
+Correct: C
+
+Q4: Sentinel and OPA in HCP Terraform are used for:
+A) Policy enforcement — defining rules like "no public S3 buckets" or "instance types must be t3.medium or smaller" that are evaluated automatically before apply
+B) State encryption
+C) Monitoring
+D) Authentication
+Correct: A
+
+Q5: The cloud block in Terraform configuration replaces:
+A) The provider block
+B) The terraform block
+C) The required_providers block
+D) The backend block — instead of configuring S3 or other backends, the cloud block connects to HCP Terraform for remote state and execution
+Correct: D
+
+Q6: DIAGNOSTIC: terraform plan runs but you see "Running plan remotely in HCP Terraform" instead of local execution. This means:
+A) Something is wrong
+B) The state is corrupted
+C) Your credentials are wrong
+D) The cloud block is configured — Terraform sends the plan to HCP Terraform for remote execution and streams the output back to your terminal. This is the expected behavior.
+Correct: D
+
+Q7: TRADEOFF: HCP Terraform's drift detection vs manual terraform plan:
+A) Manual plan is sufficient
+B) Drift detection runs on a schedule automatically and notifies when reality diverges from state — manual plan only catches drift when someone remembers to run it. Automated detection is more reliable but requires HCP Terraform.
+C) They're identical
+D) Drift detection is less accurate
+Correct: B
+
+Q8: Dynamic credentials in HCP Terraform eliminate:
+A) The need for provider blocks
+B) Static cloud access keys — HCP Terraform generates temporary, scoped credentials via workload identity federation. No AWS keys stored in variables or .tfvars files.
+C) Terraform state
+D) The need for modules
+Correct: B

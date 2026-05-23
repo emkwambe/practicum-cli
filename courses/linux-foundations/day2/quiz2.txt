@@ -1,41 +1,55 @@
-Q1: What does grep -v "DEBUG" server.log do?
-A) Shows only lines containing DEBUG
-B) Shows all lines EXCEPT those containing DEBUG
-C) Deletes lines containing DEBUG from the file
-D) Counts the number of DEBUG lines
-Correct: B
+Q1: Your server log has 50,000 lines. You need only the lines containing "ERROR". Which command?
+A) cat server.log | find ERROR
+B) search ERROR server.log
+D) grep "ERROR" server.log
+C) filter server.log ERROR
+Correct: D
 
-Q2: How do you extract the first field from a colon-delimited file?
-A) cut -f1 file.txt
-B) cut -d: -f1 file.txt
-C) grep -f1 file.txt
-D) awk file.txt
-Correct: B
-
-Q3: Why must you sort data before using uniq?
-A) uniq only works on sorted files
-B) uniq removes only consecutive duplicates
-C) sort makes uniq run faster
-D) It is optional but recommended
-Correct: B
-
-Q4: What does wc -l count?
-A) Words
-B) Characters
-C) Lines
-D) Bytes
+Q2: SCENARIO: You have a CSV with columns name,email,phone. You need only the email column (column 2). Which command?
+A) grep email data.csv
+B) awk data.csv --column 2
+C) cut -d',' -f2 data.csv
+D) sed 's/email//' data.csv
 Correct: C
 
-Q5: What does the pipe symbol | do?
-A) Writes output to a file
-B) Sends the output of one command as input to the next
-C) Runs two commands at the same time
-D) Compares the output of two commands
+Q3: Why must you sort data BEFORE piping it to uniq?
+A) uniq is faster on sorted data
+B) uniq only removes ADJACENT duplicate lines — unsorted data has duplicates scattered throughout
+C) sort is required by the OS
+D) uniq doesn't work without sort
 Correct: B
 
-Q6: What pipeline finds the top 10 most frequent items?
-A) sort | head -10
-B) uniq -c | sort -rn | head -10
-C) sort | uniq -c | sort -rn | head -10
-D) grep -c | sort | head -10
+Q4: SCENARIO: You want to find the 10 most common IP addresses in access.log. Which pipeline?
+C) cat access.log | head -10
+B) grep IP access.log | top 10
+A) sort access.log | uniq -c | sort -rn | head -10 -c | sort -rn | head -10
+D) count access.log | sort
+Correct: A
+
+Q5: The pipe symbol | does what?
+A) Writes output to a file
+B) Sends the output of one command as INPUT to the next command
+C) Runs two commands simultaneously
+D) Combines two files
+Correct: B
+
+Q6: DIAGNOSTIC: You run grep "error" app.log and get zero results, but you KNOW there are errors. What's likely wrong?
+A) The file is empty
+B) grep is case-sensitive — the errors are probably "Error" or "ERROR". Use grep -i
+C) grep doesn't work on .log files
+D) You need to use cat first
+Correct: B
+
+Q7: sed -i 's/http/https/g' config.txt does what?
+A) Deletes all lines containing http
+B) Creates a backup of config.txt
+C) Replaces every occurrence of "http" with "https" directly in the file
+D) Prints replacements without changing the file
+Correct: C
+
+Q8: SCENARIO: A developer asks "how many lines are in this log file?" The file is 2GB. Which command gives the answer fastest?
+A) cat server.log | wc
+B) nano server.log and scroll to the bottom
+C) wc -l server.log
+D) grep -c "." server.log
 Correct: C

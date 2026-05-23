@@ -1,0 +1,36 @@
+# Lesson: git add — Stage Changes for Commit
+
+## [WHEN] You need this when:
+1. You created or modified files and want to include them in the next commit.
+2. You only want to commit SOME of your changes, not all.
+3. You are preparing a clean, focused commit.
+
+## [INTENT] "Include these changes in my next commit."
+
+## [CONTEXT]
+Git has a staging area (also called the "index") between your working
+directory and the repository. git add moves changes into this staging
+area. Only staged changes get committed. This lets you control exactly
+what goes into each commit — you can change 10 files but only commit 3.
+Think of it as putting items in a box before shipping.
+
+## [ACTION] git add <file>
+Common patterns:
+  git add file.txt                  — stage one file
+  git add file1.txt file2.txt       — stage multiple files
+  git add .                         — stage ALL changes in current directory
+  git add *.py                      — stage all Python files
+  git add -p                        — interactively choose which changes to stage
+
+## [EXPECTED RESULT]
+No output (silence means success). Run git status to verify —
+the file moves from red (modified) to green (staged).
+
+## Try it now:
+  echo "Hello Git" > hello.txt
+  git status
+  git add hello.txt
+  git status
+
+## Next:
+Now commit your staged changes.

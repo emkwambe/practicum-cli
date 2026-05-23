@@ -1,0 +1,242 @@
+# Final Capstone: The Data Investigation
+
+## THIS IS NOT A HOMEWORK ASSIGNMENT.
+
+You are a contract data analyst. A client hired you to
+make sense of their data. Your deliverable is the pipeline
+AND the answers.
+
+────────────────────────────────────────────────────
+
+## PHASE 1 — Problem Context
+
+### The Scenario:
+
+FreshBites is a meal-kit delivery startup operating in 3 cities.
+Their CEO calls you:
+
+```
+"We've been growing for 18 months but last quarter's revenue
+dropped 12% and I don't know why. We have data everywhere —
+customer orders in a JSON API, delivery logs in CSV files,
+and product costs in a SQLite database. Nobody on my team
+can connect the dots.
+
+I need to know: Why did revenue drop? Is it fewer orders,
+smaller orders, more cancellations, or something else?
+I need answers by Friday, and I need a pipeline that can
+generate this report every week going forward."
+```
+
+### What you have:
+  - Orders API: returns JSON (customer_id, items, total, status, city, date)
+  - Delivery logs: 3 CSV files, one per city (order_id, driver, delivery_time, rating)
+  - Product costs: SQLite database (product_id, name, cost, category)
+  - 18 months of historical data (~50,000 orders)
+
+### What you DON'T know:
+  - Which data source has the answer (maybe all three together)
+  - Whether the data is clean (it probably isn't)
+  - What "revenue dropped" actually means (gross? net? per-customer?)
+  - Whether the API is paginated
+  - Whether the CSV formats match across cities
+
+────────────────────────────────────────────────────
+
+## PHASE 2 — Requirements Discovery
+
+Write DISCOVERY.md:
+
+  1. What clarifying questions would you ask the CEO?
+     (At least 5 — they're non-technical.)
+
+  2. What data quality problems do you expect?
+     (Missing values, duplicates, mismatched formats, etc.)
+
+  3. What hypotheses could explain the revenue drop?
+     (List at least 4 possible causes you'd investigate.)
+
+  4. What does the weekly report need to show?
+     Define the metrics and format.
+
+────────────────────────────────────────────────────
+
+## PHASE 3 — Planning & Design
+
+Create PIPELINE_DESIGN.md:
+
+  1. Data flow diagram (ASCII)
+     API → [Extract] → [Transform] → [Load] → [Report]
+     CSV ↗                                  ↗
+     SQLite ↗
+
+  2. Tool choices per stage (justify each)
+  3. How you'll handle data quality issues
+  4. How the pipeline runs weekly (cron or manual trigger)
+  5. What could go wrong and how you'd handle it
+
+────────────────────────────────────────────────────
+
+## PHASE 4 — Execution
+
+Build data-pipeline.sh:
+
+### 4A. Extract
+  - Fetch orders from API (curl + jq)
+    Use: https://api.github.com/users/emkwambe/repos
+    (Simulate: treat repos as "orders" — name=product, stargazers=revenue, language=city)
+  - Read delivery CSVs (create realistic sample data)
+  - Connect to product costs database (create sample SQLite db)
+  - Save all raw data to raw/ directory
+
+### 4B. Transform
+  - Clean the API JSON: extract fields, handle nulls
+  - Clean the CSVs: normalize formats across cities, remove duplicates
+  - Convert everything to a common format
+  - Validate: row counts, null checks, value ranges
+
+### 4C. Load
+  - Import all clean data into pipeline.db (SQLite)
+  - Create indexed tables
+  - Run analytical queries:
+    - Revenue by month (the trend)
+    - Revenue by city (geographic breakdown)
+    - Average order size over time
+    - Cancellation rate trend
+    - Top and bottom products
+
+### 4D. Report
+  - Generate formatted summary to stdout AND report.txt:
+    - Revenue trend (monthly)
+    - Root cause analysis (which factor explains the drop)
+    - City-level breakdown
+    - Recommendations
+
+### 4E. Pipeline Quality
+  - Logging with timestamps
+  - Error handling (what if the API is down? CSV missing?)
+  - Validation between stages
+  - Idempotent design (safe to re-run)
+
+────────────────────────────────────────────────────
+
+## PHASE 5 — Failure Injection
+
+⚠️ SOMETHING GOES WRONG.
+
+After building the pipeline, simulate ONE:
+
+  A) The API returns a 429 (rate limited) on page 3 of 5.
+     Your pipeline crashes mid-extract. When you re-run,
+     it re-fetches pages 1-2 (duplicating data). Fix the
+     pipeline to handle rate limits AND be idempotent.
+
+  B) The Chicago delivery CSV uses "order_number" instead of
+     "order_id" as the header, and dates are in MM/DD/YYYY
+     instead of YYYY-MM-DD. Your transform stage crashes on
+     the join. Fix the schema mismatch and normalize.
+
+  C) Your analysis shows revenue dropped 12% — but when you
+     dig deeper, you find 3,000 duplicate orders inflated
+     last quarter's numbers. Actual revenue is flat. The
+     "drop" is a data quality illusion. Document the finding.
+
+Pick ONE. Document in INCIDENT.md.
+
+────────────────────────────────────────────────────
+
+## PHASE 6 — Communication
+
+Create CEO_REPORT.md — FreshBites CEO (non-technical):
+  - What the data shows (plain language)
+  - Why revenue dropped (your analysis)
+  - What you recommend
+  - What the weekly report will look like
+  - Caveats and data quality notes (be honest)
+
+Create PIPELINE_DOCS.md — for the next analyst:
+  - How to run the pipeline
+  - Data sources and refresh schedule
+  - Database schema
+  - How to add a new data source
+  - Known limitations
+
+────────────────────────────────────────────────────
+
+## PHASE 7 — Reflection
+
+At the bottom of CEO_REPORT.md:
+
+### Lessons Learned
+  - What was the hardest part of the analysis?
+  - What data quality issues surprised you?
+  - If FreshBites doubles to 100K orders, what breaks first?
+  - What would you build with a second contract?
+
+────────────────────────────────────────────────────
+
+## SCORING RUBRIC
+
+### Pipeline Architecture (20%)
+  [ ] Extract from multiple sources (API + CSV + SQLite)
+  [ ] Transform with validation and cleaning
+  [ ] Load into queryable database
+  [ ] Report generation with formatted output
+
+### Data Quality (15%)
+  [ ] Null handling
+  [ ] Duplicate detection
+  [ ] Format normalization across sources
+  [ ] Validation checks between stages
+
+### Analysis Quality (20%)
+  [ ] Revenue trend calculated correctly
+  [ ] Root cause identified with evidence
+  [ ] Multiple dimensions explored (city, product, time)
+  [ ] Conclusions supported by data
+
+### Pipeline Robustness (15%)
+  [ ] Error handling (API failures, missing files)
+  [ ] Logging with timestamps
+  [ ] Idempotent design
+  [ ] Script structure (functions, strict mode)
+
+### Failure Response (10%)
+  [ ] Incident completed
+  [ ] Root cause identified
+  [ ] Pipeline improved
+
+### Communication (10%)
+  [ ] CEO report is non-technical and actionable
+  [ ] Pipeline docs enable handoff
+  [ ] Recommendations are specific
+
+### Professional Judgment (10%)
+  [ ] Tool choices justified
+  [ ] Tradeoffs explained
+  [ ] Scalability considered
+  [ ] Honest about limitations
+
+────────────────────────────────────────────────────
+
+## FINAL DELIVERABLES
+
+  data-pipeline.sh (working, executable)
+  raw/ (extracted data)
+  pipeline.db (loaded database)
+  report.txt (generated analysis)
+  sample data files (CSVs + SQLite seed)
+  DISCOVERY.md
+  PIPELINE_DESIGN.md
+  INCIDENT.md
+  CEO_REPORT.md (includes Lessons Learned)
+  PIPELINE_DOCS.md
+
+────────────────────────────────────────────────────
+
+## THE STANDARD
+
+  "If FreshBites' CEO showed my report to their board,
+   would it be taken seriously?"
+
+## 🎓 Generate your certificate: practicum certificate

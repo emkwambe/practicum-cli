@@ -1,0 +1,55 @@
+Q1: Infrastructure as Code means:
+A) Using SSH to configure servers
+B) Defining infrastructure in version-controlled configuration files instead of manual provisioning
+C) Writing code that runs on servers
+D) Managing servers through a web console
+Correct: B
+
+Q2: SCENARIO: Your staging and production environments should be identical, but production has 3 extra packages nobody documented. This is called:
+A) Scaling
+B) Version control
+C) Configuration drift — manual changes made production diverge from the defined state
+D) Load balancing
+Correct: C
+
+Q3: A "snowflake server" is dangerous because:
+A) It's running old software
+B) It's too cold
+C) It uses too much memory
+D) It's a unique, manually-configured server that nobody can rebuild if it fails
+Correct: D
+
+Q4: TRADEOFF: Terraform (declarative) vs bash scripts (imperative) for infrastructure. Why is declarative better?
+A) Bash can't create servers
+B) Declarative uses less disk space
+C) Declarative is faster to execute
+D) You describe WHAT you want, not HOW to build it — Terraform handles ordering, dependencies, and idempotency automatically
+Correct: D
+
+Q5: The IaC principle "cattle, not pets" means:
+A) Only use Linux
+B) Servers are identical and replaceable — if one breaks, destroy it and rebuild from code instead of fixing it
+C) Servers should be small
+D) Use animal-themed server names
+Correct: B
+
+Q6: DIAGNOSTIC: An engineer says "I changed a setting in the AWS console to fix a bug." Why is this a problem even though the fix worked?
+A) It's not a problem
+B) Console changes are slower
+C) The change isn't in code, isn't reviewed, isn't version-controlled — it will drift, can't be reproduced, and the next terraform apply may revert it
+D) AWS doesn't save console changes
+Correct: C
+
+Q7: Terraform differs from Ansible because:
+A) Terraform provisions infrastructure (creates servers); Ansible configures existing servers (installs software). They're complementary.
+B) Terraform is newer
+C) They do the same thing
+D) Ansible can't manage cloud resources
+Correct: A
+
+Q8: SCENARIO: Your production server crashes. With IaC, recovery takes:
+A) Minutes — terraform apply recreates identical infrastructure from the config files
+B) It depends on the cloud provider
+C) Weeks of reverse engineering
+D) Days of manual rebuilding
+Correct: A

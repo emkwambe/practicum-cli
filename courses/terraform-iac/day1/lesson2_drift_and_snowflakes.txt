@@ -1,0 +1,68 @@
+# Lesson: Configuration Drift & Snowflake Servers
+
+## [WHEN] You need this when:
+1. Staging works but production doesn't — and they should be identical.
+2. A server was "fixed" manually 6 months ago and nobody documented it.
+3. You can't rebuild a server because nobody knows its exact config.
+4. An audit asks "prove these environments are identical."
+
+## [INTENT] "Understand the problems IaC solves: drift, snowflakes, tribal knowledge."
+
+## [CONTEXT]
+Three problems kill infrastructure teams:
+
+### 1. Configuration Drift
+  Production started identical to staging.
+  Then someone SSH'd in and installed a package.
+  Then someone changed a config file to fix a bug.
+  Then someone added a cron job.
+  Now production and staging are different — but nobody knows HOW different.
+
+  This is drift. It happens slowly, silently, and always at the worst time.
+
+### 2. Snowflake Servers
+  A server that's been manually configured over months or years until
+  it's completely unique. Nobody can rebuild it. The person who set
+  it up left the company. The documentation is outdated.
+
+  It's called a snowflake because it's one-of-a-kind and fragile.
+  Touch it wrong and it breaks.
+
+### 3. Tribal Knowledge
+  "Ask Dave — he knows how the VPN server is configured."
+  "Nobody touch the database server — Maria set it up and she's on vacation."
+
+  When infrastructure knowledge lives in people's heads instead of code,
+  you're one resignation away from an unrecoverable environment.
+
+## [ACTION] How IaC solves each problem
+
+### Drift → Desired state enforcement:
+  Terraform compares the config file (desired state) against
+  actual infrastructure (current state). If they differ, it
+  shows you the diff and can fix it automatically.
+
+  $ terraform plan
+  ~ aws_instance.web
+      instance_type: "t3.medium" → "t3.large"
+  # Someone manually changed the instance type. Terraform caught it.
+
+### Snowflakes → Cattle, not pets:
+  IaC principle: treat servers as cattle, not pets.
+  Pets: you name them, you care for them, you fix them when sick.
+  Cattle: they're identical, numbered, and replaceable.
+
+  If a server breaks → destroy it → terraform apply → identical replacement in minutes.
+
+### Tribal knowledge → Code is documentation:
+  The .tf files describe everything. New engineer reads main.tf
+  and knows exactly what's running. No tribal knowledge needed.
+
+## [EXPECTED RESULT]
+You can explain drift, snowflakes, and tribal knowledge to a manager
+and justify why IaC investment prevents outages and reduces bus factor.
+
+## Common Pain Point:
+"We'll document our manual process" → documentation goes stale
+within weeks. Code that provisions infrastructure can't go stale —
+if it's wrong, the infrastructure breaks and you fix the code.

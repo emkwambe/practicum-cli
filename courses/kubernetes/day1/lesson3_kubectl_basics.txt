@@ -1,0 +1,94 @@
+# Lesson: kubectl — Your Command Center
+
+## [WHEN] You need this when:
+1. You need to interact with a Kubernetes cluster.
+2. You want to create, inspect, update, or delete resources.
+3. You need to debug what's running and why it's broken.
+
+## [INTENT] "Master kubectl as your primary operational tool."
+
+## [CONTEXT]
+kubectl is to Kubernetes what docker is to Docker — your CLI.
+Every operation goes through kubectl → API Server → cluster.
+
+## [ACTION] Essential kubectl commands
+
+### Cluster info:
+  kubectl cluster-info           # verify connection
+  kubectl get nodes              # list cluster nodes
+  kubectl get all                # show pods, services, deployments
+
+### CRUD operations:
+  # Create from a YAML file (declarative):
+  kubectl apply -f deployment.yaml
+
+  # Create quickly (imperative):
+  kubectl create deployment web --image=nginx
+
+  # Read:
+  kubectl get pods                      # list pods
+  kubectl get pods -o wide              # with node and IP info
+  kubectl get deployment web -o yaml    # full YAML output
+  kubectl describe pod web-abc123       # detailed status + events
+
+  # Update:
+  kubectl set image deployment/web web=nginx:1.25
+  kubectl apply -f updated-deployment.yaml
+
+  # Delete:
+  kubectl delete -f deployment.yaml
+  kubectl delete pod web-abc123
+
+### Debugging:
+  kubectl logs pod-name                  # container stdout/stderr
+  kubectl logs pod-name -c container     # specific container
+  kubectl logs pod-name --previous       # previous crash logs
+  kubectl exec -it pod-name -- bash      # shell into a pod
+  kubectl describe pod pod-name          # events, conditions, errors
+  kubectl get events --sort-by=.metadata.creationTimestamp
+
+### Namespaces:
+  kubectl get pods -n kube-system        # system namespace
+  kubectl get pods --all-namespaces      # everything
+  kubectl create namespace staging
+
+### Labels and selectors:
+  kubectl get pods -l app=web            # filter by label
+  kubectl get pods -l "env=prod,tier=frontend"
+
+### Context and configuration:
+  kubectl config current-context         # which cluster am I talking to?
+  kubectl config get-contexts            # all configured clusters
+  kubectl config use-context my-cluster  # switch clusters
+
+### Output formats:
+  kubectl get pods -o wide               # extra columns
+  kubectl get pods -o yaml               # full YAML
+  kubectl get pods -o json               # JSON
+  kubectl get pods -o jsonpath='{.items[*].metadata.name}'  # custom
+
+### Imperative vs declarative:
+  Imperative: kubectl create deployment web --image=nginx
+    → quick for one-offs, not reproducible
+
+  Declarative: kubectl apply -f deployment.yaml
+    → version-controlled, reproducible, reviewable
+    → ALWAYS use this for anything beyond experimentation
+
+## [EXPECTED RESULT]
+You can navigate a cluster, create and inspect resources,
+debug failing pods, and switch between namespaces and contexts.
+
+## Technician Tip:
+Set up bash aliases:
+  alias k='kubectl'
+  alias kgp='kubectl get pods'
+  alias kdp='kubectl describe pod'
+  alias kl='kubectl logs'
+
+The CKA exam is timed. Aliases save minutes.
+
+## Common Pain Point:
+"kubectl get pods shows nothing" → you're in the wrong namespace.
+Try kubectl get pods --all-namespaces. The default namespace may
+be empty if you deployed to a different one.

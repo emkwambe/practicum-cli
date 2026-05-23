@@ -1,0 +1,14 @@
+Day 1 — IaC Concepts & Why Manual Infrastructure Fails
+Day 2 — Terraform Fundamentals (init, plan, apply)
+Day 3 — Multiple Providers & Provider Versioning
+Day 4 — Variables, Outputs & Data Sources
+Day 5 — Validate, Format, Dependencies & Lifecycle
+Day 6 — Complex Types, Expressions & Functions
+Day 7 — Custom Conditions & Sensitive Data Management
+Day 8 — Assessment 1 (Provision a VPC + Server)
+Day 9 — Modules & Reusable Infrastructure
+Day 10 — State Management & Remote Backends
+Day 11 — State CLI, Import, Drift & Refresh
+Day 12 — HCP Terraform (Cloud) — Collaboration & Governance
+Day 13 — Logging, Debugging & CI/CD Pipelines
+Day 14 — Capstone: NimbusMed Multi-Environment Stack

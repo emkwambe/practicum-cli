@@ -1,0 +1,133 @@
+# Lesson: CRDs & Operators — Extending Kubernetes
+
+## [WHEN] You need this when:
+1. You need to manage databases, message queues, or other stateful systems declaratively.
+2. The CKA 2025 revision added CRDs and Operators as exam objectives.
+3. You see custom resources in a cluster and need to understand them.
+4. You want to extend Kubernetes beyond built-in resource types.
+
+## [INTENT] "Understand Custom Resource Definitions and the Operator pattern."
+
+## [CONTEXT]
+Kubernetes has built-in resources: Pods, Deployments, Services.
+CRDs let you CREATE new resource types: PostgresCluster, Certificate, VaultSecret.
+
+An Operator is a controller that watches custom resources and
+automates complex operations. Instead of manually managing a
+database, you declare what you want and the Operator handles it.
+
+  Without Operator:
+    "Create StatefulSet, create Service, configure replication,
+    handle failover, manage backups..." — manual, error-prone.
+
+  With Operator:
+    kubectl apply -f postgres-cluster.yaml
+    The PostgreSQL Operator does everything automatically.
+
+## [ACTION] CRDs and Operators
+
+### Custom Resource Definition (CRD):
+  apiVersion: apiextensions.k8s.io/v1
+  kind: CustomResourceDefinition
+  metadata:
+    name: databases.example.com
+  spec:
+    group: example.com
+    versions:
+      - name: v1
+        served: true
+        storage: true
+        schema:
+          openAPIV3Schema:
+            type: object
+            properties:
+              spec:
+                type: object
+                properties:
+                  engine:
+                    type: string
+                  version:
+                    type: string
+                  replicas:
+                    type: integer
+    scope: Namespaced
+    names:
+      plural: databases
+      singular: database
+      kind: Database
+      shortNames:
+        - db
+
+### Using a custom resource:
+  # After the CRD is created:
+  apiVersion: example.com/v1
+  kind: Database
+  metadata:
+    name: my-postgres
+  spec:
+    engine: postgresql
+    version: "16"
+    replicas: 3
+
+  kubectl apply -f my-database.yaml
+  kubectl get databases           # or kubectl get db
+  kubectl describe database my-postgres
+
+### Real-world Operators:
+  - PostgreSQL Operator (Zalando, CrunchyData)
+  - MongoDB Operator
+  - Prometheus Operator (creates ServiceMonitor, AlertManager CRDs)
+  - cert-manager (creates Certificate, Issuer CRDs)
+  - Strimzi Kafka Operator
+
+  # Example: cert-manager automatically provisions TLS certificates
+  apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    name: app-tls
+  spec:
+    secretName: app-tls-cert
+    issuerRef:
+      name: letsencrypt-prod
+      kind: ClusterIssuer
+    dnsNames:
+      - app.example.com
+
+  # cert-manager watches this, contacts Let's Encrypt,
+  # creates the TLS certificate, stores it in a Secret.
+
+### Extension interfaces (CNI, CSI, CRI):
+  Kubernetes uses plugin interfaces for core functionality:
+
+  CNI (Container Network Interface):
+    Plugins: Calico, Cilium, Flannel, Weave
+    Handles: pod networking, IP assignment, network policies
+    Config: /etc/cni/net.d/
+
+  CSI (Container Storage Interface):
+    Plugins: EBS CSI, GCE PD CSI, Ceph CSI
+    Handles: volume provisioning, attach/detach, snapshots
+    Config: StorageClass references the CSI driver
+
+  CRI (Container Runtime Interface):
+    Runtimes: containerd, CRI-O
+    Handles: pulling images, starting/stopping containers
+    Config: /etc/containerd/config.toml
+
+  These are CKA Domain 1 objectives. Know what each does and
+  which component is responsible.
+
+### Working with CRDs:
+  kubectl get crd                   # list all CRDs in the cluster
+  kubectl describe crd certificates.cert-manager.io
+  kubectl api-resources             # shows ALL resource types including custom
+  kubectl explain database.spec     # if the CRD has schema documentation
+
+## [EXPECTED RESULT]
+You can explain CRDs, understand the Operator pattern, and know
+the CNI/CSI/CRI extension interfaces and their responsibilities.
+
+## Technician Tip:
+You won't build Operators in the CKA exam. But you need to
+understand what CRDs are, how to list them, how to create/manage
+custom resources, and what CNI/CSI/CRI do.

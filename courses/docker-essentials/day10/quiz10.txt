@@ -1,0 +1,55 @@
+Q1: For multi-service production orchestration, the tool built into Docker is:
+A) Kubernetes
+B) Docker Swarm — initialized with docker swarm init
+C) Docker Compose only
+D) Docker Desktop
+Correct: B
+
+Q2: SCENARIO: The Docker Certified Associate exam tests your knowledge. Which topic area is weighted heaviest?
+A) Docker Desktop features
+B) Orchestration (Swarm, services, stacks, rolling updates)
+C) Docker history
+D) Container colors
+Correct: B
+
+Q3: The safest way to provide secrets to a Swarm service:
+A) Environment variables
+B) Hardcode in the image
+C) Docker secrets — encrypted in transit and at rest, mounted as files at /run/secrets/
+D) Config files in the repo
+Correct: C
+
+Q4: DIAGNOSTIC: A 5-manager swarm loses 3 managers simultaneously. The swarm enters a "no leader" state. Why?
+A) Swarm has a bug
+B) Raft consensus requires a majority (3 of 5) to elect a leader — with only 2 alive, quorum is lost and the swarm can't make decisions
+C) The network failed
+D) Docker needs to be reinstalled
+Correct: B
+
+Q5: The deploy: key in compose v3 files is used by:
+A) docker compose (local development)
+B) docker stack deploy (Swarm) — compose ignores deploy settings, stacks require them
+C) Both equally
+D) Neither
+Correct: B
+
+Q6: Cross-node container communication in Swarm requires:
+A) Port mapping
+B) Bridge network
+C) The overlay network driver — it creates a virtual network spanning all swarm nodes
+D) Host networking
+Correct: C
+
+Q7: Multi-stage builds reduce final image size by:
+A) Compressing layers
+B) Separating build dependencies (compilers, dev tools) from the runtime — only the compiled output goes to the final stage
+C) Using fewer layers
+D) Removing the Dockerfile
+Correct: B
+
+Q8: --update-failure-action rollback in a Swarm service update:
+A) Stops the update
+B) Automatically reverts to the previous working version if the new version fails health checks
+C) Sends an alert
+D) Restarts the swarm
+Correct: B

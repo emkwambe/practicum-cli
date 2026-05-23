@@ -1,0 +1,90 @@
+# Lesson: Image Signing — Verify Image Integrity
+
+## [WHEN] You need this when:
+1. Compliance requires verifying images haven't been tampered with.
+2. Supply chain attacks (like SolarWinds) demand cryptographic verification.
+3. You want to ensure prod only runs YOUR signed images.
+4. Your team distributes images publicly and users want to verify authenticity.
+
+## [INTENT] "Cryptographically prove this image came from me and wasn't modified."
+
+## [CONTEXT]
+Without signing, anyone with push access to the registry can replace
+your image. A signed image lets users verify:
+  - The image came from a trusted publisher
+  - The image hasn't been modified since signing
+
+Two main approaches:
+  1. Docker Content Trust (DCT) — older, uses Notary v1
+  2. Sigstore / Cosign — modern, simpler, no key management
+
+## [ACTION] Sign and verify images
+
+### Modern: Cosign (Sigstore)
+  # Install cosign:
+  brew install cosign
+  # OR: curl -O -L https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64
+
+  # Sign with keyless OIDC (uses your GitHub/Google identity):
+  cosign sign ghcr.io/USER/myapp:1.0
+  # Browser opens for OIDC auth, signature stored in registry
+
+  # Verify:
+  cosign verify ghcr.io/USER/myapp:1.0 \
+    --certificate-identity-regexp ".*" \
+    --certificate-oidc-issuer https://token.actions.githubusercontent.com
+
+  # Sign with a local key:
+  cosign generate-key-pair          # creates cosign.key and cosign.pub
+  cosign sign --key cosign.key ghcr.io/USER/myapp:1.0
+  cosign verify --key cosign.pub ghcr.io/USER/myapp:1.0
+
+### Legacy: Docker Content Trust
+  export DOCKER_CONTENT_TRUST=1
+  docker push ghcr.io/USER/myapp:1.0     # signs automatically
+  docker pull ghcr.io/USER/myapp:1.0     # verifies before pulling
+
+  # Disable for one command:
+  DOCKER_CONTENT_TRUST=0 docker pull <image>
+
+### CI integration (GitHub Actions):
+  - name: Sign image
+    env:
+      COSIGN_EXPERIMENTAL: 1
+    run: cosign sign --yes ghcr.io/${{ github.repository }}:${{ github.sha }}
+
+## [EXPECTED RESULT]
+Signed images get a corresponding signature in the registry.
+Verification succeeds (returns 0) for legitimate signed images.
+Verification fails for tampered or unsigned images.
+
+## Try it now:
+  # If you have cosign installed:
+  cosign generate-key-pair
+  # Skip if no registry — just see the syntax
+
+  # Demo verification of a public signed image:
+  cosign verify --certificate-identity-regexp ".*" \
+    --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+    ghcr.io/sigstore/cosign/cosign:v2.2.0
+
+## Technician Tip — SBOMs:
+Modern tools also generate SBOMs (Software Bill of Materials):
+  cosign attest --predicate sbom.json --type spdxjson <image>
+
+This documents EVERY component in your image. When a CVE drops, you can
+instantly check: "Is the affected library in any of our images?"
+
+Tools like syft generate SBOMs:
+  syft myapp:1.0 -o spdx-json > sbom.json
+
+## Common Pain Point:
+"Cosign requires a browser, doesn't work in CI" → use OIDC token mode
+or pass the key explicitly. In GitHub Actions, the OIDC token is
+automatic with: permissions: id-token: write
+
+## DCA Exam Note:
+Know that DOCKER_CONTENT_TRUST=1 enables image signing/verification.
+Know that signing happens at PUSH time; verification at PULL time.
+Know cosign is the modern standard (Sigstore project).
+Know SBOMs are separate from signatures — they describe contents.

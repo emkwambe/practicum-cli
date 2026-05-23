@@ -1,0 +1,84 @@
+# Lesson: Functions — Reusable Code Blocks
+
+## [WHEN] You need this when:
+1. You have code that repeats in your script.
+2. You want to organize a long script into sections.
+3. You need to name a block of logic (self-documenting).
+4. You're building a library other scripts can source.
+
+## [INTENT] "Write it once, call it many times."
+
+## [CONTEXT]
+A function groups commands under a name. Call the name, the commands run.
+
+Two syntax forms (both work identically):
+  function greet { echo "Hello"; }
+  greet() { echo "Hello"; }         ← preferred (POSIX-compatible)
+
+## [ACTION] Function patterns
+
+### Define and call:
+  greet() {
+      echo "Hello, $1!"
+  }
+  greet "World"     # Hello, World!
+  greet "Eddy"      # Hello, Eddy!
+
+### Multiple parameters:
+  log_msg() {
+      local level="$1"
+      local msg="$2"
+      echo "[$(date +%T)] [$level] $msg"
+  }
+  log_msg "INFO" "Server started"
+  log_msg "ERROR" "Connection refused"
+
+### Return values:
+  is_root() {
+      [ "$(id -u)" -eq 0 ]     # return is implicit (exit code of last command)
+  }
+  if is_root; then
+      echo "Running as root"
+  else
+      echo "Not root"
+  fi
+
+### Explicit return:
+  validate_port() {
+      local port="$1"
+      if [[ "$port" =~ ^[0-9]+$ ]] && (( port >= 1 && port <= 65535 )); then
+          return 0    # success
+      else
+          return 1    # failure
+      fi
+  }
+  if validate_port "$1"; then
+      echo "Valid port"
+  fi
+
+### Return string values (use echo, capture with $(...)):
+  get_hostname() {
+      echo "$(hostname -f 2>/dev/null || hostname)"
+  }
+  host=$(get_hostname)
+  echo "Host: $host"
+
+## [EXPECTED RESULT]
+Functions reduce duplication, improve readability, and make scripts
+testable. Each function does ONE thing.
+
+## Try it now:
+  #!/bin/bash
+  die() { echo "ERROR: $1" >&2; exit "${2:-1}"; }
+  require() { command -v "$1" >/dev/null 2>&1 || die "$1 is not installed"; }
+
+  require curl
+  require git
+  require nonexistent    # script exits here
+
+## Technician Tip:
+The "die" function pattern is universal in bash scripts:
+  die() { echo "ERROR: $1" >&2; exit "${2:-1}"; }
+
+Use it everywhere instead of raw echo+exit:
+  [ -f "$config" ] || die "Config not found: $config"

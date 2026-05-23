@@ -1,0 +1,71 @@
+Q1: terraform init does what?
+A) Destroys the current state
+B) Formats the config files
+C) Downloads provider plugins, initializes the backend, and creates the lockfile
+D) Creates infrastructure
+Correct: C
+
+Q2: The correct Terraform workflow order is:
+A) init → plan → apply (initialize, preview, execute)
+B) destroy → init → plan
+C) plan → init → apply
+D) apply → plan → init
+Correct: A
+
+Q3: In terraform plan output, a + symbol means:
+A) The resource will be destroyed
+B) The resource will be created
+C) The resource will be modified
+D) No change
+Correct: B
+
+
+
+Q4: SCENARIO: terraform plan shows "1 to destroy" for your production database. You didn't intend this. What do you do?
+A) Delete the state file
+B) Run terraform destroy first
+C) Stop immediately — read the plan carefully to understand WHY it wants to destroy. Never apply a plan you don't fully understand.
+D) Run terraform apply anyway
+Correct: C
+
+Q5: A provider in Terraform is:
+A) A plugin that communicates with a specific API (AWS, Docker, GitHub) to manage resources
+B) A module
+C) A variable
+D) Your cloud account
+Correct: A
+
+Q6: resource "docker_container" "web" — what do "docker_container" and "web" represent?
+A) docker_container is the provider; web is the image
+B) docker_container is the resource TYPE (from the provider); web is YOUR local name for referencing it
+C) Both are resource names
+D) Both are variables
+Correct: B
+
+Q7: DIAGNOSTIC: You changed a resource's name from "web" to "app" in the config. terraform plan shows destroy + create. Why?
+A) Names don't matter
+B) Renaming in config looks like deleting "web" and creating "app" — use terraform state mv to rename without destroying
+C) Terraform is broken
+D) You need to re-init
+Correct: B
+
+Q8: terraform apply -auto-approve should be used:
+A) Never
+B) Always — it's faster
+C) Only for destroy operations
+D) Only in CI/CD pipelines — never in interactive sessions where a human should review the plan
+Correct: D
+
+Q9: terraform fmt does what?
+A) Converts HCL to JSON
+B) Initializes the project
+C) Creates a format file
+D) Formats .tf files to HashiCorp's standard style — like prettier for Terraform. Use terraform fmt -check in CI to catch unformatted code.
+Correct: D
+
+Q10: docker_image.nginx.image_id in a resource block reads as:
+A) The image_id attribute of the resource named "nginx" of type "docker_image" — Terraform's reference syntax: TYPE.NAME.ATTRIBUTE
+B) A Docker CLI command
+C) The nginx command on docker_image
+D) A file path
+Correct: A

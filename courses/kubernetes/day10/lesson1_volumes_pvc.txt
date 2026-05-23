@@ -1,0 +1,86 @@
+# Lesson: Persistent Storage — Volumes & PVCs
+
+## [WHEN] You need this when:
+1. Your database container restarts and loses all data.
+2. You need storage that survives pod restarts and rescheduling.
+3. Multiple pods need to share a filesystem.
+
+## [INTENT] "Attach persistent storage to pods that survives their lifecycle."
+
+## [CONTEXT]
+Containers are ephemeral. When a pod dies, its filesystem dies too.
+Databases, file uploads, and logs need storage that persists.
+
+K8s storage model:
+  PersistentVolume (PV): a piece of storage provisioned by an admin
+  PersistentVolumeClaim (PVC): a request for storage by a pod
+  StorageClass: defines HOW storage is provisioned (dynamic)
+
+  Think of it as: PV = a hard disk, PVC = "I need a 10GB disk",
+  StorageClass = "use SSD from AWS EBS"
+
+## [ACTION] Persistent volumes
+
+### PersistentVolumeClaim:
+  apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: postgres-data
+  spec:
+    accessModes:
+      - ReadWriteOnce       # one node can mount read-write
+    resources:
+      requests:
+        storage: 10Gi
+    storageClassName: standard   # dynamic provisioning
+
+### Using a PVC in a pod:
+  spec:
+    containers:
+      - name: postgres
+        image: postgres:16-alpine
+        volumeMounts:
+          - name: data
+            mountPath: /var/lib/postgresql/data
+    volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: postgres-data
+
+### Access modes:
+  ReadWriteOnce (RWO): mounted read-write by ONE node
+  ReadOnlyMany (ROX): mounted read-only by MANY nodes
+  ReadWriteMany (RWX): mounted read-write by MANY nodes (NFS, etc.)
+
+  Most databases use RWO. Shared file storage uses RWX.
+
+### emptyDir (temporary shared storage):
+  volumes:
+    - name: cache
+      emptyDir: {}
+
+  # Shared between containers IN the same pod.
+  # Deleted when the pod dies. Good for temp files and caches.
+
+### hostPath (node's filesystem):
+  volumes:
+    - name: logs
+      hostPath:
+        path: /var/log/app
+
+  # Uses the actual node's filesystem. Dangerous in production
+  # because pods aren't guaranteed to run on the same node.
+
+### Lifecycle:
+  Pod deleted → PVC persists → new pod can claim the same PVC
+  PVC deleted → depends on reclaimPolicy:
+    Retain: PV and data survive (manual cleanup)
+    Delete: PV and data are deleted (default for dynamic provisioning)
+
+## [EXPECTED RESULT]
+You can create PVCs, mount them in pods, and understand
+the storage lifecycle (what persists vs what dies with the pod).
+
+## Common Pain Point:
+"PVC stuck in Pending" → no PV matches the claim requirements,
+or the StorageClass doesn't exist. kubectl describe pvc NAME.

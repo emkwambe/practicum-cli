@@ -1,0 +1,40 @@
+# Lesson: git commit — Save a Snapshot
+
+## [WHEN] You need this when:
+1. You finished a logical unit of work (a feature, a fix, a change).
+2. You are about to try something risky and want a save point.
+3. You want to record WHY you made a change for your future self.
+4. Your team requires commits before pushing to the shared repo.
+
+## [INTENT] "Save this snapshot with a message explaining what I did."
+
+## [CONTEXT]
+A commit is a permanent snapshot of your staged changes. Each commit
+has a unique ID (hash), your name, a timestamp, and a message.
+Good commit messages are critical — they are the history your team reads.
+The convention is: short imperative sentence, present tense.
+
+Good messages:
+  "Add user login validation"
+  "Fix off-by-one error in pagination"
+  "Update README with install instructions"
+
+Bad messages:
+  "stuff" / "fix" / "wip" / "asdfgh" / "Monday changes"
+
+## [ACTION] git commit -m "message"
+Common patterns:
+  git commit -m "Add login page"    — commit with inline message
+  git commit                        — opens editor for longer message
+  git commit -am "Fix typo"         — add all tracked files + commit (shortcut)
+
+## [EXPECTED RESULT]
+Shows: branch name, commit hash (short), message, files changed, insertions/deletions.
+Example: [main abc1234] Add login page — 1 file changed, 5 insertions(+)
+
+## Try it now:
+  git commit -m "Add hello.txt with greeting"
+  git status
+
+## Next:
+Use git log to see your commit history.

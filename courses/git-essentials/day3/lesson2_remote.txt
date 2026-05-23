@@ -1,0 +1,35 @@
+# Lesson: git remote — Manage Connections to Servers
+
+## [WHEN] You need this when:
+1. You created a local repo and want to connect it to GitHub.
+2. You need to check which remote server your repo points to.
+3. You want to add a second remote (like a fork's upstream).
+4. The remote URL changed and you need to update it.
+
+## [INTENT] "Connect my local repo to a server so I can share my code."
+
+## [CONTEXT]
+A remote is a bookmark to a repository on a server (GitHub, GitLab, etc.).
+When you clone, Git automatically creates a remote called "origin" pointing
+to where you cloned from. You can have multiple remotes — "origin" for your
+fork, "upstream" for the original project.
+Remotes are just URLs with names. They do not sync automatically.
+
+## [ACTION] git remote
+Common patterns:
+  git remote -v                                — show all remotes with URLs
+  git remote add origin https://github.com/... — connect to a new remote
+  git remote add upstream https://github.com/... — add a second remote
+  git remote set-url origin https://...        — change existing remote URL
+  git remote remove origin                     — remove a remote
+
+## [EXPECTED RESULT]
+git remote -v shows: name, URL, and (fetch)/(push) for each remote.
+Example: origin  https://github.com/user/repo.git (fetch)
+
+## Try it now:
+  git remote -v
+  (If you cloned a repo, you will see "origin" listed)
+
+## Next:
+Use git push to send your commits to the remote.

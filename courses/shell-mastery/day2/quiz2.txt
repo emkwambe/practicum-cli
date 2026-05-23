@@ -1,0 +1,55 @@
+Q1: if [ -f config.txt ]; then checks:
+A) If config.txt is a directory
+B) If config.txt is executable
+C) If config.txt contains text
+D) If config.txt exists and is a regular file
+Correct: D
+
+Q2: SCENARIO: Your script should behave differently for "start", "stop", and "status" arguments. The cleanest construct:
+A) A for loop
+B) case "$1" in start) ... ;; stop) ... ;; status) ... ;; esac
+C) if/elif/else chain
+D) Three separate if statements
+Correct: B
+
+Q3: Numeric comparison in bash uses -gt, -lt, -eq, not > < ==. Why?
+A) > and < are I/O redirection operators in the shell — they'd redirect to files instead of comparing
+B) -gt is faster
+C) No reason — both work
+D) Bash is old
+Correct: A
+
+Q4: DIAGNOSTIC: [ $VAR -gt 10 ] fails with "unary operator expected" when VAR is empty. The fix:
+A) Always quote: [ "$VAR" -gt 10 ] — or use set -u to catch unset variables
+B) Use a different operator
+C) Use a while loop instead
+D) Restart bash
+Correct: A
+
+Q5: [[ ]] (double brackets) vs [ ] (single brackets):
+A) [[ ]] only works in zsh
+B) [ ] is newer
+C) [[ ]] supports regex, glob patterns, && / || inside, and doesn't word-split — prefer it in bash scripts
+D) No difference
+Correct: C
+
+Q6: SCENARIO: Your deployment script takes an environment flag. Valid values are "dev", "staging", "prod". How do you validate the input before proceeding?
+A) case "$env" in dev|staging|prod) deploy ;; *) echo "Invalid environment" >&2; exit 1 ;; esac
+B) Check with grep
+C) Don't validate — trust the user
+D) Use an if statement for each value
+Correct: A
+
+Q7: The arithmetic expression $(( count + 1 )) does what?
+A) Concatenates "count" and "1" as strings
+B) Creates a subshell
+C) Performs integer arithmetic — returns the numeric result
+D) Calls an external calculator
+Correct: C
+
+Q8: String comparison in bash: [ "$a" = "$b" ] vs [ "$a" == "$b" ]:
+A) == doesn't work in bash
+B) Both work for string comparison in [ ], but = is POSIX portable and == is bash-specific
+C) = is for assignment, == is for comparison
+D) They compare different things
+Correct: B

@@ -1,0 +1,50 @@
+# Lesson: Signed Commits — Prove You Authored the Code
+
+## [WHEN] You need this when:
+1. Your organization requires verified commits for security.
+2. You contribute to projects that require signed commits.
+3. You want "Verified" badges on your GitHub commits.
+4. You need to prove commits actually came from you (not an impostor).
+
+## [INTENT] "Cryptographically prove I made this commit."
+
+## [CONTEXT]
+Anyone can commit as "Eddy Mkwambe" by setting git config user.name.
+There is no authentication by default. Signed commits fix this —
+you sign with a GPG key or SSH key that only you have.
+GitHub shows a green "Verified" badge on signed commits.
+
+## [ACTION] Set up commit signing
+
+### Option 1: SSH signing (easier, 2022+)
+  # Use your existing GitHub SSH key
+  git config --global gpg.format ssh
+  git config --global user.signingkey ~/.ssh/id_ed25519.pub
+  git config --global commit.gpgsign true
+
+  # Tell GitHub to accept it:
+  # Settings → SSH and GPG keys → Add "Signing Key" (same pubkey)
+
+### Option 2: GPG signing (traditional)
+  gpg --full-generate-key              — create GPG key
+  gpg --list-secret-keys --keyid-format LONG
+  git config --global user.signingkey <KEY-ID>
+  git config --global commit.gpgsign true
+
+  gpg --armor --export <KEY-ID>        — copy output
+  # Paste into GitHub → Settings → SSH and GPG keys → New GPG key
+
+### Sign on demand:
+  git commit -S -m "Signed commit"
+
+### Verify:
+  git log --show-signature
+  On GitHub, look for green "Verified" badge next to commits.
+
+## [EXPECTED RESULT]
+All your new commits show "Verified" on GitHub.
+git log --show-signature shows "Good signature" for your commits.
+
+## Try it now:
+  If you have an SSH key for GitHub, set up SSH signing.
+  Make a commit, push, and check for the "Verified" badge.

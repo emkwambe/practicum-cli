@@ -1,0 +1,55 @@
+Q1: Running containers as root is dangerous because:
+A) Root is slower
+B) Root can't access volumes
+C) A container breakout gives the attacker root on the HOST — always use USER in Dockerfile to run as non-root
+D) Docker doesn't support root
+Correct: C
+
+Q2: SCENARIO: Your app needs a database password at runtime. Where should you store it?
+A) Hardcoded in the Dockerfile (ENV DB_PASS=secret)
+B) In a comment in the Dockerfile
+C) In the README
+D) In a Docker secret or external secret manager — NEVER baked into the image
+Correct: D
+
+Q3: docker run --cap-drop ALL --cap-add NET_BIND_SERVICE does what?
+A) Removes all Linux capabilities except the ability to bind to low ports — principle of least privilege
+B) Disables networking
+C) Adds all capabilities
+D) Drops the container
+Correct: A
+
+Q4: Content trust (docker trust sign) ensures:
+A) The image is fast
+B) The image was signed by a trusted publisher — prevents running tampered images
+C) The image is encrypted
+D) The image is compressed
+Correct: B
+
+Q5: DIAGNOSTIC: Your container runs as root despite USER app in the Dockerfile. The compose file has user: root. What's happening?
+A) Dockerfile USER is broken
+B) Docker ignores USER
+C) The compose file's user: directive overrides the Dockerfile's USER — remove it
+D) Both settings are applied simultaneously
+Correct: C
+
+Q6: A production security checklist should include:
+A) Only a firewall
+B) Just using alpine
+C) Running with --privileged for full access
+D) Non-root user, no hardcoded secrets, minimal base image, dropped capabilities, read-only filesystem, health checks, and image scanning
+Correct: D
+
+Q7: TRADEOFF: --read-only makes the container filesystem immutable. The challenge:
+A) It's always bad — don't use it
+B) It prevents malware from writing, but your app may need writable /tmp — use tmpfs mounts for that
+C) It makes the container faster
+D) It prevents logging entirely
+Correct: B
+
+Q8: SCENARIO: A security scan shows a critical CVE in your base image. The correct response:
+A) Ignore it — your code is fine
+B) Delete the image
+C) Update to a patched base image, rebuild, test, and redeploy through your pipeline
+D) Switch programming languages
+Correct: C

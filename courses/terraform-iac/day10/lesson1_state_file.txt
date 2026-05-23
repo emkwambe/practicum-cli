@@ -1,0 +1,83 @@
+# Lesson: The State File — Terraform's Memory
+
+## [WHEN] You need this when:
+1. You need to understand what terraform.tfstate is and why it matters.
+2. A teammate accidentally deleted the state file.
+3. terraform plan shows changes even though nothing changed in config.
+4. You need to import existing infrastructure into Terraform.
+
+## [INTENT] "Understand state as the bridge between config and reality."
+
+## [CONTEXT]
+Terraform needs to know what it previously created. The state file
+(terraform.tfstate) maps your config to real infrastructure.
+
+  Config (.tf): "I want an instance called web, type t3.micro"
+  State (.tfstate): "web = i-abc123 in us-east-1, created 2026-05-01"
+  Reality (AWS): instance i-abc123 exists
+
+  terraform plan compares: config vs state vs reality.
+  - Config changed but state hasn't? → plan shows an update.
+  - Reality changed but state hasn't? → plan shows drift.
+  - State deleted? → Terraform thinks nothing exists. Danger.
+
+## [ACTION] Working with state
+
+### The state file contains:
+  - Every resource Terraform manages
+  - Their current attributes (IPs, IDs, ARNs)
+  - Dependencies between resources
+  - Metadata (last modified, serial number)
+  - Sensitive values (passwords, keys) — IN PLAIN TEXT
+
+  ⚠️ The state file is sensitive. Never commit it to Git.
+
+### terraform state commands:
+  terraform state list              # list all managed resources
+  terraform state show aws_instance.web  # show one resource's details
+  terraform state mv OLD NEW        # rename without destroying
+  terraform state rm RESOURCE       # stop managing (don't destroy)
+  terraform state pull              # download remote state
+
+### terraform import (adopt existing infrastructure):
+  # An EC2 instance was created manually. You want Terraform to manage it:
+
+  # 1. Write the resource block in your config:
+  resource "aws_instance" "legacy" {
+    # properties will be filled after import
+  }
+
+  # 2. Import:
+  terraform import aws_instance.legacy i-abc123
+
+  # 3. Run terraform plan to see what properties need to match
+  # 4. Update your config to match reality
+  # 5. Plan should show "no changes" — you've adopted it
+
+### What happens if state is deleted:
+  Terraform thinks no infrastructure exists.
+  Next apply: tries to CREATE everything (duplicates!)
+  Or: errors because names/IDs conflict.
+
+  Recovery: terraform import each resource, or restore state from backup.
+  Prevention: use remote backends with versioning (Day 4, next lesson).
+
+### State and sensitive data:
+  State stores EVERYTHING — including passwords, private keys, tokens.
+  This is why:
+  1. Never commit state to Git
+  2. Always use a remote backend with encryption
+  3. Restrict access to state storage
+
+## [EXPECTED RESULT]
+You understand state as the source of truth, can inspect it, import
+resources into it, and know why losing state is a crisis.
+
+## Technician Tip:
+terraform state list is your "what does Terraform manage?" command.
+Run it regularly to know what's under management.
+
+## Common Pain Point:
+"I deleted terraform.tfstate and now plan wants to create duplicates"
+→ You need to import every existing resource back into state.
+This is painful. Prevent it: remote backend + versioning.

@@ -1,0 +1,46 @@
+# Lesson: Exit Codes — Reporting Success or Failure
+
+## [WHEN] You need this when:
+1. A script should tell other programs whether it succeeded.
+2. You want to stop a script immediately if a critical command fails.
+3. You are chaining commands with && (run next only if previous succeeds).
+4. You are writing automation that needs error handling.
+5. A CI/CD pipeline depends on your script's exit code.
+
+## [INTENT] "Did that command succeed or fail?"
+
+## [CONTEXT]
+Every command in Linux returns an exit code when it finishes.
+0 means success. Any other number (1-255) means failure.
+The special variable $? holds the exit code of the last command.
+You can set your own exit code with: exit N
+Use set -e at the top of scripts to stop on first error.
+
+## [ACTION] Check $? or use && and ||
+Common patterns:
+  grep "error" log.txt                 — search for errors
+  echo "Exit code: $?"                 — check if grep found anything
+
+  mkdir /backup && echo "Created"      — run second only if first succeeds
+  rm /locked || echo "Failed to delete" — run second only if first fails
+
+  set -e                               — stop script on any error
+  set -euo pipefail                    — strictest mode (recommended)
+
+  exit 0                               — script succeeded
+  exit 1                               — script failed
+
+  trap 'echo "Error on line $LINENO"' ERR  — catch errors
+
+## [EXPECTED RESULT]
+$? is 0 after success, non-zero after failure.
+Scripts using set -e stop immediately on errors.
+
+## Try it now:
+  ls /tmp; echo "Exit: $?"
+  ls /nonexistent 2>/dev/null; echo "Exit: $?"
+  true && echo "Success" || echo "Failure"
+
+## Next:
+Type menu to return. You have completed Day 3!
+You now know the building blocks of bash scripting.

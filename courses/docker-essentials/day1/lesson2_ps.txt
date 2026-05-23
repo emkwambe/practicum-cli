@@ -1,0 +1,47 @@
+# Lesson: docker ps — See What's Running
+
+## [WHEN] You need this when:
+1. You want to see all running containers.
+2. A container crashed and you need its ID for logs.
+3. You are preparing to stop or remove a container.
+4. You need to check which ports are in use.
+
+## [INTENT] "Show me all my containers and their status."
+
+## [CONTEXT]
+docker ps shows running containers. By default, stopped containers
+are hidden. Use -a to see ALL containers (running + stopped).
+Every container has: ID, image, command, created, status, ports, name.
+The container ID is the key identifier — you pass it to most other commands.
+
+## [ACTION] docker ps
+Common patterns:
+  docker ps                        — running containers only
+  docker ps -a                     — ALL containers (including stopped)
+  docker ps -q                     — just container IDs (for scripting)
+  docker ps --filter status=exited — only stopped containers
+  docker ps --format "table {{.Names}}\t{{.Status}}"  — custom columns
+  docker ps -a -n 5                — last 5 containers
+  docker ps --size                 — include disk usage
+
+## [EXPECTED RESULT]
+A table with: CONTAINER ID | IMAGE | COMMAND | CREATED | STATUS | PORTS | NAMES
+Example:
+  abc1234        nginx       "/docker-entrypoint"   2m ago    Up 2m    0.0.0.0:8080->80/tcp   web
+
+## Try it now:
+  docker run -d --name test1 nginx
+  docker run -d --name test2 redis
+  docker ps
+  docker ps -a
+  docker ps -q
+  docker stop test1 test2 && docker rm test1 test2
+
+## Technician Tip:
+"Clean up everything" one-liner:
+  docker rm -f $(docker ps -aq)
+This force-stops and removes ALL containers. Use carefully on shared systems.
+
+## DCA Exam Note:
+Know the difference between "ps" (running) and "ps -a" (all).
+Know how to extract just IDs with -q for use in pipelines.

@@ -1,0 +1,89 @@
+# Lesson: Docker Registries — Where Images Live
+
+## [WHEN] You need this when:
+1. You need to share your image with teammates or production servers.
+2. Your CI pipeline needs to push images after building.
+3. You're using a private registry (AWS ECR, GitHub Container Registry, etc.).
+4. You need to mirror public images for reliability.
+
+## [INTENT] "Store and distribute my container images."
+
+## [CONTEXT]
+A registry is a server that stores Docker images. The default is
+Docker Hub (docker.io) — that's where "docker pull nginx" gets nginx from.
+
+Common registries:
+  docker.io                                  Docker Hub (default, public + private)
+  ghcr.io                                    GitHub Container Registry
+  gcr.io                                     Google Container Registry
+  <account>.dkr.ecr.<region>.amazonaws.com   AWS ECR
+  <registry>.azurecr.io                      Azure Container Registry
+  registry.gitlab.com                        GitLab Container Registry
+  Self-hosted (Harbor, Nexus, etc.)
+
+Image reference format:
+  [registry/]namespace/repo[:tag]
+  ghcr.io/emkwambe/myapp:v1.0
+  docker.io/library/nginx:1.25       (long form)
+  nginx:1.25                          (short form, defaults to docker.io/library/)
+
+## [ACTION] Working with registries
+Common patterns:
+  # Login (interactive)
+  docker login                                     — Docker Hub
+  docker login ghcr.io                             — GitHub
+  docker login -u USER -p PASS registry.com        — non-interactive (use token!)
+
+  # With token from env (CI-friendly):
+  echo "$GH_TOKEN" | docker login ghcr.io -u USER --password-stdin
+
+  # Tag for a registry:
+  docker tag myapp:1.0 ghcr.io/emkwambe/myapp:1.0
+
+  # Push to a registry:
+  docker push ghcr.io/emkwambe/myapp:1.0
+
+  # Pull from a registry:
+  docker pull ghcr.io/emkwambe/myapp:1.0
+
+  # List images you have locally:
+  docker images
+  docker image ls
+
+  # Remove a local image:
+  docker rmi ghcr.io/emkwambe/myapp:1.0
+
+  # Logout:
+  docker logout
+  docker logout ghcr.io
+
+## [EXPECTED RESULT]
+After login, push uploads layers (only new ones — existing layers are
+deduplicated). Pull downloads layers in parallel.
+
+## Try it now (with Docker Hub):
+  docker login                              # use your Docker Hub username/password
+  docker tag nginx:alpine YOUR_USER/test:1.0
+  docker push YOUR_USER/test:1.0            # actually pushes to Docker Hub
+  docker rmi YOUR_USER/test:1.0
+  docker pull YOUR_USER/test:1.0
+
+## Technician Tip — credential storage:
+After "docker login", credentials are stored in:
+  ~/.docker/config.json (often base64, not encrypted)
+
+For production, use a credential helper:
+  docker-credential-desktop      (Mac/Windows)
+  docker-credential-secretservice (Linux)
+  docker-credential-pass         (Linux, gpg-encrypted)
+
+## Common Pain Point:
+"docker push denied: requested access to the resource is denied" → either:
+  1. Not logged in to the right registry (docker logout && docker login REGISTRY)
+  2. Repo doesn't exist (create it on the registry's UI first)
+  3. Tag doesn't include the registry/namespace (docker tag myapp REGISTRY/USER/myapp)
+
+## DCA Exam Note:
+Know that docker.io is the default registry (unspecified registry = Docker Hub).
+Know that pull/push work in PARALLEL for layers (faster than sequential).
+Know that layers are content-addressed (SHA256) — same layer is shared across images.

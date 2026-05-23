@@ -1,0 +1,55 @@
+Q1: trap cleanup EXIT does what?
+A) Traps errors only
+B) Runs the cleanup function automatically when the script exits — whether it succeeds, fails, or is interrupted
+C) Stops the script from exiting
+D) Catches EXIT signals
+Correct: B
+
+Q2: SCENARIO: Your script creates temp files in /tmp. If it crashes mid-run, those files are orphaned. The fix:
+A) trap 'rm -f /tmp/myscript_*' EXIT — ensures cleanup runs even on unexpected exit
+B) Don't use temp files
+C) Use /var instead
+D) Check for old files manually
+Correct: A
+
+Q3: set -x does what?
+A) Makes the script executable
+B) Sets permissions
+C) Exits on error
+D) Prints every command before executing it — essential for debugging. Disable with set +x.
+Correct: D
+
+Q4: shellcheck is:
+A) A performance profiler
+B) A spell checker for scripts
+C) A static analysis tool that finds bugs, portability issues, and bad practices in shell scripts without running them
+D) A security scanner
+Correct: C
+
+Q5: DIAGNOSTIC: Your script works in interactive bash but fails in cron with "command not found" for jq. Why?
+A) Cron uses a minimal PATH that doesn't include /usr/local/bin where jq lives — use full paths or set PATH at the top of the script
+B) jq isn't installed
+C) Cron only runs built-in commands
+D) cron doesn't support scripts
+Correct: A
+
+Q6: Validating user input before using it matters because:
+A) Unvalidated input causes crashes, security issues, and data corruption — check before you act
+B) It's a best practice but not important
+C) Bash validates automatically
+D) Only web apps need validation
+Correct: A
+
+Q7: TRADEOFF: Verbose error messages vs silent failures. Which is better for production scripts?
+A) Verbose — log every error with timestamp, context, and suggested fix. Silent failures hide problems until they cascade.
+B) No logging at all
+C) Silent — less log noise
+D) Only log successes
+Correct: A
+
+Q8: SCENARIO: Your deployment script must NEVER run in production without the --confirm flag. How do you enforce this?
+A) Trust the user to remember
+B) Check for the flag at the top: if [[ "$1" != "--confirm" ]]; then echo "SAFETY: pass --confirm to run" >&2; exit 1; fi
+C) Add documentation
+D) Use a different script for production
+Correct: B

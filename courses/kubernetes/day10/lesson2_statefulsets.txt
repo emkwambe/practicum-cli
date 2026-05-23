@@ -1,0 +1,90 @@
+# Lesson: StatefulSets — Databases and Ordered Workloads
+
+## [WHEN] You need this when:
+1. You're running a database (PostgreSQL, MySQL, MongoDB) on K8s.
+2. Each instance needs stable, unique identity and persistent storage.
+3. Pods must start and stop in a defined order.
+
+## [INTENT] "Use StatefulSets for workloads that need stable identity and persistent state."
+
+## [CONTEXT]
+Deployments treat pods as interchangeable (cattle).
+StatefulSets treat pods as unique (pets with names).
+
+  Deployment pods: web-7f8d9c-abc, web-7f8d9c-xyz (random suffixes)
+  StatefulSet pods: db-0, db-1, db-2 (ordered, predictable)
+
+Each StatefulSet pod gets:
+  - Stable hostname: db-0, db-1, db-2
+  - Stable DNS: db-0.db-headless.namespace.svc.cluster.local
+  - Its own PersistentVolumeClaim (not shared)
+  - Ordered startup and shutdown (db-0 before db-1 before db-2)
+
+## [ACTION] StatefulSets
+
+### StatefulSet manifest:
+  apiVersion: apps/v1
+  kind: StatefulSet
+  metadata:
+    name: postgres
+  spec:
+    serviceName: postgres-headless   # required
+    replicas: 3
+    selector:
+      matchLabels:
+        app: postgres
+    template:
+      metadata:
+        labels:
+          app: postgres
+      spec:
+        containers:
+          - name: postgres
+            image: postgres:16-alpine
+            ports:
+              - containerPort: 5432
+            volumeMounts:
+              - name: data
+                mountPath: /var/lib/postgresql/data
+    volumeClaimTemplates:
+      - metadata:
+          name: data
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+
+### Headless Service (required for StatefulSets):
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: postgres-headless
+  spec:
+    clusterIP: None          # headless — no load balancing
+    selector:
+      app: postgres
+    ports:
+      - port: 5432
+
+  # Why headless? Each pod needs its own DNS entry, not load balancing.
+  # postgres-0.postgres-headless.default.svc.cluster.local
+
+### Deployment vs StatefulSet:
+  Deployment: web servers, API servers, workers (stateless, interchangeable)
+  StatefulSet: databases, message queues, consensus systems (stateful, unique)
+
+### ⚠️ When NOT to use StatefulSets:
+  Running databases on Kubernetes is complex. For production:
+  - Consider managed services (RDS, Cloud SQL) for databases
+  - Use StatefulSets when you have the operational expertise
+  - Operators (like postgres-operator) simplify database management
+
+## [EXPECTED RESULT]
+You can create StatefulSets with headless services and volume claim
+templates, and know when StatefulSets vs Deployments are appropriate.
+
+## Technician Tip:
+StatefulSet pods are deleted in reverse order (db-2 before db-1
+before db-0) and created in forward order. This matters for
+database clusters where the primary (db-0) must exist first.

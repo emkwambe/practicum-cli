@@ -1,0 +1,68 @@
+# Shell Scripting Mastery — What You're Training For
+
+## 🎯 This course makes you dangerous with automation
+
+After completing all 8 days, you will be able to:
+
+  ✅ AUTOMATION (95% of Linux/DevOps job postings)
+     - Write production scripts that run unattended
+     - Replace 30-minute manual tasks with 10-second scripts
+     - Build monitoring, backup, and deployment tools
+
+  ✅ TEXT PROCESSING (90% of job postings)
+     - Parse logs, CSVs, configs with awk, sed, grep
+     - Transform data between formats
+     - Extract insights from system output
+
+  ✅ ERROR HANDLING (85% of job postings)
+     - Write scripts that fail gracefully
+     - Trap signals, validate inputs, handle edge cases
+     - Log actions for audit and debugging
+
+  ✅ SYSTEM INTEGRATION (80% of job postings)
+     - Schedule scripts with cron and systemd timers
+     - Read and write config files programmatically
+     - Chain tools together with pipes and subshells
+
+  ✅ PROFESSIONAL PRACTICES (85% of job postings)
+     - Write readable, maintainable scripts
+     - Use shellcheck to lint your code
+     - Version control your scripts with Git
+
+## 📋 Skills You Will Develop (by day)
+
+  Day 1: Script structure, shebang, variables, quoting
+  Day 2: Conditionals, test, case, string comparisons
+  Day 3: Loops (for, while, until), arrays, iteration
+  Day 4: Functions, return values, local scope, libraries
+  Day 5: Assessment 1 — build a system monitoring tool
+  Day 6: Text processing (awk, sed, regex, cut, tr)
+  Day 7: Error handling, traps, logging, debugging
+  Day 8: Final Capstone — automated server health report
+
+## 🏆 By the end, you can:
+
+  - Automate any repetitive Linux task
+  - Write scripts your team can read and maintain
+  - Parse and transform text data from any source
+  - Build monitoring tools that run on cron
+  - Handle errors and edge cases professionally
+  - Write scripts that pass shellcheck lint
+
+## 💼 Roles this prepares you for:
+
+  - Linux System Administrator
+  - DevOps Engineer
+  - Site Reliability Engineer (SRE)
+  - Platform Engineer
+  - Build/Release Engineer
+
+  Average salary range: $70,000 - $110,000
+
+## 🎓 Certification alignment:
+
+  - LFCS (Scripting & Automation domain)
+  - CompTIA Linux+ XK0-006 (Scripting domain)
+  - RHCSA (Shell scripting tasks)
+
+## ▶ Ready? Type any key to begin.

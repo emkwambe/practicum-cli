@@ -1,0 +1,40 @@
+# Lesson: git commit --amend — Fix Your Last Commit
+
+## [WHEN] You need this when:
+1. You committed with a typo in the message.
+2. You forgot to include a file in your last commit.
+3. Your commit should have included one more small change.
+4. You want to polish the commit before pushing.
+
+## [INTENT] "Fix the most recent commit I just made."
+
+## [CONTEXT]
+--amend replaces the most recent commit with a new one. You can change
+the message, add forgotten files, or both. The commit keeps its date
+(or gets a new one) and gets a new hash.
+WARNING: Never amend a commit that has been pushed and shared.
+Amending changes the hash, which causes problems for anyone who
+already has the old commit.
+Rule: Amend local commits freely. Never amend public commits.
+
+## [ACTION] git commit --amend
+Common patterns:
+  git commit --amend                — edit the message (opens editor)
+  git commit --amend -m "New msg"   — replace message inline
+  git commit --amend --no-edit      — keep message, add staged changes
+  git add forgotten_file.txt
+  git commit --amend --no-edit      — add forgotten file to last commit
+
+## [EXPECTED RESULT]
+The most recent commit is replaced. git log shows the new commit
+with the updated message and/or files.
+
+## Try it now:
+  git commit -m "Initial commti"    — typo on purpose
+  git commit --amend -m "Initial commit"   — fix it
+  git log --oneline -1
+
+## Next:
+Type menu to return. You have completed Day 6!
+You can now stash work, rebase, cherry-pick, find bugs with bisect,
+recover lost commits, and fix mistakes.

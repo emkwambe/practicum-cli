@@ -1,0 +1,104 @@
+Q1: SCENARIO: You have a 2GB log file. You need lines containing "TIMEOUT" in the last 1000 lines. The most efficient pipeline:
+A) cat logfile | grep TIMEOUT
+B) tail -1000 logfile | grep "TIMEOUT" — reads only the last 1000 lines, not the whole 2GB
+C) head -1000 logfile | grep TIMEOUT
+D) grep "TIMEOUT" logfile | tail -1000
+Correct: B
+
+Q2: grep -oP '(?<=user=)\w+' extracts:
+A) The entire line
+B) The word before "user="
+C) The word after "user=" only — Perl lookbehind discards the prefix
+D) Lines containing "user="
+Correct: C
+
+Q3: awk -F',' '{sum+=$3} END {print sum}' does:
+A) Prints column 3
+B) Counts rows
+C) Sums the values in column 3 of a comma-delimited file — like SQL SUM()
+D) Sorts by column 3
+Correct: C
+
+Q4: DIAGNOSTIC: sed 's/http/https/' config.txt only replaces the first occurrence per line. How do you replace ALL?
+A) Use awk instead
+B) Add the g flag: sed 's/http/https/g' — global replacement
+C) Run sed twice
+D) sed can only replace one per line
+Correct: B
+
+Q5: The regex [0-9]{3}\.[0-9]{1,3} matches:
+A) File extensions
+B) Any three digits
+C) Phone numbers
+D) IP address fragments like "192.168" — 3 digits, a literal dot, 1-3 digits
+Correct: D
+
+Q6: TRADEOFF: grep -E vs grep -P (Perl regex). When does Perl regex matter?
+A) Perl is slower
+B) Extended is more portable
+C) Never — extended regex does everything
+D) Perl supports lookaheads (?=...), lookbehinds (?<=...), \K reset, and non-greedy matching — extended doesn't
+Correct: D
+
+Q7: awk 'NR>1 {count[$2]++} END {for(k in count) print k,count[k]}' does:
+A) Skips the header, groups by column 2, and prints the count per group — like SQL GROUP BY
+B) Counts lines
+C) Sorts the file
+D) Removes duplicates
+Correct: A
+
+Q8: sed -n '/START/,/END/p' file.txt prints:
+A) Only lines containing START or END
+B) Nothing
+C) All lines between the START and END patterns inclusive — a range extraction
+D) The first and last line
+Correct: C
+
+Q9: SCENARIO: You need to join data from two files by a shared key (like SQL JOIN). Which tool?
+A) grep file1 file2
+B) cat file1 file2
+C) paste file1 file2 (side-by-side, no key matching)
+D) join — requires sorted files on the join key
+Correct: D
+
+Q10: The pipeline sort | uniq -c | sort -rn produces:
+A) A frequency table — count of each unique value, sorted by frequency descending
+B) Random order
+C) Duplicates only
+D) Sorted unique lines
+Correct: A
+
+Q11: DIAGNOSTIC: Your awk script processes a CSV but column values are wrong. awk '{print $2}' prints partial fields. What's wrong?
+A) The file is corrupted
+B) awk counts from 0
+C) awk defaults to whitespace as delimiter — CSV needs awk -F',' to split on commas
+D) awk can't read CSV
+Correct: C
+
+Q12: perl -pe vs sed for substitution:
+A) perl is shell-only
+B) Perl supports complex regex (\K, lookaround, non-greedy) that sed doesn't — and uses -pe for sed-like behavior
+C) sed is newer
+D) They're identical
+Correct: B
+
+Q13: SCENARIO: You need to extract emails from a messy log file. The best approach:
+A) cut -d@ -f1 logfile
+B) grep -oP '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}' logfile — regex pattern matching for email format
+C) grep email logfile
+D) awk '{print $NF}' logfile
+Correct: B
+
+Q14: xargs converts:
+A) XML to JSON
+B) File formats
+C) stdin input into command-line arguments — lets you feed output of one command as arguments to another
+D) Text to uppercase
+Correct: C
+
+Q15: tee in a pipeline does:
+A) Splits output — sends it to BOTH a file AND the next command in the pipeline simultaneously
+B) Formats output
+C) Stops the pipeline
+D) Filters duplicates
+Correct: A

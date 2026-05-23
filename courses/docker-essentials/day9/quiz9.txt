@@ -1,0 +1,34 @@
+Q1: SCENARIO: Compose stack has web, db, cache. The db container keeps restarting. First diagnostic step:
+A) Restart the entire stack
+B) Delete the volume and recreate
+C) docker logs db — check what error the database reports on startup
+D) Increase replicas to 3
+Correct: C
+
+Q2: PostgreSQL data persistence in Docker requires:
+A) Nothing special — containers preserve data
+B) A bind mount to /tmp
+C) A named volume mounted to /var/lib/postgresql/data
+D) An environment variable
+Correct: C
+
+Q3: DIAGNOSTIC: Multi-stage Dockerfile builds, but final image is still 800MB. What should you check?
+A) Docker version
+B) The Dockerfile syntax
+C) The base image in the final stage — you may be using a fat image instead of alpine for the runtime stage
+D) Network speed
+Correct: C
+
+Q4: Healthcheck in a compose file ensures:
+A) Faster container startup
+B) Better network performance
+C) Log collection works
+D) Docker monitors if your app is actually working — not just running — and can restart unhealthy containers
+Correct: D
+
+Q5: TRADEOFF: docker compose up recreates containers. But the database has data. How is it protected?
+A) Export data before every update
+B) Named volumes persist independently of container lifecycle — the volume survives container recreation
+C) Stop the database before updating
+D) Never update the stack
+Correct: B

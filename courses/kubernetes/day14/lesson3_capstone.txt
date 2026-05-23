@@ -1,0 +1,298 @@
+# Final Capstone: The Cluster Crisis
+
+## THIS IS NOT A HOMEWORK ASSIGNMENT.
+
+This is a simulated production incident. You are the platform
+engineer on call. There's no step-by-step guide.
+You own the outcome.
+
+────────────────────────────────────────────────────
+
+## PHASE 1 — Problem Context
+
+### The Scenario:
+
+MedRelay is a healthcare communication platform that connects
+doctors, nurses, and patients across 12 hospitals. They migrated
+to Kubernetes 4 months ago. The team deployed services using
+kubectl apply and raw YAML files. Nobody wrote documentation.
+
+Yesterday at 2 PM:
+  - The API service started returning 503 errors
+  - The notification service stopped sending alerts
+  - The database pod restarted 3 times
+  - A nurse couldn't reach a doctor during a patient emergency
+
+The CTO asks:
+
+```
+"I was told Kubernetes makes things reliable. Instead we had
+our worst outage in 2 years. I need someone to stabilize this
+cluster, set up proper monitoring, and make sure this never
+happens again. We have 12 hospitals depending on us."
+```
+
+### What you know:
+  - 5 microservices: API, web frontend, notification worker,
+    auth service, PostgreSQL database
+  - Running on a 3-node kind cluster (simulating their setup)
+  - No health probes configured
+  - No resource limits set
+  - No HPA — all services run with replicas: 1
+  - Secrets are in plain YAML files committed to Git
+  - No Ingress — each service uses NodePort
+  - No Helm — raw YAML files scattered in a directory
+
+### What you DON'T know:
+  - Why the API returned 503s (was it the API? the database? both?)
+  - Whether the database lost data during restarts
+  - How the notification service connects to the API
+  - What resource consumption looks like under normal load
+  - Whether the cluster can handle a node failure
+
+────────────────────────────────────────────────────
+
+## PHASE 2 — Requirements Discovery
+
+Write DISCOVERY.md:
+
+  1. What are the risks of MedRelay's current Kubernetes setup?
+     (At least 6 — this is healthcare. Lives are at stake.)
+
+  2. What questions would you ask the engineering team?
+     (At least 5 — focus on what broke and what exists.)
+
+  3. What should "production-ready" look like for a healthcare
+     communication platform?
+     Define at least 4 measurable criteria.
+
+  4. What regulations or compliance requirements affect
+     healthcare platforms on Kubernetes? (HIPAA basics)
+
+────────────────────────────────────────────────────
+
+## PHASE 3 — Planning & Design
+
+Create ARCHITECTURE.md:
+
+  1. Service architecture diagram (ASCII or Mermaid)
+     Show: pods, services, ingress, storage, config
+
+  2. Resource allocation plan
+     (What resources does each service need? How did you decide?)
+
+  3. High availability strategy
+     (Replicas, PDB, anti-affinity, HPA thresholds)
+
+  4. Networking design
+     (Ingress vs NodePort, NetworkPolicy, service mesh considerations)
+
+  5. Configuration management
+     (ConfigMaps vs Secrets, how secrets are handled for HIPAA)
+
+  6. Monitoring strategy
+     (What do you watch? What triggers an alert?)
+
+  7. Risk assessment — at least 3 risks with mitigations
+
+────────────────────────────────────────────────────
+
+## PHASE 4 — Execution
+
+Build the stabilized cluster on kind:
+
+### 4A. Cluster setup:
+  kind create cluster --name medrelay --config kind-config.yaml
+  (3 nodes: 1 control-plane, 2 workers)
+
+### 4B. Namespace and RBAC:
+  - Create namespace: medrelay-prod
+  - Create a ServiceAccount for the CI/CD pipeline
+  - Document RBAC approach (who can do what)
+
+### 4C. Deployments (all 5 services):
+  Each must have:
+  - Deployment with >= 2 replicas (3 for API)
+  - Resource requests AND limits
+  - Liveness and readiness probes
+  - Labels: app, tier, version
+
+  Services:
+  - api (3 replicas, port 3000)
+  - web (2 replicas, port 80)
+  - notification-worker (2 replicas, no port — queue consumer)
+  - auth (2 replicas, port 4000)
+  - postgres (StatefulSet, 1 replica, PVC for data)
+
+### 4D. Networking:
+  - ClusterIP services for internal communication
+  - Ingress for external access (api.medrelay.local, app.medrelay.local)
+  - NetworkPolicy: web→api, api→auth, api→postgres,
+    notification→api. Nothing else.
+
+### 4E. Configuration:
+  - ConfigMap: DB_HOST, LOG_LEVEL, API_URL, QUEUE_URL
+  - Secrets: DB_PASSWORD, JWT_SECRET, SMTP_PASSWORD
+  - Secrets created via kubectl (not in YAML files)
+
+### 4F. Storage:
+  - PVC for PostgreSQL data (10Gi, ReadWriteOnce)
+  - PDB on API (minAvailable: 2)
+
+### 4G. Helm packaging:
+  - Package the entire stack into a Helm chart
+  - values-dev.yaml and values-prod.yaml
+  - helm install medrelay ./chart -f values-prod.yaml
+
+### 4H. Operational tooling:
+  Create scripts/:
+  - health-check.sh (verifies all pods, services, endpoints)
+  - scale-api.sh (safely scales API with pre/post checks)
+
+────────────────────────────────────────────────────
+
+## PHASE 5 — Failure Injection
+
+⚠️ SOMETHING GOES WRONG.
+
+After building the stabilized cluster, simulate ONE:
+
+  A) The API deployment is updated with a broken image tag.
+     New pods enter CrashLoopBackOff. With maxUnavailable: 0
+     the old pods should still serve traffic — verify this works.
+     Then roll back. Document the entire incident.
+
+  B) The PostgreSQL pod is killed (kubectl delete pod postgres-0).
+     The StatefulSet recreates it. But the app throws "connection
+     refused" for 30 seconds while PostgreSQL initializes.
+     Investigate why readiness probes didn't prevent this.
+     Fix the configuration.
+
+  C) A developer accidentally applies a NetworkPolicy that blocks
+     ALL traffic to the API pods. The web frontend returns 504s.
+     Users can't access the platform. Diagnose, fix, and implement
+     a review process for NetworkPolicy changes.
+
+Pick ONE. Document in INCIDENT.md:
+  1. Timeline (when did each thing happen)
+  2. Detection (how was it discovered)
+  3. Impact (which services, which users)
+  4. Root cause
+  5. Immediate fix
+  6. Permanent prevention
+  7. HIPAA implications
+
+────────────────────────────────────────────────────
+
+## PHASE 6 — Communication
+
+Create CTO_REPORT.md — for MedRelay's CTO (non-technical):
+  - What caused yesterday's outage (root cause in plain English)
+  - What you fixed and why it won't happen again
+  - What "production-ready" means now vs before
+  - What the monitoring shows (how you'd catch it before users do)
+  - What you recommend for month 2
+
+Create TEAM_RUNBOOK.md — for the engineering team:
+  - How to deploy a new version (the right way)
+  - How to check cluster health
+  - How to debug a failing pod (the 4-step workflow)
+  - How to respond to an alert at 3 AM
+  - What NOT to do (never kubectl delete namespace, never apply
+    without reviewing, never commit secrets)
+  - Common errors and fixes
+
+────────────────────────────────────────────────────
+
+## PHASE 7 — Reflection
+
+At the bottom of CTO_REPORT.md:
+
+### Lessons Learned
+  - What was the hardest part of stabilizing this cluster?
+  - What's the weakest point in the current setup?
+  - If MedRelay grows to 50 hospitals, what breaks first?
+  - When should they consider a service mesh?
+  - What would you build with a second engagement?
+
+────────────────────────────────────────────────────
+
+## SCORING RUBRIC
+
+### Cluster Architecture (15%)
+  [ ] 5 services deployed with proper resource management
+  [ ] Namespace isolation
+  [ ] Labels and selectors consistent
+  [ ] kind cluster with multiple nodes
+
+### Reliability (20%)
+  [ ] All services have >= 2 replicas
+  [ ] Liveness and readiness probes on all web/API pods
+  [ ] PDB on critical services
+  [ ] Rolling update strategy with maxUnavailable: 0
+  [ ] StatefulSet for PostgreSQL with PVC
+
+### Networking & Security (15%)
+  [ ] Ingress configured for external access
+  [ ] NetworkPolicies restrict pod-to-pod traffic
+  [ ] Secrets not in YAML files or Git
+  [ ] RBAC approach documented
+
+### Helm Packaging (10%)
+  [ ] Complete Helm chart with templates
+  [ ] Separate values files for dev and prod
+  [ ] helm install deploys the full stack
+
+### Failure Response (15%)
+  [ ] Incident scenario completed
+  [ ] Root cause correctly identified
+  [ ] Recovery executed without data loss
+  [ ] Prevention measures implemented
+  [ ] HIPAA implications addressed
+
+### Communication (10%)
+  [ ] CTO report explains the outage in business terms
+  [ ] Team runbook is actionable
+  [ ] 3 AM response procedure documented
+
+### Professional Judgment (15%)
+  [ ] Architecture decisions justified
+  [ ] Healthcare compliance considered throughout
+  [ ] Monitoring strategy defined
+  [ ] Scaling plan for growth
+  [ ] Reflection shows systems thinking
+
+### Score Interpretation:
+  90-100%  Ready to operate production Kubernetes clusters
+  75-89%   Strong foundation — ready for a platform team with mentorship
+  60-74%   Developing — review weak dimensions
+  Below 60% Review Days 1-7
+
+────────────────────────────────────────────────────
+
+## FINAL DELIVERABLES
+
+  kind-config.yaml (multi-node cluster)
+  chart/ (Helm chart)
+  ├── Chart.yaml
+  ├── values.yaml
+  ├── values-dev.yaml
+  ├── values-prod.yaml
+  └── templates/ (all K8s manifests)
+  scripts/health-check.sh
+  scripts/scale-api.sh
+  DISCOVERY.md
+  ARCHITECTURE.md
+  INCIDENT.md
+  CTO_REPORT.md (includes Lessons Learned)
+  TEAM_RUNBOOK.md
+
+────────────────────────────────────────────────────
+
+## THE STANDARD
+
+  "If a hospital's communication platform went down and they
+   asked me to stabilize it, could I show this work as proof
+   I can keep critical systems running?"
+
+## 🎓 Generate your certificate: practicum certificate

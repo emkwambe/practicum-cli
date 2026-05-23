@@ -1,0 +1,135 @@
+# Lesson: Resource Dependencies & Lifecycle Rules
+
+## [WHEN] You need this when:
+1. Resources must be created in a specific order.
+2. A resource must be replaced without downtime (create before destroy).
+3. You need to prevent accidental deletion of critical resources.
+4. The exam tests depends_on and lifecycle (Obj 4f, new in 004).
+
+## [INTENT] "Control resource creation order and replacement behavior."
+
+## [CONTEXT]
+Terraform builds a dependency graph automatically from references:
+if Resource B references Resource A's attribute, B depends on A.
+But sometimes dependencies are implicit — Terraform can't see them.
+And sometimes the default replace behavior (destroy then create)
+causes unacceptable downtime.
+
+## [ACTION] Dependencies and lifecycle
+
+### Implicit dependencies (automatic):
+  resource "aws_vpc" "main" {
+    cidr_block = "10.0.0.0/16"
+  }
+
+  resource "aws_subnet" "web" {
+    vpc_id     = aws_vpc.main.id   # ← implicit dependency
+    cidr_block = "10.0.1.0/24"
+  }
+
+  # Terraform knows: create VPC first, then subnet.
+  # On destroy: delete subnet first, then VPC.
+  # No extra configuration needed.
+
+### Explicit dependencies (depends_on):
+  resource "aws_instance" "web" {
+    ami           = "ami-0c55b159cbfafe1f0"
+    instance_type = "t3.micro"
+
+    depends_on = [aws_iam_role_policy.web_policy]
+  }
+
+  # The instance doesn't reference the IAM policy directly,
+  # but the application running on it NEEDS the policy to exist.
+  # depends_on forces Terraform to create the policy first.
+
+  # Use depends_on ONLY when implicit deps aren't enough.
+  # Overusing it creates unnecessary serialization (slower applies).
+
+### Resource graph:
+  # Visualize the dependency graph:
+  terraform graph | dot -Tpng > graph.png
+
+  # Terraform uses this graph to:
+  # 1. Determine creation order
+  # 2. Parallelize independent resources
+  # 3. Determine safe destruction order (reverse)
+
+### Lifecycle rules:
+  resource "aws_instance" "web" {
+    ami           = var.ami_id
+    instance_type = "t3.micro"
+
+    lifecycle {
+      create_before_destroy = true   # new instance first, then old
+      prevent_destroy       = true   # block terraform destroy
+      ignore_changes        = [tags] # ignore tag drift
+    }
+  }
+
+### create_before_destroy:
+  Default behavior: destroy old → create new (downtime window).
+  With create_before_destroy: create new → verify → destroy old.
+
+  Critical for:
+  - Load-balanced instances (keep serving while replacing)
+  - Database instances (keep old running until new is ready)
+  - SSL certificates (new cert active before old expires)
+
+### prevent_destroy:
+  Blocks any plan that would destroy this resource.
+  
+  terraform destroy → Error: Resource has prevent_destroy set.
+  
+  Use for: production databases, S3 buckets with data, DNS zones.
+  To actually destroy: remove the lifecycle block first, then destroy.
+
+### ignore_changes:
+  Tells Terraform to ignore certain attribute changes.
+
+  lifecycle {
+    ignore_changes = [tags, user_data]
+  }
+
+  # Useful when external systems modify tags (AWS auto-tagging)
+  # or when user_data is set once and shouldn't trigger replacement.
+
+  # Ignore ALL changes:
+  lifecycle {
+    ignore_changes = all
+  }
+  # Terraform manages creation but ignores all future drift.
+
+### replace_triggered_by:
+  lifecycle {
+    replace_triggered_by = [
+      aws_ami.app.id     # replace this instance when AMI changes
+    ]
+  }
+
+### moved block (refactoring):
+  # Renamed a resource? Tell Terraform it moved:
+  moved {
+    from = aws_instance.web_server
+    to   = aws_instance.web
+  }
+  # Prevents destroy+recreate when refactoring code.
+
+### removed block (cleanup):
+  # Remove from Terraform without destroying:
+  removed {
+    from = aws_instance.legacy
+
+    lifecycle {
+      destroy = false    # keep the resource, just stop managing it
+    }
+  }
+
+## [EXPECTED RESULT]
+You can use depends_on for explicit ordering, lifecycle rules
+for safe replacements, and moved/removed for code refactoring.
+
+## Technician Tip:
+Exam 004 added lifecycle create_before_destroy explicitly.
+Know the difference: default is destroy-then-create (downtime),
+create_before_destroy is create-then-destroy (zero downtime).

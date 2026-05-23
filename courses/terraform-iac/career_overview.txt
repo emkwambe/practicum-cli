@@ -1,0 +1,28 @@
+COURSE: Terraform & Infrastructure as Code
+CERTIFICATION_ALIGNMENT: HashiCorp Terraform Associate 004
+CERT_OBJECTIVES: IaC Concepts, Fundamentals, Core Workflow, Configuration, Modules, State Management, Maintain Infrastructure, HCP Terraform
+TAGLINE: "From manual deploys to infrastructure as code — master Terraform"
+TOTAL_DAYS: 14
+TOTAL_LESSONS: 29
+PREREQS: CI/CD Pipelines
+CAPSTONE: NimbusMed — Multi-Environment Telehealth Stack
+
+SKILLS:
+  iac_concepts, drift_detection, iac_tools_landscape,
+  terraform_install, terraform_init, providers, resources,
+  plan_apply_destroy, multiple_providers, provider_aliases,
+  provider_versioning, lock_file,
+  variables, outputs, data_sources, type_constraints,
+  validate, fmt, depends_on, lifecycle_rules,
+  create_before_destroy, prevent_destroy, ignore_changes, moved_removed,
+  complex_types, list_map_set_object, for_each, count,
+  expressions, functions, dynamic_blocks, splat,
+  custom_conditions, input_validation, preconditions_postconditions, check_blocks,
+  sensitive_variables, vault_integration, ephemeral_values,
+  modules, module_scope, module_registry, module_versioning,
+  state_file, remote_backends, state_locking,
+  state_cli, state_mv_rm, terraform_import, resource_drift, refresh_only,
+  hcp_terraform, hcp_workspaces, hcp_projects, variable_sets,
+  policy_enforcement, sentinel_opa, drift_detection_hcp, dynamic_credentials,
+  tf_log, debugging, terraform_cicd, workspaces,
+  multi_environment, capstone_design

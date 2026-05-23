@@ -1,0 +1,55 @@
+Q1: Which command quickly shows a server's IP addresses?
+A) ping localhost
+B) ifconfig --show
+C) ip addr show
+D) dns --lookup
+Correct: C
+
+Q2: ping -c 4 google.com does what?
+A) Downloads 4 files from Google
+B) Opens Google in a browser
+C) Sends 4 ICMP packets to test network connectivity and shows round-trip times
+D) Pings 4 different servers
+Correct: C
+
+Q3: SCENARIO: You need to find which process is listening on port 443. Which command?
+A) ping :443
+B) curl localhost:443
+C) grep 443 /etc/services
+D) ss -tlnp | grep 443
+Correct: D
+
+Q4: You're setting up SSH for the first time. What generates your key pair?
+A) ssh-copy-id
+B) ssh-keygen
+C) ssh --new-key
+D) openssl genkey
+Correct: B
+
+Q5: TRADEOFF: You need to transfer 10GB of data to a remote server daily. Yesterday's transfer was 10GB, today only 200MB changed. rsync is better than scp because:
+A) rsync is faster at network speeds
+B) rsync encrypts better
+C) rsync only transfers the files that changed — scp re-copies everything every time
+D) scp doesn't support large files
+Correct: C
+
+Q6: On Ubuntu, which command installs a package?
+A) sudo apt install nginx
+B) sudo yum install nginx
+C) install nginx
+D) download nginx
+Correct: A
+
+Q7: tar czf backup.tar.gz folder/ does what?
+A) Extracts backup.tar.gz into folder/
+B) Lists contents of the archive
+D) Creates a compressed archive of folder/ (c=create, z=gzip, f=filename)
+C) Copies folder to backup
+Correct: D
+
+Q8: DIAGNOSTIC: ping google.com works but curl https://google.com fails with "Connection refused". What's the most likely issue?
+A) The internet is down
+B) DNS is broken
+C) Network connectivity is fine (ping works) but a firewall is blocking HTTP/HTTPS traffic on port 443
+D) curl is not installed
+Correct: C

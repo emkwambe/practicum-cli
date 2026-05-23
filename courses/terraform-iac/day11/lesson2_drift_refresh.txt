@@ -1,0 +1,131 @@
+# Lesson: Resource Drift & Refresh — Detecting Reality vs Config
+
+## [WHEN] You need this when:
+1. Someone modified infrastructure manually (console click-ops).
+2. Terraform plan shows unexpected changes.
+3. You need to sync state with reality without changing anything.
+4. The exam tests drift management (Obj 6d).
+
+## [INTENT] "Detect and resolve resource drift between state and reality."
+
+## [CONTEXT]
+Drift = reality differs from what Terraform expects.
+
+Three sources of truth:
+  1. Your .tf code (desired state)
+  2. The state file (Terraform's record of reality)
+  3. The actual cloud resources (reality)
+
+Drift happens when someone changes reality outside Terraform:
+  - AWS console click to resize an instance
+  - Auto-scaling adds instances Terraform doesn't know about
+  - Security team manually adds firewall rules
+
+## [ACTION] Drift detection and resolution
+
+### Detecting drift:
+  # terraform plan compares state vs reality:
+  terraform plan
+
+  # If someone manually changed instance_type from t3.micro to t3.large:
+  # ~ resource "aws_instance" "web" {
+  #     ~ instance_type = "t3.large" -> "t3.micro"
+  #   }
+  # Terraform wants to REVERT the manual change to match code.
+
+### Refresh-only mode:
+  # Update state to match reality WITHOUT changing resources:
+  terraform plan -refresh-only
+  terraform apply -refresh-only
+
+  # This says: "reality changed, update my records."
+  # State file updates to reflect the manual changes.
+  # Resources are NOT modified.
+
+  # Use when: you WANT to keep the manual changes.
+
+### Standard refresh behavior:
+  # Every terraform plan automatically refreshes state.
+  # This is the default — Terraform reads current cloud state,
+  # compares to the code, and shows the diff.
+
+  # Skip refresh (faster, uses cached state):
+  terraform plan -refresh=false
+
+### Resolving drift — three choices:
+
+  # Choice 1: REVERT the drift (run apply normally)
+  # Terraform changes reality back to match your code.
+  terraform apply
+
+  # Choice 2: ACCEPT the drift (update code to match reality)
+  # Change your .tf files to match what's actually deployed.
+  # Then terraform plan shows no changes.
+
+  # Choice 3: IGNORE the drift (refresh-only or ignore_changes)
+  terraform apply -refresh-only
+  # OR in the resource:
+  lifecycle {
+    ignore_changes = [instance_type]
+  }
+
+### State locking:
+  When multiple people run Terraform simultaneously, they can
+  corrupt the state file. State locking prevents this.
+
+  # How it works:
+  # 1. terraform plan acquires a lock on the state
+  # 2. Other terraform commands wait for the lock
+  # 3. When done, the lock is released
+
+  # Backends that support locking:
+  # S3 (with DynamoDB table), Terraform Cloud, GCS, Azure Blob
+
+  # S3 backend with locking:
+  terraform {
+    backend "s3" {
+      bucket         = "my-terraform-state"
+      key            = "prod/terraform.tfstate"
+      region         = "us-east-1"
+      dynamodb_table = "terraform-locks"
+      encrypt        = true
+    }
+  }
+
+  # Force unlock (when a lock is stuck):
+  terraform force-unlock LOCK_ID
+
+  # ⚠️ Only force-unlock when you're sure no one else is running.
+
+### Moved and removed blocks (code-level refactoring):
+  # Renamed a resource? Use moved instead of state mv:
+  moved {
+    from = aws_instance.web_server
+    to   = aws_instance.web
+  }
+  # Terraform handles the state update during plan/apply.
+  # Advantage: this lives in code, so the whole team gets it.
+
+  # Stop managing a resource without destroying:
+  removed {
+    from = aws_instance.legacy
+    lifecycle {
+      destroy = false
+    }
+  }
+
+### Drift in HCP Terraform:
+  HCP Terraform has built-in drift detection:
+  - Automatically runs refresh on a schedule
+  - Notifies when drift is detected
+  - Shows which attributes changed
+  - Integrates with policy enforcement
+
+## [EXPECTED RESULT]
+You can detect drift with plan, resolve it three ways, understand
+state locking, and use moved/removed blocks for refactoring.
+
+## Technician Tip:
+Exam trap: "terraform plan -refresh-only" does NOT change resources.
+It only updates state to match reality. This is the opposite of
+normal apply, which changes reality to match code.

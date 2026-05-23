@@ -1,0 +1,59 @@
+Q1: By default in Kubernetes, pod-to-pod networking is:
+A) Blocked
+B) Authenticated
+C) Encrypted
+D) Completely open — every pod can reach every other pod in every namespace, which is a security risk in production
+Correct: D
+
+Q2: SCENARIO: After applying a default-deny NetworkPolicy, all pods lose connectivity. A junior engineer panics. What did the policy do correctly?
+A) It broke the cluster
+B) Default-deny blocks ALL traffic — this is correct and intentional. Now you explicitly allow only the traffic that should flow, following zero-trust networking.
+C) It deleted routes
+D) It changed DNS
+Correct: B
+
+
+
+Q3: A common mistake in egress NetworkPolicies:
+A) Allowing too much traffic
+B) Using the wrong namespace
+C) Forgetting to allow DNS (UDP/TCP port 53) — without DNS, pods can't resolve service names even though the services exist
+D) Setting wrong protocols
+Correct: C
+
+Q4: DIAGNOSTIC: Pod A should reach Pod B after you created an allow policy. It still times out. kubectl get networkpolicy shows the policy exists. What's wrong?
+A) NetworkPolicies are broken
+B) Check if the CNI plugin supports NetworkPolicies — the default kubenet does NOT enforce them. Calico, Cilium, or Weave is required.
+C) The pods need restarting
+D) The policy needs a different apiVersion
+Correct: B
+
+
+
+Q5: CoreDNS resolves service-name.namespace.svc.cluster.local. When a pod in the same namespace calls just "backend":
+A) It fails — full FQDN required
+B) It uses external DNS
+C) The search domains in /etc/resolv.conf automatically append the namespace and cluster suffix — so "backend" resolves within the same namespace
+D) It returns the pod IP
+Correct: C
+
+Q6: TRADEOFF: NetworkPolicies provide namespace-level firewalling. When would you need a service mesh (Istio/Linkerd) instead?
+A) When you need encrypted pod-to-pod traffic (mTLS), per-request routing, retry logic, or observability at the application layer — NetworkPolicies operate at L3/L4, service meshes at L7
+B) Never — NetworkPolicies are enough
+C) Service meshes replace K8s networking
+D) Service meshes are simpler
+Correct: A
+
+Q7: SCENARIO: kubectl exec into a pod, and nslookup kubernetes fails with "can't resolve." kubectl get pods -n kube-system shows CoreDNS pods in CrashLoopBackOff. First fix:
+A) Check CoreDNS logs (kubectl logs coredns-xxx -n kube-system) — the logs will show why it's crashing (corrupt Corefile, loop detection, permission errors)
+B) Restart the cluster
+C) Delete DNS
+D) Change resolv.conf
+Correct: A
+
+Q8: The headless Service (clusterIP: None) for StatefulSets provides:
+A) Load balancing
+B) Faster networking
+C) No DNS at all
+D) Individual DNS entries per pod (pod-0.svc-name, pod-1.svc-name) instead of load-balanced access — necessary when clients must reach specific replicas
+Correct: D

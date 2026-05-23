@@ -1,0 +1,279 @@
+# Final Capstone: The Infrastructure Rescue
+
+## THIS IS NOT A HOMEWORK ASSIGNMENT.
+
+This is a simulated professional engagement. You are the
+infrastructure engineer. There's no step-by-step guide.
+You own the outcome.
+
+────────────────────────────────────────────────────
+
+## PHASE 1 — Problem Context
+
+### The Scenario:
+
+NimbusMed is a telehealth startup with 15,000 active patients.
+Their entire infrastructure runs in one AWS account, created
+over 18 months of clicking through the AWS console:
+
+  - 4 EC2 instances (nobody knows which does what)
+  - 2 RDS databases (one might be unused)
+  - Security groups with rules like "allow all from 0.0.0.0/0"
+  - No staging environment — all testing happens on production
+  - No infrastructure documentation
+  - Last month: a developer accidentally terminated the wrong instance
+    from the console. Recovery took 6 hours. Patient appointments
+    were cancelled.
+
+The CTO calls you:
+
+```
+"I need infrastructure I can trust. Something that rebuilds
+itself if we break it. Something where every change is reviewed
+before it goes live. I don't care what tool you use, I just
+need to stop losing sleep over whether someone will delete
+production again."
+```
+
+### What you know:
+  - The app is a Node.js API + React frontend
+  - PostgreSQL database with patient health records (HIPAA)
+  - Redis for session caching
+  - Everything runs in us-east-1
+  - The team has never used IaC
+
+### What you DON'T know:
+  - Whether to import existing infra or rebuild from scratch
+  - How to structure the Terraform project (mono-repo? modules?)
+  - What the correct security group rules should be
+  - Whether workspaces or directories for environments
+  - How to handle the HIPAA requirements in IaC
+  - How to train the team without disrupting patient services
+
+────────────────────────────────────────────────────
+
+## PHASE 2 — Requirements Discovery
+
+Write DISCOVERY.md:
+
+  1. What are the risks of NimbusMed's current infrastructure?
+     (List at least 5 — include the HIPAA exposure.)
+
+  2. What questions would you ask the CTO and dev team?
+     (At least 5 — they're non-technical about infrastructure.)
+
+  3. Import vs rebuild — what factors determine which approach?
+     (List tradeoffs for each.)
+
+  4. What does "success" look like in the first month?
+     Define 3 measurable criteria.
+
+────────────────────────────────────────────────────
+
+## PHASE 3 — Planning & Design
+
+Create ARCHITECTURE.md:
+
+  1. Project structure diagram
+     (How you'd organize the Terraform repo — modules, environments)
+
+  2. Environment strategy
+     (Workspaces vs directories? Justify for a 15-person team.)
+
+  3. State management plan
+     (Where? Locking? Encryption? Access control?)
+
+  4. Module design
+     (What modules would you create? What inputs/outputs?)
+
+  5. Migration plan
+     (Import existing? Rebuild parallel? Blue/green infra switch?)
+
+  6. HIPAA considerations
+     (Encryption at rest, access logging, least privilege)
+
+  7. Risk assessment — at least 3 risks with mitigations
+
+────────────────────────────────────────────────────
+
+## PHASE 4 — Execution
+
+Build a Terraform project that provisions a complete stack.
+Use the Docker provider (no cloud account needed):
+
+### 4A. Project structure:
+  nimbus-infra/
+  ├── modules/
+  │   ├── network/        # Docker networks
+  │   ├── database/       # PostgreSQL container + volume
+  │   ├── cache/          # Redis container
+  │   └── web-server/     # App container
+  ├── environments/
+  │   ├── dev.tfvars
+  │   └── prod.tfvars
+  ├── main.tf             # calls modules
+  ├── variables.tf
+  ├── outputs.tf
+  ├── providers.tf
+  └── backend.tf
+
+### 4B. Modules (at minimum):
+  - network module: creates Docker networks (frontend, backend)
+  - database module: PostgreSQL with named volume, health check
+  - cache module: Redis container
+  - web-server module: app container with configurable replicas
+
+  Each module must have: variables.tf, main.tf, outputs.tf
+
+### 4C. Environment configuration:
+  - dev.tfvars: 1 web instance, small resources, debug logging
+  - prod.tfvars: 2 web instances, larger resources, production logging
+
+  Both environments from the SAME code.
+
+### 4D. CI/CD integration:
+  - .github/workflows/terraform.yml
+    - On PR: fmt check → validate → plan → post plan as comment
+    - On merge to main: apply with -auto-approve
+  - .gitignore: state files, .terraform/, *.tfvars with secrets
+
+### 4E. Operational outputs:
+  - Web server URL
+  - Database connection info (marked sensitive)
+  - Network IDs
+
+────────────────────────────────────────────────────
+
+## PHASE 5 — Failure Injection
+
+⚠️ SOMETHING GOES WRONG.
+
+After building the stack, simulate ONE:
+
+  A) A developer runs terraform apply in the prod workspace when
+     they meant dev. The production database gets replaced with
+     a dev-sized instance. Patient data volume is intact but
+     the container changed. Document the incident and implement
+     workspace safety controls.
+
+  B) terraform plan shows "0 to add, 0 to change, 0 to destroy"
+     but the web application is returning errors. Someone manually
+     changed a Docker network setting outside of Terraform.
+     Detect the drift, document it, and fix it through code.
+
+  C) The state file gets corrupted (simulate by modifying
+     terraform.tfstate manually). terraform plan shows it wants
+     to destroy and recreate everything. How do you recover
+     without destroying production infrastructure?
+
+Pick ONE. Document in INCIDENT.md:
+  1. What happened (timeline)
+  2. Impact assessment
+  3. Immediate action taken
+  4. Root cause
+  5. Permanent fix
+  6. Process change to prevent recurrence
+
+────────────────────────────────────────────────────
+
+## PHASE 6 — Communication
+
+Create CTO_UPDATE.md — for NimbusMed's CTO (non-technical):
+  - What you built and why it prevents the "deleted instance" scenario
+  - How changes are now reviewed before going live
+  - How the system rebuilds itself if something breaks
+  - What HIPAA controls are in place
+  - What you recommend for month 2
+
+Create TEAM_RUNBOOK.md — for the development team:
+  - How to propose an infrastructure change (PR workflow)
+  - How to read a terraform plan
+  - How to add a new resource
+  - What NOT to do (never click in the console, never apply from laptop)
+  - Common errors and fixes
+
+────────────────────────────────────────────────────
+
+## PHASE 7 — Reflection
+
+At the bottom of CTO_UPDATE.md:
+
+### Lessons Learned
+  - What was the hardest part of this project?
+  - Import vs rebuild: which did you choose and why?
+  - If NimbusMed grows to 100,000 patients, what breaks first?
+  - What's the weakest part of your infrastructure code?
+
+────────────────────────────────────────────────────
+
+## SCORING RUBRIC
+
+### Project Structure (15%)
+  [ ] Clean module organization
+  [ ] Separated environment configs
+  [ ] Proper .gitignore
+  [ ] Pinned provider versions
+
+### Module Quality (20%)
+  [ ] At least 3 modules with inputs/outputs
+  [ ] Modules are reusable (parameterized, not hardcoded)
+  [ ] Resources reference each other correctly
+  [ ] Health checks on containers
+
+### Environment Management (15%)
+  [ ] Same code produces dev and prod
+  [ ] Variable files differ appropriately
+  [ ] State isolation documented
+
+### CI/CD Integration (15%)
+  [ ] Workflow runs plan on PRs
+  [ ] Apply only on merge to main
+  [ ] Plan posted as PR comment (or documented)
+  [ ] fmt and validate as quality gates
+
+### Failure Response (15%)
+  [ ] Incident scenario completed
+  [ ] Root cause correctly identified
+  [ ] Recovery executed without data loss
+  [ ] Prevention measures documented
+
+### Communication (10%)
+  [ ] CTO update is non-technical and business-focused
+  [ ] Team runbook is actionable
+  [ ] HIPAA considerations addressed
+
+### Professional Judgment (10%)
+  [ ] Architecture decisions justified
+  [ ] Tradeoffs explained
+  [ ] Migration strategy realistic
+  [ ] Reflection shows systems thinking
+
+### Score Interpretation:
+  90-100%  Ready to manage cloud infrastructure with IaC
+  75-89%   Strong foundation — ready with mentorship
+  60-74%   Developing — review weak dimensions
+  Below 60% Review Days 1-7
+
+────────────────────────────────────────────────────
+
+## FINAL DELIVERABLES
+
+  nimbus-infra/ (complete Terraform project)
+  ├── modules/ (at least 3, each with variables/main/outputs)
+  ├── environments/ (dev.tfvars, prod.tfvars)
+  ├── main.tf, variables.tf, outputs.tf, providers.tf
+  └── .github/workflows/terraform.yml
+  DISCOVERY.md
+  ARCHITECTURE.md
+  INCIDENT.md
+  CTO_UPDATE.md (includes Lessons Learned)
+  TEAM_RUNBOOK.md
+
+────────────────────────────────────────────────────
+
+## THE STANDARD
+
+  "If a CTO asked me to rescue their infrastructure from click-ops,
+   could I show this project as proof I can do it?"
+
+## 🎓 Generate your certificate: practicum certificate

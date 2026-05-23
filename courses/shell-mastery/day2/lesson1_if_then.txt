@@ -1,0 +1,92 @@
+# Lesson: if/then/else — Make Decisions in Scripts
+
+## [WHEN] You need this when:
+1. Your script should do different things based on conditions.
+2. You need to check if a file exists before reading it.
+3. You want to validate user input.
+4. Different actions are needed for different environments.
+
+## [INTENT] "Run this code only when a condition is true."
+
+## [CONTEXT]
+The if statement checks whether a command succeeds (exit code 0).
+If it does, the "then" block runs. Otherwise, "else" or "elif."
+
+Syntax:
+  if CONDITION; then
+      # runs if true
+  elif OTHER_CONDITION; then
+      # runs if first was false but this is true
+  else
+      # runs if all conditions were false
+  fi
+
+The CONDITION is usually a test command: [ ... ] or [[ ... ]]
+
+## [ACTION] if/then patterns
+
+### Basic if:
+  if [ -f "/etc/hostname" ]; then
+      echo "Hostname file exists"
+  fi
+
+### if/else:
+  if ping -c 1 -W 2 8.8.8.8 >/dev/null 2>&1; then
+      echo "Internet is UP"
+  else
+      echo "Internet is DOWN"
+  fi
+
+### if/elif/else:
+  disk_pct=$(df / | awk 'NR==2 {print $5}' | tr -d '%')
+  if [ "$disk_pct" -gt 90 ]; then
+      echo "CRITICAL: Disk at ${disk_pct}%"
+  elif [ "$disk_pct" -gt 75 ]; then
+      echo "WARNING: Disk at ${disk_pct}%"
+  else
+      echo "OK: Disk at ${disk_pct}%"
+  fi
+
+### One-line form (short scripts):
+  [ -f /tmp/lock ] && echo "Locked" || echo "Not locked"
+
+### Nesting (use sparingly):
+  if [ -d "$1" ]; then
+      if [ -w "$1" ]; then
+          echo "Directory exists and is writable"
+      else
+          echo "Directory exists but is NOT writable"
+      fi
+  else
+      echo "Not a directory: $1"
+  fi
+
+## [EXPECTED RESULT]
+The script branches based on conditions. Only the matching block runs.
+
+## Try it now:
+  #!/bin/bash
+  if [ "$#" -eq 0 ]; then
+      echo "Usage: $0 <filename>"
+      exit 1
+  fi
+  if [ -f "$1" ]; then
+      echo "$1 exists — $(wc -l < "$1") lines"
+  elif [ -d "$1" ]; then
+      echo "$1 is a directory — $(ls "$1" | wc -l) items"
+  else
+      echo "$1 does not exist"
+  fi
+
+## Technician Tip:
+Use [[ ]] instead of [ ] in bash scripts. It's safer:
+  [[ ]]  → bash-specific, handles empty vars, supports && ||
+  [ ]    → POSIX, breaks on empty vars, needs careful quoting
+
+  ❌ [ $var = "test" ]        # breaks if $var is empty
+  ✅ [[ $var == "test" ]]     # safe even if empty
+
+## Common Pain Point:
+"unexpected operator" or "too many arguments" → missing quotes:
+  ❌ [ $name = "hello world" ]   # 3 words = too many args
+  ✅ [ "$name" = "hello world" ] # quoted = one argument

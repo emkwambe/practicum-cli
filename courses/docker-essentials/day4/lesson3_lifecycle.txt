@@ -1,0 +1,88 @@
+# Lesson: Compose Lifecycle — up, down, logs, restart
+
+## [WHEN] You need this when:
+1. You need to start, stop, or restart your stack.
+2. You want to see logs from all services together.
+3. You need to scale a service to multiple replicas.
+4. You changed the compose file and need to apply changes.
+
+## [INTENT] "Manage the entire stack as one unit."
+
+## [CONTEXT]
+Compose commands operate on the whole stack by default, but you can
+target individual services by adding the service name.
+
+## [ACTION] Daily Compose commands
+
+### Start the stack:
+  docker compose up -d              — start in background
+  docker compose up                 — start in foreground (logs in terminal)
+  docker compose up -d web          — start only "web" (and its dependencies)
+
+### Stop the stack:
+  docker compose stop               — stop containers (keep them)
+  docker compose down               — stop AND remove containers + networks
+  docker compose down -v            — also remove named volumes (DATA LOSS!)
+  docker compose down --rmi all     — also remove built images
+
+### See what's happening:
+  docker compose ps                 — list services and their status
+  docker compose logs -f            — follow logs from all services
+  docker compose logs -f web        — only "web" service logs
+  docker compose logs --tail 100 web — last 100 lines
+
+### Run commands:
+  docker compose exec web bash      — shell in running web container
+  docker compose run --rm api migrate  — run a one-off task (creates new container)
+
+### Build and pull:
+  docker compose build              — rebuild images defined with build:
+  docker compose build --no-cache   — fresh build
+  docker compose pull               — pull latest of all image: services
+  docker compose up -d --build      — rebuild and restart
+
+### Scale a service:
+  docker compose up -d --scale web=3  — run 3 instances of web
+  (Note: each needs unique port if publishing — use a load balancer)
+
+### Restart a single service:
+  docker compose restart web        — quick restart
+  docker compose up -d --force-recreate web  — recreate from scratch
+
+## [EXPECTED RESULT]
+docker compose up -d returns prompt within seconds:
+  [+] Running 4/4
+   ✔ Network mystack_default  Created
+   ✔ Volume "mystack_dbdata"  Created
+   ✔ Container mystack-db-1   Started
+   ✔ Container mystack-web-1  Started
+
+## Try it now:
+  cd compose-demo    # from earlier
+  docker compose up -d
+  docker compose ps
+  docker compose logs --tail 5
+  docker compose exec web ls /etc/nginx
+  docker compose restart web
+  docker compose down
+
+## Technician Tip — the safe restart sequence:
+For zero-downtime in dev:
+  docker compose pull              # get latest images
+  docker compose up -d              # apply changes (only affected services restart)
+
+For a fresh state when things are weird:
+  docker compose down -v           # nuke everything (loses data!)
+  docker compose up -d              # start clean
+
+## Common Pain Point:
+"docker compose down -v" wipes named volumes including your database!
+Only use -v when you want to reset data. Otherwise just "down".
+
+"docker compose up does nothing" → the file might be malformed YAML.
+Validate: docker compose config (prints the resolved config or an error).
+
+## DCA Exam Note:
+Know the difference: stop (keeps containers) vs down (removes containers).
+Know -v on down removes volumes (data loss).
+Know "exec" works on running containers, "run" creates a new one.

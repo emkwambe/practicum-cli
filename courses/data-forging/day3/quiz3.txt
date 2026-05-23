@@ -1,0 +1,55 @@
+Q1: csvlook data.csv does:
+A) Validates the CSV
+B) Pretty-prints the CSV as a formatted table in the terminal
+C) Opens the file in an editor
+D) Converts to JSON
+Correct: B
+
+Q2: SCENARIO: Your CSV has columns name, email, city, revenue. You need only email and revenue. Which tool?
+A) awk -F',' '{print $2,$4}'
+B) csvcut -c email,revenue data.csv — handles quoted fields correctly, uses column names not numbers
+C) cut -d',' -f2,4 (fragile — breaks if columns have commas inside quotes)
+D) grep email data.csv
+Correct: B
+
+Q3: TRADEOFF: csvkit (Python) vs xsv (Rust) for large files. When does xsv win?
+A) xsv is 10-100x faster on large files (millions of rows) because it's compiled Rust. csvkit is more feature-rich for complex operations (csvsql).
+B) Always
+C) They're the same speed
+D) csvkit is always faster
+Correct: A
+
+Q4: csvsql --query 'SELECT city, SUM(revenue) FROM data GROUP BY city' does:
+A) Only works with SQLite
+B) Exports to SQL format
+C) Runs a SQL query directly against a CSV file — returns results without importing into a database
+D) Creates a SQL database
+Correct: C
+
+Q5: DIAGNOSTIC: csvgrep -c status -m "active" returns no rows, but you can see "Active" in the file. What's wrong?
+A) csvgrep is broken
+B) The match is case-sensitive — "active" != "Active". Use csvgrep -c status -r "(?i)active" for case-insensitive regex matching.
+C) CSV files don't support filtering
+D) The column name is wrong
+Correct: B
+
+Q6: xsv frequency -s city bigdata.csv does:
+A) Shows how often the file is accessed
+B) Counts unique values in the city column — like GROUP BY COUNT, but handles millions of rows in seconds
+C) Measures network frequency
+D) Sorts by city
+Correct: B
+
+Q7: SCENARIO: You have a 3GB CSV. csvstat hangs because it loads everything into memory. The alternative:
+A) Split the file manually
+B) Wait longer
+C) Convert to JSON first
+D) Use xsv stats — streams the file without loading it all into memory, handles GB-scale files
+Correct: D
+
+Q8: csvjoin -c customer_id orders.csv customers.csv does:
+A) Joins two CSVs on the customer_id column — like SQL JOIN
+B) Finds differences between files
+C) Appends one file after another
+D) Merges all columns
+Correct: A

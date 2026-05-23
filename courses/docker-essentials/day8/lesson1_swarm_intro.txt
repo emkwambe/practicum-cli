@@ -1,0 +1,93 @@
+# Lesson: Docker Swarm — Orchestration in Docker
+
+## [WHEN] You need this when:
+1. You need to run containers across multiple servers.
+2. You want auto-restart, auto-scheduling, and rolling updates.
+3. You need built-in service discovery and load balancing.
+4. You're studying for the DCA exam (Swarm is ~25% of it).
+
+## [INTENT] "Run my containers as a managed cluster across multiple nodes."
+
+## [CONTEXT]
+Docker Swarm turns a group of Docker hosts into a single virtual cluster.
+It's Docker's built-in orchestrator (Kubernetes is the alternative).
+
+Key concepts:
+  Node       — a Docker host (machine) in the swarm
+  Manager    — node that schedules work (Raft consensus)
+  Worker     — node that runs containers
+  Service    — a definition of containers to run (replicas, image, ports)
+  Task       — one specific container instance (a service has N tasks)
+  Stack      — a group of services (defined by a compose file)
+
+Swarm vs plain Docker:
+  Plain:    docker run <image>           (one container, one host)
+  Swarm:    docker service create        (N replicas, scheduled across hosts)
+
+## [ACTION] Create a Swarm
+
+### Initialize on first manager:
+  docker swarm init                      — single-node swarm (good for learning)
+  docker swarm init --advertise-addr 192.168.1.10   — multi-node
+
+  # Output includes a "join token" — copy it
+  docker swarm join-token worker         — get worker join command later
+  docker swarm join-token manager        — get manager join command
+
+### Add nodes:
+  # On other machines:
+  docker swarm join --token SWMTKN-1-... 192.168.1.10:2377
+
+### See the cluster:
+  docker node ls                         — list all nodes (managers + workers)
+  docker info | grep -i swarm            — check if you're in a swarm
+
+### Leave a swarm:
+  docker swarm leave                     — worker leaves
+  docker swarm leave --force             — manager (will break cluster if last)
+
+## [EXPECTED RESULT]
+After init, you have a single-node swarm. Manager + worker on the same host.
+Add more hosts to scale horizontally. Status:
+  ID                            HOSTNAME        STATUS    AVAILABILITY   MANAGER STATUS
+  abc123                        myhost          Ready     Active         Leader
+
+## Try it now (single-node swarm):
+  docker swarm init
+  docker info | grep -i swarm
+  docker node ls
+  # We'll create services in the next lesson
+
+  # When done experimenting:
+  docker swarm leave --force
+
+## Technician Tip — manager quorum:
+For high availability, run an ODD number of managers (3 or 5).
+The Raft consensus needs majority to make decisions.
+
+  Managers   Failures Tolerated
+     1               0
+     3               1
+     5               2
+     7               3 (rarely needed)
+
+NEVER use 2 managers. If one fails, you have NO majority and the swarm halts.
+
+## Common Pain Point:
+"docker service create works on manager but not worker" → service commands
+must run on a MANAGER node. Workers only execute tasks.
+
+"Swarm is unreachable" → may have lost manager quorum. With single
+manager, that one is critical. Add more managers for resilience.
+
+## DCA Exam Note:
+Swarm is the BIGGEST topic on the DCA exam (~25% of questions).
+Know:
+  - swarm init / join / leave
+  - manager vs worker roles
+  - the (N-1)/2 fault tolerance formula
+  - that services run on managers OR workers, but commands run on managers
+  - that an odd number of managers is required for HA
+
+## Next:
+Type menu to continue to services.

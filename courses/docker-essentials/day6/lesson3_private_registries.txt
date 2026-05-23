@@ -1,0 +1,84 @@
+# Lesson: Private Registries — GitHub, AWS, GitLab
+
+## [WHEN] You need this when:
+1. Your company doesn't allow public Docker Hub for proprietary code.
+2. You need fast image pulls inside your AWS/GCP/Azure cloud.
+3. You need image vulnerability scanning baked in.
+4. You want fine-grained access control per team.
+
+## [INTENT] "Use my organization's private registry instead of Docker Hub."
+
+## [CONTEXT]
+Most companies use a private registry. The mechanics are the same as
+Docker Hub, but the URL and auth differ.
+
+## [ACTION] Connecting to common private registries
+
+### GitHub Container Registry (ghcr.io) — FREE for public + private
+  # Create a Personal Access Token (PAT) with write:packages scope
+  echo "$GH_PAT" | docker login ghcr.io -u USERNAME --password-stdin
+
+  docker tag myapp:1.0 ghcr.io/USERNAME/myapp:1.0
+  docker push ghcr.io/USERNAME/myapp:1.0
+
+### AWS ECR (Elastic Container Registry)
+  # AWS CLI must be configured first
+  aws ecr get-login-password --region us-east-1 | \
+    docker login --username AWS --password-stdin \
+    123456789.dkr.ecr.us-east-1.amazonaws.com
+
+  # Create repo (one-time):
+  aws ecr create-repository --repository-name myapp --region us-east-1
+
+  docker tag myapp:1.0 123456789.dkr.ecr.us-east-1.amazonaws.com/myapp:1.0
+  docker push 123456789.dkr.ecr.us-east-1.amazonaws.com/myapp:1.0
+
+### GitLab Container Registry
+  docker login registry.gitlab.com
+  docker tag myapp:1.0 registry.gitlab.com/group/project/myapp:1.0
+  docker push registry.gitlab.com/group/project/myapp:1.0
+
+### Self-hosted (Harbor, Nexus, distribution/registry)
+  # Run a local registry for testing:
+  docker run -d -p 5000:5000 --restart=unless-stopped --name registry \
+    registry:2
+
+  # Use it:
+  docker tag nginx localhost:5000/my-nginx
+  docker push localhost:5000/my-nginx
+  docker pull localhost:5000/my-nginx
+
+## [EXPECTED RESULT]
+After login, your push succeeds. The registry's UI shows the new image
+with size, tags, and (if scanning is enabled) any vulnerabilities found.
+
+## Try it now (free, local):
+  # Run your own local registry
+  docker run -d -p 5000:5000 --name local-reg registry:2
+
+  # Push to it
+  docker pull alpine
+  docker tag alpine localhost:5000/my-alpine
+  docker push localhost:5000/my-alpine
+
+  # Verify it's there
+  curl http://localhost:5000/v2/_catalog
+  curl http://localhost:5000/v2/my-alpine/tags/list
+
+  # Cleanup
+  docker stop local-reg && docker rm local-reg
+
+## Technician Tip — image rate limits:
+Docker Hub limits pulls for anonymous users (100/6 hours per IP).
+Authenticated users get 200/6 hours. Pro accounts get more.
+
+In CI, this hits HARD with shared IPs. Solutions:
+  1. Login to Docker Hub in CI (use a shared service account)
+  2. Mirror images to your private registry (pull-through cache)
+  3. Use a different registry (ghcr.io has no rate limits)
+
+## DCA Exam Note:
+Know that you must "docker login" with the registry hostname to push.
+Know AWS ECR uses a temporary token (rotates frequently).
+Know that running "registry:2" locally gives you a private registry instantly.
+Know that registry URLs go BEFORE the namespace in the image ref.

@@ -1,0 +1,73 @@
+# Lesson: Multi-Stage Builds — Tiny Production Images
+
+## [WHEN] You need this when:
+1. Your image is 2 GB and you need it to be 50 MB.
+2. You're building a Go/Rust/C++ app and don't want compilers in production.
+3. You want to separate build-time tools from runtime dependencies.
+4. You need to pass security scans that flag build tools.
+
+## [INTENT] "Build with heavy tools, but ship only the compiled artifact."
+
+## [CONTEXT]
+A multi-stage build uses multiple FROM statements in one Dockerfile.
+Each FROM starts a new stage. You COPY artifacts between stages.
+Only the LAST stage ends up in the final image.
+
+Why this matters: a Go build image with toolchain is 800 MB.
+A final image with just the binary is 10 MB. 80x smaller = faster
+deploys, smaller attack surface, lower storage cost.
+
+## [ACTION] Multi-stage Dockerfile
+Example — compile a Go app:
+
+  # Stage 1: Build environment
+  FROM golang:1.22 AS builder
+  WORKDIR /src
+  COPY . .
+  RUN go build -o myapp
+
+  # Stage 2: Runtime (only what's needed to RUN)
+  FROM alpine:3.19
+  COPY --from=builder /src/myapp /usr/local/bin/myapp
+  EXPOSE 8080
+  CMD ["myapp"]
+
+Key pattern: AS <n> labels a stage. COPY --from=<n> grabs
+files from a named stage.
+
+Example — Node.js app that needs build step:
+
+  FROM node:20 AS builder
+  WORKDIR /app
+  COPY package*.json .
+  RUN npm ci
+  COPY . .
+  RUN npm run build
+
+  FROM nginx:alpine
+  COPY --from=builder /app/dist /usr/share/nginx/html
+
+## [EXPECTED RESULT]
+Final image contains ONLY stage 2 content. Stage 1 (with compilers,
+node_modules, etc.) is discarded. Image size shrinks dramatically.
+
+## Try it now:
+Create a multi-stage Dockerfile for a simple Go hello-world.
+Compare the image size before and after.
+  docker build -t app-fat -f Dockerfile.single .   # single-stage
+  docker build -t app-lean -f Dockerfile.multi .   # multi-stage
+  docker images | grep app
+
+## Technician Tip:
+You can target a specific stage for debugging:
+  docker build --target builder -t debug .
+This builds only up through "builder" stage — useful for dev.
+
+## DCA Exam Note:
+Multi-stage builds are a top exam topic (~15% of image-related questions).
+Know the syntax:
+  FROM <image> AS <n>
+  COPY --from=<n> <src> <dest>
+
+Also know: --from= can reference an image by name, not just stage:
+  COPY --from=nginx:alpine /etc/nginx/nginx.conf /etc/

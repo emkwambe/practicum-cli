@@ -1,0 +1,139 @@
+# Lesson: HCP Terraform — Collaboration, Governance & Policy
+
+## [WHEN] You need this when:
+1. Multiple teams need controlled access to infrastructure.
+2. You need policy guardrails (no public S3 buckets, cost limits).
+3. Compliance requires audit trails and approval workflows.
+4. Exam Obj 8b-8d cover collaboration and governance features.
+
+## [INTENT] "Use HCP Terraform's team, policy, and governance features."
+
+## [CONTEXT]
+Solo Terraform: you run apply, you're responsible.
+Team Terraform: who can apply to production? Who reviews plans?
+Who ensures no one provisions a $50K instance by accident?
+
+HCP Terraform adds the collaboration layer that CLI can't provide.
+
+## [ACTION] Collaboration and governance
+
+### Teams and permissions:
+  Organization → Teams → Members
+
+  Built-in permission levels:
+    Read:    View workspace state and runs
+    Plan:    Queue plans, read state
+    Write:   Apply runs, set variables, lock/unlock
+    Admin:   Manage workspace settings, permissions
+    Owner:   Full organization control
+
+  # Example team setup:
+  developers  → Write on staging, Plan on production
+  ops-team    → Admin on all workspaces
+  security    → Read on all, Write on security workspaces
+  finance     → Read on all (cost visibility)
+
+### Variable sets:
+  # Shared variables across multiple workspaces:
+  # Example: AWS credentials used by all workspaces
+  Variable Set: "AWS Credentials"
+    AWS_ACCESS_KEY_ID     = (sensitive)
+    AWS_SECRET_ACCESS_KEY = (sensitive)
+    AWS_DEFAULT_REGION    = "us-east-1"
+  Applied to: all workspaces in "Production" project
+
+  # Environment-specific variable sets:
+  Variable Set: "Production Defaults"
+    TF_VAR_environment = "prod"
+    TF_VAR_min_replicas = "3"
+  Applied to: all workspaces tagged "prod"
+
+### Policy enforcement (Sentinel / OPA):
+  # Sentinel (HashiCorp's policy language):
+  # Block public S3 buckets:
+  import "tfplan/v2" as tfplan
+
+  main = rule {
+    all tfplan.resource_changes as _, rc {
+      rc.type is "aws_s3_bucket" implies
+        rc.change.after.acl is not "public-read"
+    }
+  }
+
+  # OPA (Open Policy Agent):
+  # Limit instance sizes:
+  package terraform
+  
+  deny[msg] {
+    resource := input.resource_changes[_]
+    resource.type == "aws_instance"
+    resource.change.after.instance_type == "p4d.24xlarge"
+    msg := "GPU instances require security team approval"
+  }
+
+  # Policy enforcement levels:
+    Advisory:  warn but allow
+    Soft mandatory: can be overridden by admin
+    Hard mandatory: cannot be overridden
+
+### Run workflow:
+  1. Plan queued (CLI push, VCS push, or API)
+  2. Plan executes (shows changes)
+  3. Cost estimation (optional — shows $ impact)
+  4. Policy check (Sentinel/OPA rules evaluated)
+  5. Manual approval (optional — for production)
+  6. Apply executes
+  7. Notifications sent (Slack, email, webhook)
+
+### Drift detection:
+  HCP Terraform can automatically detect drift:
+  - Scheduled refresh (daily, hourly, etc.)
+  - Compares state vs reality
+  - Notifies when resources have changed
+  - Integrates with policy enforcement
+
+  # Configure in workspace settings:
+  # Drift Detection → Enable → Set schedule
+
+### Health assessments:
+  # Explorer: cross-workspace visibility
+  # See all workspaces, their last run status, drift status
+  # Filter by project, team, or health status
+
+  # Change Requests: propose changes to multiple workspaces
+  # Create a change request → review impact → approve → apply
+
+### Private registry:
+  # Publish modules and providers privately:
+  # Only your organization can use them
+  # Version-controlled, documented, tested
+  # Teams consume modules like public ones:
+  module "vpc" {
+    source  = "app.terraform.io/my-company/vpc/aws"
+    version = "~> 3.0"
+  }
+
+### Dynamic credentials:
+  # HCP Terraform can generate temporary cloud credentials:
+  # No static AWS keys stored anywhere
+  # Workload identity federation with AWS, GCP, Azure
+  # Credentials scoped to the workspace and expire after the run
+
+### CLI integration:
+  # terraform login — authenticate
+  # terraform plan — runs remotely, streams output
+  # terraform apply — remote apply with local confirmation
+  # terraform output — reads from remote state
+
+  # Migrate existing state to HCP Terraform:
+  # Add cloud block → terraform init → "yes" to migrate state
+
+## [EXPECTED RESULT]
+You can configure teams, variable sets, policy enforcement,
+drift detection, and understand the HCP Terraform run workflow.
+
+## Technician Tip:
+Exam Obj 8 is entirely new in 004. Key concepts: workspaces ≠ CLI
+workspaces, variable sets share config across workspaces, Sentinel/OPA
+enforce policy, dynamic credentials eliminate static keys, and
+the cloud block replaces the backend block for HCP Terraform.

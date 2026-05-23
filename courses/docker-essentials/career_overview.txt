@@ -1,0 +1,78 @@
+# Docker & Containers — What You're Training For
+
+## 🎯 This course prepares you for containerized application work
+
+After completing all 10 days, you will be able to handle these
+responsibilities that 85-95% of employers require:
+
+  ✅ CONTAINER OPERATIONS (95% of DevOps/developer job postings)
+     - Run, stop, restart, and debug containers
+     - Manage the full container lifecycle
+     - Inspect running containers for troubleshooting
+
+  ✅ IMAGE MANAGEMENT (90% of job postings)
+     - Build custom images with Dockerfile
+     - Use multi-stage builds to keep images small
+     - Tag, push, and pull from registries
+
+  ✅ MULTI-SERVICE APPS (85% of job postings)
+     - Orchestrate multi-container apps with Docker Compose
+     - Connect containers via networks
+     - Persist data with volumes
+
+  ✅ PRODUCTION DEPLOYMENT (80% of job postings)
+     - Deploy with Docker Swarm orchestration
+     - Perform rolling updates with zero downtime
+     - Manage secrets and configs
+
+  ✅ TROUBLESHOOTING (95% of job postings)
+     - Diagnose why a container won't start
+     - Debug networking issues between containers
+     - Fix volume permission problems
+     - Read and interpret container logs
+
+  ✅ SECURITY (85% of job postings)
+     - Run containers as non-root users
+     - Scan images for vulnerabilities
+     - Use secrets instead of environment variables
+     - Apply least-privilege principles
+
+## 📋 Skills You Will Develop (by day)
+
+  Day 1: docker run, ps, logs, stop, rm — container lifecycle
+  Day 2: docker build, Dockerfile, layers, tagging
+  Day 3: volumes, networks, port mapping
+  Day 4: Docker Compose — multi-service applications
+  Day 5: Assessment 1 — containerize a real application
+  Day 6: Registries, push/pull, tagging strategies
+  Day 7: Security, non-root users, image scanning
+  Day 8: Swarm orchestration, services, rolling updates
+  Day 9: Assessment 2 — production deployment
+  Day 10: Final Capstone — deploy a full-stack app
+
+## 🏆 By the end, you can:
+
+  - Run any application from Docker Hub in seconds
+  - Package YOUR application as a Docker image
+  - Deploy multi-service apps with Docker Compose
+  - Debug any container issue from the CLI
+  - Pass the Docker Certified Associate (DCA) exam
+  - Deploy production-grade containerized services
+
+## 💼 Roles this prepares you for:
+
+  - DevOps Engineer
+  - Site Reliability Engineer (SRE)
+  - Platform Engineer
+  - Full-Stack Developer (container fluency)
+  - Cloud Engineer
+
+  Average salary range: $90,000 - $140,000
+
+## 🎓 Certification alignment:
+
+  - Docker Certified Associate — DCA ($195 exam)
+  - CompTIA Linux+ XK0-006 (Container domain)
+  - CKAD (containers foundation)
+
+## ▶ Ready? Type any key to begin.

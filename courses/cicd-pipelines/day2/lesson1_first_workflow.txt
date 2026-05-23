@@ -1,0 +1,163 @@
+# Lesson: Your First GitHub Actions Workflow
+
+## [WHEN] You need this when:
+1. You want to automate testing on every push to your repo.
+2. You're setting up CI/CD for the first time.
+3. You need to understand the workflow YAML structure.
+
+## [INTENT] "Create a working GitHub Actions workflow from scratch."
+
+## [CONTEXT]
+A GitHub Actions workflow is a YAML file in .github/workflows/.
+When triggered, GitHub spins up a virtual machine, checks out
+your code, and runs your commands. Free for public repos.
+
+Structure hierarchy:
+  Workflow → Jobs → Steps → Actions/Commands
+
+## [ACTION] Build a workflow step by step
+
+### Minimal workflow (.github/workflows/ci.yml):
+
+  name: CI
+
+  on:
+    push:
+      branches: [main]
+    pull_request:
+      branches: [main]
+
+  jobs:
+    test:
+      runs-on: ubuntu-latest
+
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
+
+        - name: Run tests
+          run: echo "Tests would run here"
+
+### Breaking it down:
+
+  name: CI
+    → Display name in GitHub UI
+
+  on: push/pull_request
+    → Triggers (when to run)
+
+  jobs:
+    → One or more jobs (run in parallel by default)
+
+  test:
+    → Job name (your choice)
+
+  runs-on: ubuntu-latest
+    → Runner OS (ubuntu-latest, macos-latest, windows-latest)
+
+  steps:
+    → Sequential commands within a job
+
+  uses: actions/checkout@v4
+    → Marketplace action (pre-built step)
+
+  run: echo "..."
+    → Shell command (your code)
+
+### Real-world Node.js CI:
+
+  name: CI
+  on: [push, pull_request]
+
+  jobs:
+    test:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+
+        - name: Setup Node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: '20'
+            cache: 'npm'
+
+        - name: Install dependencies
+          run: npm ci
+
+        - name: Run linter
+          run: npm run lint
+
+        - name: Run tests
+          run: npm test
+
+### Real-world Python CI:
+
+  name: CI
+  on: [push, pull_request]
+
+  jobs:
+    test:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+
+        - name: Setup Python
+          uses: actions/setup-python@v5
+          with:
+            python-version: '3.12'
+
+        - name: Install dependencies
+          run: pip install -r requirements.txt
+
+        - name: Run tests
+          run: pytest -v
+
+### Real-world Bash/Shell CI:
+
+  name: CI
+  on: [push, pull_request]
+
+  jobs:
+    lint:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+
+        - name: Install shellcheck
+          run: sudo apt-get install -y shellcheck
+
+        - name: Lint all shell scripts
+          run: shellcheck *.sh lib/*.sh
+
+        - name: Syntax check
+          run: |
+            for f in *.sh lib/*.sh; do
+              bash -n "$f" || exit 1
+            done
+
+## [EXPECTED RESULT]
+A green checkmark on your GitHub repo. Every push triggers
+the workflow, runs your tests, and reports pass/fail.
+
+## Try it now:
+  mkdir -p .github/workflows
+  cat > .github/workflows/ci.yml << 'EOF'
+  name: CI
+  on: [push]
+  jobs:
+    test:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - run: echo "Hello from CI!"
+  EOF
+  git add . && git commit -m "ci: add workflow" && git push
+
+## Technician Tip:
+Always pin action versions: uses: actions/checkout@v4 (not @main).
+Using @main means your pipeline could break when the action updates.
+
+## Common Pain Point:
+"Workflow not running" → check the file path. It MUST be:
+  .github/workflows/filename.yml
+Not .github/workflow/ (missing s) or github/ (missing dot).

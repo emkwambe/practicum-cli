@@ -1,0 +1,55 @@
+Q1: A production health check script should:
+A) Only check disk space
+B) Check multiple systems (CPU, memory, disk, services, network), report findings, and exit with appropriate codes
+C) Run once and delete itself
+D) Fix problems automatically
+Correct: B
+
+Q2: SCENARIO: Your script generates a report with sections for CPU, memory, disk, and services. The best architecture:
+A) Multiple scripts called from cron
+B) Separate functions per section, each returning data, orchestrated by a main function
+C) One long chain of commands
+D) One function for everything
+Correct: B
+
+Q3: Logging in a production script should include:
+A) Just the error message
+B) Nothing — scripts don't need logging
+C) Timestamp, severity level (INFO/WARN/ERROR), the function name, and a clear message
+D) Colors only
+Correct: C
+
+Q4: DIAGNOSTIC: Your script works when you run it manually but produces garbled output when run from cron. Most likely cause:
+A) Cron is broken
+B) Cron doesn't support bash
+C) The script is too long
+D) The script uses ANSI color codes that render as garbage in cron's non-interactive environment — check if stdout is a terminal before using colors
+Correct: D
+
+Q5: TRADEOFF: Your health report script takes 30 seconds to run. It checks 5 systems sequentially. How could you speed it up?
+A) Run independent checks in parallel with background jobs (&) and wait — 5 sequential checks become 1 parallel batch
+B) Use a faster language
+C) Reduce the output
+D) Remove some checks
+Correct: A
+
+Q6: The final capstone script should demonstrate:
+A) Functions, error handling, argument parsing, traps, logging, validation, and clean output — the full toolbox
+B) Copy-paste from Stack Overflow
+C) That you can write long scripts
+D) Only one technique well
+Correct: A
+
+Q7: SCENARIO: Your monitoring script detects /var is 92% full. What should the script do?
+A) Do nothing — 92% is fine
+B) Log a WARNING with details (which filesystem, current usage, threshold), report it in the summary, and exit with code 1 so the caller knows there's an issue
+C) Delete files in /var
+D) Shut down the server
+Correct: B
+
+Q8: A well-written script is "defensive" when it:
+A) Validates inputs, handles missing files gracefully, checks command availability, uses set -euo pipefail, and has meaningful error messages
+B) Is password-protected
+C) Only runs as root
+D) Refuses all input
+Correct: A

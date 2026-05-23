@@ -1,0 +1,121 @@
+# Lesson: Jobs & CronJobs — Run-to-Completion Workloads
+
+## [WHEN] You need this when:
+1. You need to run a task that completes and exits (database migration, batch processing).
+2. You need to schedule recurring tasks (nightly reports, log cleanup, backups).
+3. You understand Deployments but need workloads that DON'T run forever.
+
+## [INTENT] "Use Jobs for one-time tasks and CronJobs for scheduled tasks."
+
+## [CONTEXT]
+Deployments keep pods running indefinitely — they're for servers.
+Jobs run pods until they complete successfully — they're for tasks.
+
+  Deployment: "keep 3 nginx pods running forever"
+  Job: "run this database migration once, then stop"
+  CronJob: "run this backup every night at 2 AM"
+
+## [ACTION] Jobs and CronJobs
+
+### Job manifest:
+  apiVersion: batch/v1
+  kind: Job
+  metadata:
+    name: db-migration
+  spec:
+    completions: 1          # how many times the task must succeed
+    parallelism: 1          # how many pods run at once
+    backoffLimit: 4         # retry attempts before marking failed
+    activeDeadlineSeconds: 300   # kill if still running after 5 min
+    template:
+      spec:
+        containers:
+          - name: migrate
+            image: myapp/migrate:v1.2
+            command: ["python", "migrate.py"]
+            resources:
+              requests:
+                memory: "256Mi"
+                cpu: "200m"
+        restartPolicy: Never    # Jobs use Never or OnFailure, NOT Always
+
+### Key Job fields:
+  completions: N    → the task must succeed N times total
+  parallelism: M    → run M pods concurrently
+  backoffLimit: K   → fail the Job after K consecutive pod failures
+
+  Example: process 100 items with 5 workers:
+    completions: 100
+    parallelism: 5
+
+### Job lifecycle:
+  kubectl get jobs                  # show job status
+  kubectl describe job db-migration # detailed events
+  kubectl logs job/db-migration     # see output
+
+  States:
+    Active   → pods still running
+    Succeeded → all completions done
+    Failed   → exceeded backoffLimit
+
+### CronJob manifest:
+  apiVersion: batch/v1
+  kind: CronJob
+  metadata:
+    name: nightly-backup
+  spec:
+    schedule: "0 2 * * *"        # cron syntax: 2 AM daily
+    concurrencyPolicy: Forbid     # don't start new if previous still running
+    successfulJobsHistoryLimit: 3
+    failedJobsHistoryLimit: 1
+    startingDeadlineSeconds: 200  # skip if missed by > 200 seconds
+    jobTemplate:
+      spec:
+        template:
+          spec:
+            containers:
+              - name: backup
+                image: postgres:16-alpine
+                command: ["pg_dump", "-h", "db", "-U", "admin", "appdb"]
+            restartPolicy: OnFailure
+
+### Cron schedule format:
+  ┌───── minute (0-59)
+  │ ┌──── hour (0-23)
+  │ │ ┌─── day of month (1-31)
+  │ │ │ ┌── month (1-12)
+  │ │ │ │ ┌─ day of week (0-6, Sun=0)
+  * * * * *
+
+  "0 2 * * *"     = 2:00 AM every day
+  "*/15 * * * *"   = every 15 minutes
+  "0 0 1 * *"     = midnight on the 1st of every month
+  "0 9 * * 1-5"   = 9 AM, Monday through Friday
+
+### ConcurrencyPolicy:
+  Allow:   let multiple job instances run simultaneously (default)
+  Forbid:  skip new run if previous still active
+  Replace: cancel previous, start new
+
+### Managing CronJobs:
+  kubectl get cronjobs
+  kubectl get jobs --watch         # see jobs created by the CronJob
+  kubectl create job manual-backup --from=cronjob/nightly-backup  # trigger now
+
+### When NOT to use CronJobs:
+  CronJobs have no dependency management. If Tuesday's job depends on
+  Monday's output, CronJobs can't enforce that ordering. Use a proper
+  workflow tool (Argo Workflows, Airflow) for DAG-based pipelines.
+
+## [EXPECTED RESULT]
+You can create Jobs for one-time tasks, CronJobs for scheduled tasks,
+and understand completion semantics, retry behavior, and concurrency.
+
+## Technician Tip:
+Always set activeDeadlineSeconds on Jobs. A stuck migration with no
+timeout runs forever, consuming cluster resources silently.
+
+## Common Pain Point:
+"CronJob not firing" → check schedule syntax, timezone (UTC by default),
+and whether concurrencyPolicy: Forbid is blocking because a previous
+run is still active.

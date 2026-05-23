@@ -1,0 +1,271 @@
+# Final Capstone: The Migration Crisis
+
+## THIS IS NOT A HOMEWORK ASSIGNMENT.
+
+This is a simulated professional engagement. You are the DevOps
+engineer. There's no step-by-step guide. You own the outcome.
+
+────────────────────────────────────────────────────
+
+## PHASE 1 — Problem Context
+
+### The Scenario:
+
+HealthTrack is a 15-person health tech startup running a patient
+appointment scheduling system. Currently everything runs on a
+single bare-metal server:
+
+  - Node.js API (Express)
+  - PostgreSQL 14 database (4 years of patient data)
+  - Redis cache
+  - Nginx reverse proxy
+
+Last week the server's disk controller showed SMART warnings.
+The CTO says: "We have maybe 2 months before that disk fails.
+Containerize everything so we can deploy anywhere."
+
+Also: HIPAA compliance requires that patient data never leaves
+encrypted storage, secrets aren't in source code, and there's
+an audit trail for deployments.
+
+### What you know:
+  - The app listens on port 3000
+  - PostgreSQL has 12GB of patient data
+  - Redis is used for session storage
+  - The team currently deploys with ssh + git pull + pm2 restart
+  - There are integration tests (npm test) that hit the real database
+  - The app reads DB credentials from environment variables
+
+### What you DON'T know (you must decide):
+  - Base images for each service
+  - Network topology (which services need to talk to which)
+  - Volume strategy for the database
+  - How to handle secrets (env vars? Docker secrets? Vault?)
+  - Whether to use compose or Swarm or both
+  - How to handle the database migration from bare-metal to container
+
+────────────────────────────────────────────────────
+
+## PHASE 2 — Requirements Discovery
+
+Write DISCOVERY.md:
+
+  1. What are the risks of the current setup?
+     (List at least 5 — include the disk failure AND the HIPAA gaps.)
+
+  2. What questions would you ask the CTO and development team?
+     (List at least 5.)
+
+  3. What are the constraints?
+     - 12GB patient database cannot be lost
+     - HIPAA compliance (encryption, access control, audit trail)
+     - Team has zero Docker experience
+     - 2-month deadline before disk failure
+     - App must have zero downtime during migration
+
+  4. Define 3 measurable success criteria.
+
+────────────────────────────────────────────────────
+
+## PHASE 3 — Planning & Design
+
+Create ARCHITECTURE.md:
+
+  1. Container architecture diagram (ASCII or Mermaid)
+     Show: services, networks, volumes, port mappings
+
+  2. Base image choices for each service (justify — why alpine?
+     why postgres:16 instead of :latest?)
+
+  3. Network design
+     (Which services talk to which? What should be internal-only?)
+
+  4. Volume strategy
+     (Named volumes? Bind mounts? Backup plan for 12GB database?)
+
+  5. Secrets management approach
+     (HIPAA requires: no secrets in code, encrypted at rest)
+
+  6. Migration plan
+     (How to move from bare-metal to containers without losing data
+     or causing downtime?)
+
+  7. Risk assessment — at least 3 risks with mitigations
+
+────────────────────────────────────────────────────
+
+## PHASE 4 — Execution
+
+Build the containerized stack:
+
+### 4A. Dockerfiles
+  - app/Dockerfile — Node.js app with:
+    - Multi-stage build (build → production)
+    - Non-root user
+    - Health check on /health
+    - .dockerignore (node_modules, .git, .env, tests)
+
+  - nginx/Dockerfile (or nginx.conf) — reverse proxy config
+
+### 4B. Docker Compose (docker-compose.yml)
+  - 4 services: app, db, cache, proxy
+  - Named volumes for database persistence
+  - Custom networks (frontend for proxy+app, backend for app+db+cache)
+  - Backend network marked internal (db/cache can't reach internet)
+  - Health checks on all services
+  - Resource limits
+  - Environment variables for configuration
+  - depends_on with health conditions
+
+### 4C. Security Hardening
+  - No secrets in Dockerfile or compose file
+  - .env file for local development (gitignored)
+  - Document how secrets would be managed in production
+  - Non-root users in all containers
+  - Read-only filesystem where possible
+
+### 4D. Operational Scripts
+  - scripts/backup-db.sh — dumps PostgreSQL to a file with timestamp
+  - scripts/restore-db.sh — restores from a dump file
+  - scripts/health-check.sh — verifies all services are healthy
+
+────────────────────────────────────────────────────
+
+## PHASE 5 — Failure Injection
+
+⚠️ SOMETHING GOES WRONG.
+
+After building the stack, simulate ONE:
+
+  A) The database container restarts and patient data is gone.
+     You discover the volume wasn't configured correctly — data was
+     written to the container's writable layer, not the volume.
+     Diagnose, fix, verify persistence, and document.
+
+  B) The app container runs but can't connect to the database.
+     Logs show "Connection refused to db:5432" — but the db
+     container is running. Investigate network configuration,
+     service readiness, and DNS resolution.
+
+  C) A developer accidentally pushes a docker-compose.yml that
+     contains the production database password in plain text.
+     It's in the Git history. Handle the incident: rotate the
+     credential, purge from history, prevent recurrence.
+
+Pick ONE. In INCIDENT.md document:
+  1. What happened (timeline)
+  2. Root cause
+  3. Immediate fix
+  4. Permanent prevention
+  5. HIPAA implications (if any)
+
+────────────────────────────────────────────────────
+
+## PHASE 6 — Communication
+
+Create CTO_UPDATE.md — for the non-technical CTO:
+  - What you containerized and why it's safer than bare-metal
+  - How patient data is protected (HIPAA language)
+  - What the migration plan looks like (zero downtime?)
+  - What's left to do
+  - What you need from the team
+
+Create TEAM_GUIDE.md — for the development team (Docker beginners):
+  - How to start the stack locally (step by step)
+  - How to view logs, restart services, connect to the database
+  - How to run tests against the containerized stack
+  - Common problems and fixes
+  - What NOT to do (never put secrets in compose files, never use :latest)
+
+────────────────────────────────────────────────────
+
+## PHASE 7 — Reflection
+
+At the bottom of CTO_UPDATE.md:
+
+### Lessons Learned
+  - What was the hardest part of the containerization?
+  - What would you do differently with more time?
+  - If HealthTrack grows to 50,000 patients, what breaks first?
+  - When should they consider moving from Compose to Swarm or Kubernetes?
+
+────────────────────────────────────────────────────
+
+## SCORING RUBRIC
+
+### Container Architecture (20%)
+  [ ] All 4 services containerized with proper Dockerfiles
+  [ ] Multi-stage build for app (smaller image)
+  [ ] .dockerignore excludes sensitive/unnecessary files
+  [ ] Base images are specific versions, not :latest
+
+### Data & Network Design (20%)
+  [ ] Named volume for PostgreSQL persistence
+  [ ] Custom networks separating frontend/backend
+  [ ] Backend network is internal
+  [ ] Health checks on all services
+
+### Security & Compliance (15%)
+  [ ] Non-root user in all containers
+  [ ] No secrets in code, Dockerfiles, or compose files
+  [ ] Secrets management approach documented
+  [ ] HIPAA considerations addressed
+
+### Operational Readiness (15%)
+  [ ] Backup and restore scripts work
+  [ ] Health check script verifies all services
+  [ ] Compose up/down cycle preserves data
+  [ ] Resource limits set
+
+### Failure Response (10%)
+  [ ] Incident scenario completed
+  [ ] Root cause correctly identified
+  [ ] Fix and prevention documented
+  [ ] HIPAA implications addressed
+
+### Communication (10%)
+  [ ] CTO update is clear and non-technical
+  [ ] Team guide is actionable for Docker beginners
+  [ ] Migration plan is realistic
+
+### Professional Judgment (10%)
+  [ ] Architecture decisions justified
+  [ ] Tradeoffs explained
+  [ ] Scalability considered
+  [ ] Reflection shows growth mindset
+
+### Score Interpretation:
+  90-100%  Operational competence — ready to containerize production apps
+  75-89%   Strong foundation — ready with mentorship
+  60-74%   Developing — review weak dimensions
+  Below 60% Review Days 1-8 before reattempting
+
+────────────────────────────────────────────────────
+
+## FINAL DELIVERABLES
+
+  app/Dockerfile
+  app/.dockerignore
+  nginx/Dockerfile (or nginx.conf)
+  docker-compose.yml
+  scripts/backup-db.sh
+  scripts/restore-db.sh
+  scripts/health-check.sh
+  DISCOVERY.md
+  ARCHITECTURE.md
+  INCIDENT.md
+  CTO_UPDATE.md (includes Lessons Learned)
+  TEAM_GUIDE.md
+
+Total: 12 deliverables. Every file is scored.
+
+────────────────────────────────────────────────────
+
+## THE STANDARD
+
+  "If a CTO asked me to containerize their production app,
+   could I show this work as proof I can do it safely?"
+
+If yes — you've passed.
+
+## 🎓 Generate your certificate: practicum certificate

@@ -1,0 +1,55 @@
+Q1: for f in *.log; do echo "$f"; done processes:
+A) All .log files in the current directory, one at a time
+B) Nothing — you need cat first
+C) Only the first .log file
+D) Subdirectories too
+Correct: A
+
+Q2: SCENARIO: You need to process a file line by line, including lines with spaces. The correct approach:
+A) cat file | for line
+B) grep . file
+C) while IFS= read -r line; do echo "$line"; done < file
+D) for line in $(cat file) — breaks on spaces
+Correct: C
+
+Q3: Bash arrays — how do you declare and access?
+A) arr=("a" "b" "c"); echo "${arr[0]}" — first element
+B) arr = (a b c); echo arr[0]
+C) declare arr = a,b,c
+D) array arr a b c
+Correct: A
+
+Q4: ${#arr[@]} returns:
+A) The first element
+B) All elements joined
+C) The last element
+D) The total number of elements in the array
+Correct: D
+
+Q5: DIAGNOSTIC: Your while loop runs forever even though the condition should eventually be false. What's the most common cause?
+A) while loops are always infinite
+B) The loop variable isn't being updated inside the loop — or the increment is in the wrong place
+C) You need break on every loop
+D) bash has a bug
+Correct: B
+
+Q6: break vs continue in a loop:
+A) No difference
+B) break exits the loop entirely; continue skips to the next iteration
+C) break pauses; continue resumes
+D) break is for while; continue is for for
+Correct: B
+
+Q7: TRADEOFF: for i in {1..1000} vs for ((i=0;i<1000;i++)). When does C-style matter?
+A) C-style allows variables in the range — {1..$n} doesn't expand in bash. Use C-style when the count is dynamic.
+B) Brace expansion is faster
+C) Never — they're identical
+D) C-style only works in zsh
+Correct: A
+
+Q8: SCENARIO: You're processing 10,000 files in a loop. The script is slow. What optimization should you consider?
+A) Add sleep to reduce CPU usage
+B) Use xargs or find -exec instead of a shell loop — they spawn fewer processes and handle parallelism
+C) Switch to Python
+D) Nothing — loops are always slow
+Correct: B

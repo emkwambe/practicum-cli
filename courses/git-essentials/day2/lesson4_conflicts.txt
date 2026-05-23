@@ -1,0 +1,45 @@
+# Lesson: Merge Conflicts — When Two People Change the Same Line
+
+## [WHEN] You need this when:
+1. git merge shows "CONFLICT" and stops.
+2. Two people edited the same file on different branches.
+3. You pulled from remote and your local changes conflict.
+
+## [INTENT] "Two changes collide. I need to decide which one wins."
+
+## [CONTEXT]
+A conflict happens when Git cannot automatically combine changes
+because both branches modified the same lines. Git marks the file
+with conflict markers and asks YOU to decide what to keep.
+
+Conflict markers look like:
+  <<<<<<< HEAD
+  your version of the line
+  =======
+  their version of the line
+  >>>>>>> feature-branch
+
+Your job: remove the markers, keep the right content, save, and commit.
+
+## [ACTION] Resolve conflicts
+Step-by-step:
+  1. git merge feature-branch          — triggers the conflict
+  2. git status                        — shows conflicted files
+  3. Open the file, find <<<<<<< markers
+  4. Edit: keep what you want, delete markers
+  5. git add resolved-file.txt         — mark as resolved
+  6. git commit                        — complete the merge
+
+## [EXPECTED RESULT]
+After resolving and committing, the merge is complete.
+Both versions of the code are combined as you chose.
+
+## Try it now:
+  git switch -c conflict-demo
+  echo "Hello from branch" > greeting.txt
+  git add . && git commit -m "Branch greeting"
+  git switch main
+  echo "Hello from main" > greeting.txt
+  git add . && git commit -m "Main greeting"
+  git merge conflict-demo
+  (Now resolve the conflict in greeting.txt)

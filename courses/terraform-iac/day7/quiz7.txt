@@ -1,0 +1,55 @@
+Q1: Variable validation blocks catch errors at which stage?
+A) During apply
+B) During destroy
+C) During plan — before any resources are created, Terraform evaluates the condition against the provided variable value and fails with error_message if invalid
+D) During init
+Correct: C
+
+Q2: SCENARIO: A team member sets instance_count to -3. Which mechanism prevents this?
+A) Provider validation
+B) Lifecycle precondition
+C) State locking
+D) A variable validation block with condition = var.instance_count > 0 and a clear error_message explaining the constraint
+Correct: D
+
+Q3: The difference between preconditions and postconditions:
+A) They're the same
+B) Preconditions run after apply
+C) Postconditions run during plan
+D) Preconditions check assumptions BEFORE resource creation (fail = no resource created). Postconditions verify results AFTER creation using self to reference the resource's own attributes.
+Correct: D
+
+Q4: Check blocks in Terraform are:
+A) Required for all resources
+B) Advisory — they warn when assertions fail but don't block apply, useful for health checks and monitoring on every plan/apply
+C) The same as validation blocks
+D) Blocking — they stop apply on failure
+Correct: B
+
+Q5: DIAGNOSTIC: Secrets appear in terraform plan output despite being in a variable. What's missing?
+A) Encryption
+B) A Vault integration
+C) sensitive = true on the variable declaration — this tells Terraform to redact the value in plan/apply output, showing "(sensitive value)" instead
+D) Environment variables
+Correct: C
+
+Q6: Even with sensitive = true, Terraform state files:
+A) Contain the actual plaintext value — sensitive only hides output display. State must be encrypted at rest via the backend (S3 SSE, HCP Terraform) to protect secrets.
+B) Encrypt the value automatically
+C) Don't contain the value
+D) Hash the value
+Correct: A
+
+Q7: TRADEOFF: Static secrets in .tfvars vs HashiCorp Vault dynamic secrets:
+A) .tfvars is more secure
+B) .tfvars are simple but secrets are static and must be rotated manually. Vault generates temporary credentials that auto-expire — more complex to set up but eliminates static secret management.
+C) They're equivalent
+D) Vault only works with HCP
+Correct: B
+
+Q8: The TF_VAR_ prefix for environment variables does:
+A) Automatically maps to Terraform input variables — TF_VAR_db_password sets var.db_password without needing .tfvars files or interactive prompts
+B) Sets Terraform internal settings
+C) Configures provider authentication
+D) Enables verbose logging
+Correct: A

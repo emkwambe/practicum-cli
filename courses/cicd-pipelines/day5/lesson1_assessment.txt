@@ -1,0 +1,97 @@
+# Assessment 1: Build a Complete CI Pipeline
+
+## [INTENT] "Prove you can build a production-quality CI pipeline from scratch."
+
+## [ACTION] Complete these tasks:
+
+### Scenario:
+You're the new DevOps engineer at a startup. They have a Node.js
+web application with no CI. Code goes straight from laptop to
+production. Your job: build a CI pipeline that catches bugs
+before they reach main branch.
+
+### Setup:
+  mkdir -p ~/cicd-assessment && cd ~/cicd-assessment
+  git init
+
+  # Create a simple app
+  cat > app.js << 'EOF'
+  const http = require('http');
+  const PORT = process.env.PORT || 3000;
+
+  const server = http.createServer((req, res) => {
+    res.writeHead(200, {'Content-Type': 'application/json'});
+    res.end(JSON.stringify({status: 'ok', version: '1.0.0'}));
+  });
+
+  server.listen(PORT, () => console.log(`Server on port ${PORT}`));
+  module.exports = server;
+  EOF
+
+  cat > package.json << 'EOF'
+  {
+    "name": "cicd-assessment",
+    "version": "1.0.0",
+    "scripts": {
+      "start": "node app.js",
+      "test": "echo 'Tests pass' && exit 0",
+      "lint": "echo 'Lint pass' && exit 0"
+    }
+  }
+  EOF
+
+  cat > Dockerfile << 'EOF'
+  FROM node:20-alpine
+  WORKDIR /app
+  COPY package*.json ./
+  RUN npm ci --only=production
+  COPY . .
+  EXPOSE 3000
+  CMD ["node", "app.js"]
+  EOF
+
+### Task 1: Create the CI workflow
+Write .github/workflows/ci.yml that:
+  - Triggers on push to main AND pull_request to main
+  - Runs on ubuntu-latest
+  - Checks out the code
+  - Sets up Node.js 20 with npm caching
+  - Installs dependencies (npm ci)
+  - Runs linting (npm run lint)
+  - Runs tests (npm test)
+
+### Task 2: Add Docker build job
+Add a second job called "build" that:
+  - Only runs AFTER the test job passes (needs: test)
+  - Only runs on push to main (not on PRs)
+  - Builds the Docker image
+  - Tags it with the commit SHA
+  - (Don't push to registry — just build and tag locally)
+
+### Task 3: Add matrix testing
+Modify the test job to run on Node.js 18, 20, and 22
+using a matrix strategy.
+
+### Task 4: Add a notification step
+Add a step at the end of the build job that:
+  - Runs only if the build succeeds
+  - Echoes a summary: "Build SUCCESS: image tagged myapp:SHA"
+
+### Task 5: Create branch protection rules
+Write a document (BRANCH_PROTECTION.md) explaining:
+  - Which checks should be required before merging
+  - Why these checks protect the codebase
+  - How to configure branch protection in GitHub Settings
+
+## [EXPECTED RESULT]
+Files produced:
+  .github/workflows/ci.yml     — complete CI workflow
+  Dockerfile                    — multi-stage or standard
+  BRANCH_PROTECTION.md          — protection rules documentation
+
+The workflow should:
+  - Run lint + test in parallel across 3 Node versions
+  - Build Docker image only after tests pass
+  - Build only on main pushes, not PRs
+  - Include proper caching
+  - Use pinned action versions

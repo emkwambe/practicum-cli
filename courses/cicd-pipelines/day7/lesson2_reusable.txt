@@ -1,0 +1,175 @@
+# Lesson: Multi-Stage Pipelines & Reusable Workflows
+
+## [WHEN] You need this when:
+1. Multiple repos use the same CI/CD pattern (DRY).
+2. Your workflow file is 200+ lines and hard to maintain.
+3. You need conditional stages (deploy only on tags, scan weekly).
+4. Your organization needs standardized pipeline templates.
+
+## [INTENT] "Build maintainable, reusable CI/CD pipelines at scale."
+
+## [CONTEXT]
+As your team grows, you'll have 10, 50, 100 repos — all needing
+CI/CD. Copy-pasting workflow files doesn't scale. Reusable
+workflows let you define a pipeline ONCE and call it from anywhere.
+
+## [ACTION] Advanced pipeline patterns
+
+### Reusable workflow (called workflow):
+  # .github/workflows/reusable-ci.yml
+  name: Reusable CI
+
+  on:
+    workflow_call:                    # ← makes this callable
+      inputs:
+        node-version:
+          required: false
+          type: string
+          default: '20'
+      secrets:
+        deploy-key:
+          required: false
+
+  jobs:
+    test:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - uses: actions/setup-node@v4
+          with:
+            node-version: ${{ inputs.node-version }}
+            cache: 'npm'
+        - run: npm ci
+        - run: npm test
+
+### Calling a reusable workflow:
+  # .github/workflows/ci.yml (in any repo)
+  name: CI
+  on: [push, pull_request]
+
+  jobs:
+    ci:
+      uses: myorg/.github/.github/workflows/reusable-ci.yml@main
+      with:
+        node-version: '20'
+      secrets:
+        deploy-key: ${{ secrets.DEPLOY_KEY }}
+
+  # One line replaces an entire workflow definition!
+
+### Composite actions (reusable steps):
+  # .github/actions/setup-and-test/action.yml
+  name: 'Setup and Test'
+  description: 'Install deps and run tests'
+
+  inputs:
+    node-version:
+      description: 'Node.js version'
+      default: '20'
+
+  runs:
+    using: 'composite'
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: 'npm'
+      - run: npm ci
+        shell: bash
+      - run: npm test
+        shell: bash
+
+  # Use in any workflow:
+  steps:
+    - uses: actions/checkout@v4
+    - uses: ./.github/actions/setup-and-test
+      with:
+        node-version: '22'
+
+### Conditional stages:
+  jobs:
+    test:
+      runs-on: ubuntu-latest
+      steps:
+        - run: npm test
+
+    # Only on main branch:
+    build:
+      if: github.ref == 'refs/heads/main'
+      needs: test
+      steps:
+        - run: docker build .
+
+    # Only on version tags:
+    release:
+      if: startsWith(github.ref, 'refs/tags/v')
+      needs: build
+      steps:
+        - run: echo "Creating release ${{ github.ref_name }}"
+
+    # Only on schedule:
+    security-scan:
+      if: github.event_name == 'schedule'
+      steps:
+        - run: npm audit
+
+### Workflow dispatch with inputs (manual trigger):
+  on:
+    workflow_dispatch:
+      inputs:
+        environment:
+          type: choice
+          options: [staging, production]
+        dry-run:
+          type: boolean
+          default: true
+
+  jobs:
+    deploy:
+      steps:
+        - name: Deploy
+          if: inputs.dry-run == false
+          run: ./deploy.sh ${{ inputs.environment }}
+
+### Complete enterprise pipeline:
+  # Trigger → Lint → Test → Build → Security → Staging → Prod
+  name: Enterprise CI/CD
+  on:
+    push: { branches: [main] }
+    pull_request: { branches: [main] }
+    schedule: [{ cron: '0 2 * * 1' }]     # weekly security scan
+
+  jobs:
+    lint:        { uses: ./.github/workflows/reusable-lint.yml }
+    test:        { uses: ./.github/workflows/reusable-test.yml }
+    build:
+      needs: [lint, test]
+      if: github.ref == 'refs/heads/main'
+      uses: ./.github/workflows/reusable-build.yml
+    security:
+      needs: build
+      uses: ./.github/workflows/reusable-security.yml
+    staging:
+      needs: security
+      environment: staging
+      uses: ./.github/workflows/reusable-deploy.yml
+      with: { environment: staging }
+    production:
+      needs: staging
+      environment: production
+      uses: ./.github/workflows/reusable-deploy.yml
+      with: { environment: production }
+
+## [EXPECTED RESULT]
+Your CI/CD pipelines are modular, reusable, and maintainable.
+New repos get CI/CD in one line. Changes propagate to all repos.
+
+## Technician Tip:
+Start with one good workflow. Extract reusable pieces only when
+you have 3+ repos using the same pattern. Premature abstraction
+is worse than copy-paste.
+
+## Common Pain Point:
+"Reusable workflow not found" → the path must be exact:
+  uses: org/repo/.github/workflows/file.yml@ref
+  The ref (branch/tag) is REQUIRED for external repos.

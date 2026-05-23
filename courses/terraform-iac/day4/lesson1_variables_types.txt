@@ -1,0 +1,112 @@
+# Lesson: Variables & the Type System
+
+## [WHEN] You need this when:
+1. You're hardcoding values (region, instance type) and need them configurable.
+2. Different environments need different values (dev=small, prod=large).
+3. You need to pass secrets without putting them in code.
+
+## [INTENT] "Make infrastructure configurable with variables."
+
+## [CONTEXT]
+Hardcoded values make infrastructure rigid. Variables make it reusable.
+
+  Hardcoded: instance_type = "t3.micro"           # only one size, ever
+  Variable:  instance_type = var.instance_size     # configurable per env
+
+## [ACTION] Variables in Terraform
+
+### Declaring variables (variables.tf):
+  variable "region" {
+    description = "AWS region to deploy into"
+    type        = string
+    default     = "us-east-1"
+  }
+
+  variable "instance_type" {
+    description = "EC2 instance size"
+    type        = string
+    default     = "t3.micro"
+  }
+
+  variable "enable_monitoring" {
+    description = "Enable CloudWatch monitoring"
+    type        = bool
+    default     = false
+  }
+
+  variable "allowed_ports" {
+    description = "Ports to open in the security group"
+    type        = list(number)
+    default     = [80, 443]
+  }
+
+  variable "tags" {
+    description = "Resource tags"
+    type        = map(string)
+    default     = {
+      Environment = "dev"
+      Team        = "platform"
+    }
+  }
+
+### Type system:
+  string    → "us-east-1"
+  number    → 3
+  bool      → true / false
+  list()    → ["a", "b", "c"]
+  map()     → { key = "value" }
+  object()  → { name = string, age = number }
+  tuple()   → [string, number, bool]
+
+### Using variables (main.tf):
+  resource "aws_instance" "web" {
+    ami           = "ami-0c55b159cbfafe1f0"
+    instance_type = var.instance_type        # ← from variable
+    tags          = var.tags                  # ← from variable
+  }
+
+### Setting variable values:
+
+  # Method 1: terraform.tfvars (auto-loaded):
+  instance_type = "t3.large"
+  region        = "eu-west-1"
+
+  # Method 2: command line:
+  terraform apply -var="instance_type=t3.large"
+
+  # Method 3: environment variable:
+  export TF_VAR_instance_type="t3.large"
+
+  # Method 4: .tfvars file (explicit):
+  terraform apply -var-file="production.tfvars"
+
+### Sensitive variables (secrets):
+  variable "db_password" {
+    description = "Database password"
+    type        = string
+    sensitive   = true     # ← hides from plan/apply output
+  }
+
+  # Never set sensitive values in terraform.tfvars committed to Git.
+  # Use environment variables or a secrets manager.
+
+### Validation:
+  variable "environment" {
+    type = string
+    validation {
+      condition     = contains(["dev", "staging", "prod"], var.environment)
+      error_message = "Environment must be dev, staging, or prod."
+    }
+  }
+
+## [EXPECTED RESULT]
+You can parameterize any infrastructure config with typed variables
+and supply different values per environment.
+
+## Technician Tip:
+Every variable should have a description. Future you (and your
+teammates) will thank you when reading variables.tf.
+
+## Common Pain Point:
+"Variable not found" → make sure you declared it in variables.tf
+AND referenced it as var.name (not ${var.name} or $var.name).

@@ -1,0 +1,52 @@
+# Lesson: GitHub Actions — Automate Everything Around Your Code
+
+## [WHEN] You need this when:
+1. You want tests to run automatically on every push.
+2. You need to deploy your app when main is updated.
+3. You want to lint code and enforce style before merging.
+4. You want to build and publish releases automatically.
+
+## [INTENT] "Make GitHub run tasks automatically when something happens."
+
+## [CONTEXT]
+GitHub Actions is GitHub's built-in automation. You write a workflow
+file (YAML) that says "when X happens, do Y."
+Examples of X (triggers): push, pull request, tag, schedule, manual.
+Examples of Y (jobs): run tests, build Docker image, deploy, send Slack message.
+
+Workflows live in .github/workflows/*.yml in your repo.
+Free for public repos. Generous free tier for private repos.
+
+## [ACTION] Basic workflow file
+Create .github/workflows/test.yml:
+
+  name: Test
+  on: [push, pull_request]
+  jobs:
+    test:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - name: Run tests
+          run: |
+            echo "Running tests..."
+            ./run-tests.sh
+
+Commit and push. GitHub will run this on every push.
+
+## Key concepts:
+  name          — human-readable workflow name
+  on            — what triggers the workflow
+  jobs          — list of jobs (run in parallel by default)
+  runs-on       — which runner (ubuntu-latest, windows-latest, macos-latest)
+  steps         — sequential actions within a job
+  uses          — use a pre-built action (from marketplace)
+  run           — run a shell command
+
+## [EXPECTED RESULT]
+After pushing, go to Actions tab on GitHub. You will see your
+workflow running (yellow), passing (green check), or failing (red X).
+
+## Try it now:
+  Create .github/workflows/hello.yml with a simple echo command.
+  Commit, push, and watch it run in the Actions tab.

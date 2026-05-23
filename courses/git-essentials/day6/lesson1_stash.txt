@@ -1,0 +1,35 @@
+# Lesson: git stash — Save Work Without Committing
+
+## [WHEN] You need this when:
+1. You need to switch branches but have uncommitted changes.
+2. A colleague needs urgent help and you must context-switch.
+3. You started work on the wrong branch and need to move it.
+4. You want to test something with a clean working directory.
+
+## [INTENT] "Save my work-in-progress and come back to it later."
+
+## [CONTEXT]
+git stash temporarily shelves your uncommitted changes. Your working
+directory becomes clean (matches the last commit). You can switch
+branches, do other work, then restore your stash.
+Stashes are stored in a stack — you can have multiple.
+
+## [ACTION] git stash
+Common patterns:
+  git stash                         — save and clean working dir
+  git stash pop                     — restore most recent stash + remove from list
+  git stash list                    — show all stashes
+  git stash apply stash@{1}         — restore specific stash (keep in list)
+  git stash drop stash@{0}          — delete a stash
+  git stash show -p                 — see what is in the stash
+
+## [EXPECTED RESULT]
+"Saved working directory and index state WIP on main: abc1234 message"
+Working directory is now clean. git stash list shows your saved work.
+
+## Try it now:
+  echo "work in progress" >> hello.txt
+  git stash
+  git status    (clean!)
+  git stash pop
+  git status    (changes are back)

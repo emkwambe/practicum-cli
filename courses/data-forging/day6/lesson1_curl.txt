@@ -1,0 +1,90 @@
+# Lesson: curl — Fetch Data from Any API
+
+## [WHEN] You need this when:
+1. You need to pull data from a REST API for analysis.
+2. You want to automate data collection from web services.
+3. You need to test an API endpoint from the terminal.
+4. You're building the "Extract" stage of an ETL pipeline.
+
+## [INTENT] "Pull data from any HTTP API into my pipeline."
+
+## [CONTEXT]
+curl makes HTTP requests from the CLI. Combined with jq, it becomes
+a complete API data extraction tool. Every modern service has an API —
+GitHub, weather, financial data, cloud providers, internal services.
+
+## [ACTION] curl for data pipelines
+
+### Basic GET:
+  curl -s https://api.github.com/users/emkwambe       # silent mode
+  curl -sL https://example.com/data.json               # follow redirects
+
+### Essential flags for data work:
+  -s        silent (no progress bar)
+  -S        show errors even in silent mode
+  -L        follow redirects
+  -o file   save to file
+  -H        add header
+  -d        send data (POST)
+  -X        HTTP method (GET, POST, PUT, DELETE)
+  -w        write out metadata (status code, time)
+  -f        fail silently on HTTP errors (return non-zero)
+  --max-time 30   timeout after 30 seconds
+
+### curl + jq pipeline:
+  curl -s "https://api.github.com/users/emkwambe/repos" | jq -r '.[].name'
+
+### POST with JSON body:
+  curl -s -X POST "https://api.example.com/data" \
+    -H "Content-Type: application/json" \
+    -d '{"query": "SELECT * FROM sales"}'
+
+### Authentication:
+  # API key in header:
+  curl -s -H "Authorization: Bearer $API_KEY" https://api.example.com/data
+
+  # Basic auth:
+  curl -s -u username:password https://api.example.com/data
+
+  # Token from environment:
+  curl -s -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/user
+
+### Check response status:
+  status=$(curl -s -o /dev/null -w "%{http_code}" https://api.example.com/data)
+  if [ "$status" -ne 200 ]; then
+      echo "API returned $status" >&2
+      exit 1
+  fi
+
+### Download with retry:
+  curl -sS --retry 3 --retry-delay 5 https://api.example.com/large-dataset.json
+
+### Pagination (common API pattern):
+  page=1
+  while true; do
+      data=$(curl -s "https://api.example.com/items?page=$page&per_page=100")
+      count=$(echo "$data" | jq 'length')
+      [ "$count" -eq 0 ] && break
+      echo "$data" | jq -r '.[] | [.id, .name] | @csv' >> all_items.csv
+      page=$((page + 1))
+  done
+
+## [EXPECTED RESULT]
+You can pull data from any API and feed it into your pipeline.
+curl handles the HTTP; jq handles the JSON; the pipe connects them.
+
+## Technician Tip — save API keys safely:
+Never hardcode API keys in scripts. Use environment variables:
+  export API_KEY="your-key-here"      # in ~/.bashrc
+  curl -s -H "Authorization: Bearer $API_KEY" ...
+
+Or read from a file:
+  curl -s -H "Authorization: Bearer $(cat ~/.api_key)" ...
+
+## Common Pain Point:
+"curl returns HTML instead of JSON" → the API might be redirecting.
+Add -L to follow redirects. Also check the URL — you might be hitting
+a web page, not the API endpoint.
+
+"API rate limited (429)" → add delays between requests:
+  sleep 1    # between each curl call in a loop

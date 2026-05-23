@@ -1,0 +1,43 @@
+# Docker course unlock chain
+# Day 1: run, ps, logs, exec, lifecycle, inspect
+run|ps
+ps|logs
+logs|exec
+exec|lifecycle
+lifecycle|inspect
+# Day 2: dockerfile, build, layers, multistage, tagging, best_practices
+dockerfile|build
+build|layers
+layers|multistage
+multistage|tagging
+tagging|best_practices
+# Day 3: volumes, networks, ports, env, limits, healthcheck
+volumes|networks
+networks|ports
+ports|env
+env|limits
+limits|healthcheck
+# Day 4: compose_intro, services, lifecycle, compose_networks, compose_volumes, full_stack
+compose_intro|services
+services|lifecycle
+lifecycle|compose_networks
+compose_networks|compose_volumes
+compose_volumes|full_stack
+# Day 6: registries, tagging_strategies, private_registries, image_management, scanning, automation
+registries|tagging_strategies
+tagging_strategies|private_registries
+private_registries|image_management
+image_management|scanning
+scanning|automation
+# Day 7: nonroot, secrets, capabilities, signing, hardening, security_checklist
+nonroot|secrets
+secrets|capabilities
+capabilities|signing
+signing|hardening
+hardening|security_checklist
+# Day 8: swarm_intro, services, rolling_updates, secrets_configs, stacks, node_management
+swarm_intro|services
+services|rolling_updates
+rolling_updates|secrets_configs
+secrets_configs|stacks
+stacks|node_management

@@ -1,0 +1,113 @@
+# Lesson: Troubleshooting Applications — Pods, Deployments & Services
+
+## [WHEN] You need this when:
+1. A pod won't start, keeps crashing, or isn't reachable.
+2. A deployment rollout is stuck.
+3. Users report errors but you don't know which component is failing.
+4. The CKA exam's LARGEST domain (30%) is troubleshooting.
+
+## [INTENT] "Systematically diagnose and fix application-level K8s failures."
+
+## [CONTEXT]
+Troubleshooting is THE highest-weighted CKA domain at 30%.
+The exam will give you a broken cluster and ask you to fix it
+under time pressure. Speed comes from a systematic workflow,
+not random guessing.
+
+## [ACTION] Application troubleshooting
+
+### THE DEBUGGING WORKFLOW (memorize this):
+  1. kubectl get pods       → what's the status?
+  2. kubectl describe pod   → what went wrong? (Events section)
+  3. kubectl logs           → what did the app say?
+  4. kubectl logs --previous → what did it say before crashing?
+  5. kubectl exec -it       → get inside and investigate
+
+  This order narrows scope: broad → specific → interactive.
+
+### Pod status failures:
+
+  ── Pending ──
+  Meaning: scheduler can't place the pod.
+  Check: kubectl describe pod → Events
+  Common causes:
+    - Insufficient resources (CPU/memory request > available)
+    - nodeSelector/affinity can't match any node
+    - PVC can't bind (no matching PV)
+    - All nodes tainted, pod lacks toleration
+  Fix: adjust requests, add nodes, fix labels, add tolerations
+
+  ── ImagePullBackOff / ErrImagePull ──
+  Meaning: can't pull the container image.
+  Check: kubectl describe pod → Events
+  Common causes:
+    - Wrong image name or tag (typo)
+    - Private registry, no imagePullSecrets
+    - Registry unreachable (network/DNS)
+  Fix: correct image name, add imagePullSecrets, check network
+
+  ── CrashLoopBackOff ──
+  Meaning: container starts, crashes, K8s backs off restarts.
+  Check: kubectl logs pod --previous
+  Common causes:
+    - Application error (segfault, missing config, bad command)
+    - Wrong command/args in the container spec
+    - Missing environment variables (DB_HOST not set)
+    - Readiness/liveness probe pointing to wrong path/port
+  Fix: fix the application, env vars, or probe configuration
+
+  ── OOMKilled ──
+  Meaning: container exceeded memory limit.
+  Check: kubectl describe pod → Last State → Reason: OOMKilled
+  Fix: increase memory limit OR fix the memory leak
+
+  ── CreateContainerConfigError ──
+  Meaning: ConfigMap or Secret referenced doesn't exist.
+  Check: kubectl describe pod → Events
+  Fix: create the missing ConfigMap/Secret
+
+### Deployment troubleshooting:
+
+  # Rollout stuck?
+  kubectl rollout status deployment/web
+  kubectl get rs                    # check ReplicaSets
+  kubectl describe rs web-abc123   # see why new pods aren't starting
+
+  # New ReplicaSet has 0 ready → new pods are failing
+  # Old ReplicaSet still has all pods → rollout hasn't progressed
+
+  # Undo a bad rollout:
+  kubectl rollout undo deployment/web
+
+### Service troubleshooting:
+
+  # Users can't reach the app:
+  kubectl get endpoints svc-name
+
+  # Endpoints empty? → selector mismatch
+  # Compare:
+  kubectl describe svc web-service      # Selector: app=web
+  kubectl get pods --show-labels        # Labels: app=frontend  ← MISMATCH
+
+  # Endpoints exist but connection fails?
+  kubectl exec -it debug-pod -- curl http://web-service:80
+  # Connection refused → app not listening on that port
+  # Timeout → NetworkPolicy blocking it
+
+### Multi-service debugging:
+  When a 3-tier app fails (web → api → db):
+  1. Start at the user-facing layer (web)
+  2. Exec into web pod, curl the api service
+  3. If api fails, exec into api pod, test db connection
+  4. Follow the chain until you find the broken link
+
+  Each hop: check pod status, logs, service endpoints, connectivity.
+
+## [EXPECTED RESULT]
+You can diagnose any pod status failure, fix stuck rollouts,
+debug service connectivity, and trace failures through multi-tier apps.
+
+## Technician Tip:
+CKA time management: spend 30 seconds on kubectl describe before
+doing anything else. The Events section tells you EXACTLY what's
+wrong 80% of the time. Don't guess — read the events.

@@ -1,0 +1,83 @@
+# Lesson: Regular Expressions — Pattern Matching Language
+
+## [WHEN] You need this when:
+1. You need to match complex text patterns (IPs, emails, dates).
+2. grep/sed/awk patterns need more precision than glob (*).
+3. You're validating input format.
+4. You're extracting structured data from unstructured text.
+
+## [INTENT] "Describe a text pattern precisely."
+
+## [CONTEXT]
+Regex is a pattern language used by grep, sed, awk, and [[ =~ ]].
+Two flavors: Basic (BRE) and Extended (ERE). Use -E for extended.
+
+## [ACTION] Regex reference
+
+### Anchors:
+  ^       start of line
+  $       end of line
+  ^hello$ entire line is "hello"
+
+### Character classes:
+  .       any single character
+  [abc]   a, b, or c
+  [a-z]   lowercase letter
+  [0-9]   digit
+  [^abc]  NOT a, b, or c
+  \d      digit (some tools)
+  \w      word character (some tools)
+  \s      whitespace (some tools)
+
+### Quantifiers:
+  *       zero or more
+  +       one or more (ERE)
+  ?       zero or one (ERE)
+  {3}     exactly 3
+  {2,5}   between 2 and 5
+  {3,}    3 or more
+
+### Groups and alternation:
+  (abc)   group
+  a|b     a OR b
+  \1      back-reference to first group
+
+### Common patterns:
+  IP address:    [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+
+  Email:         [a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}
+  Date:          [0-9]{4}-[0-9]{2}-[0-9]{2}
+  Port:          :[0-9]{1,5}
+  Log level:     (ERROR|WARN|INFO|DEBUG)
+
+### Using regex in tools:
+  # grep (extended):
+  grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' access.log
+
+  # sed (extended):
+  echo "port=8080" | sed -E 's/port=([0-9]+)/Port is \1/'
+
+  # awk:
+  awk '/^ERROR/ {print $0}' app.log
+
+  # bash [[ =~ ]]:
+  if [[ "$ip" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+      echo "Valid IP format"
+  fi
+
+## [EXPECTED RESULT]
+You can write patterns that match IPs, dates, emails, log lines,
+and any structured text format.
+
+## Try it now:
+  # Extract all IP addresses from a log:
+  grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' /var/log/syslog 2>/dev/null | sort -u | head -10
+
+  # Find all ERROR lines with timestamps:
+  grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2}.*ERROR' /var/log/*.log 2>/dev/null | head -5
+
+## Technician Tip:
+Test your regex BEFORE using it in a script:
+  echo "test string" | grep -E 'your_pattern'
+
+Online testers (regex101.com) let you debug visually.
+In bash, [[ "string" =~ pattern ]] returns 0 (match) or 1 (no match).

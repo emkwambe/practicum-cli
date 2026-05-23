@@ -1,0 +1,34 @@
+Q1: The correct Dockerfile order for optimal layer caching is:
+A) COPY . . → FROM base → RUN install
+B) FROM base → COPY everything → RUN install
+C) FROM base → COPY dependency files → RUN install → COPY app code
+D) RUN install → FROM base → COPY . .
+Correct: C
+
+Q2: DIAGNOSTIC: A container exits immediately with code 1. docker logs shows nothing. What's the next diagnostic step?
+A) Restart it and hope for the best
+B) Run the container interactively: docker run -it image bash — then manually run the start command to see the error
+C) Delete the image and rebuild
+D) Check Docker Hub
+Correct: B
+
+Q3: Two containers on the default bridge network can communicate by:
+A) Container name (DNS)
+B) IP address only — the default bridge does NOT provide DNS resolution. Use a custom network for name-based discovery
+C) Localhost
+D) They can't communicate
+Correct: B
+
+Q4: For production containers, which practice is most critical?
+A) Use the latest tag
+B) Run as root for full access
+C) Run as a non-root user, use specific image tags, add health checks, and set resource limits
+D) Use the largest base image
+Correct: C
+
+Q5: Your app container needs to reach the database container named "db". The hostname to use is:
+A) localhost
+B) 127.0.0.1
+C) db — Docker DNS resolves container names on the same custom network
+D) database.local
+Correct: C

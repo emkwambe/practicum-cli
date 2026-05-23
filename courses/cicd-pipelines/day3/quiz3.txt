@@ -1,0 +1,55 @@
+Q1: Linting catches errors by:
+A) Analyzing code statically — checking for bugs and style issues WITHOUT executing it
+B) Compiling code to machine language
+C) Running the application and watching for crashes
+D) Deploying to staging and checking logs
+Correct: A
+
+Q2: SCENARIO: Your pipeline runs tests (5 min) then linting (10 sec). A teammate says "flip the order." Why are they right?
+A) Linting must always run first by convention
+B) Run the cheap, fast check first — if linting fails in 10 seconds you save 5 minutes of wasted test time
+C) Tests can't run before linting
+D) The order doesn't matter
+Correct: B
+
+Q3: DIAGNOSTIC: Tests pass on your laptop but fail in CI with "ENOENT: /Users/alex/config.json". What's wrong?
+A) CI doesn't support JSON files
+B) The test uses a hardcoded absolute path from your machine — use relative paths or environment variables
+C) The file is too large
+D) CI has a different timezone
+Correct: B
+
+Q4: To prevent a PR from merging when the lint job fails, you configure:
+A) A Slack notification
+B) A post-merge hook
+C) Branch protection rules with required status checks in GitHub Settings
+D) A cron job
+Correct: C
+
+Q5: The test pyramid recommends:
+A) Equal numbers of unit, integration, and E2E tests
+B) Only E2E tests since they test everything
+D) Many fast unit tests at the base, fewer integration tests, fewest slow E2E tests at the top
+C) No tests in CI — only manual testing
+Correct: D
+
+Q6: SCENARIO: Your Node.js app needs a PostgreSQL database for integration tests. In CI, you should:
+A) Connect to the production database
+B) Skip database tests in CI
+C) Use the services: key to spin up a Postgres container alongside the job
+D) Install PostgreSQL on the runner manually
+Correct: C
+
+Q7: if: always() on a test report step means:
+A) The step always succeeds regardless of result
+B) The step runs twice for reliability
+C) The step runs even if previous steps failed — so you get the report even when tests break
+D) The step is optional
+Correct: C
+
+Q8: TRADEOFF: Your test suite takes 12 minutes. The team wants faster CI. Which approach balances speed and coverage?
+A) Delete half the tests
+B) Skip CI entirely and test manually
+C) Split into fast tests (run on every PR) and slow tests (run nightly on schedule)
+D) Run tests only on Fridays
+Correct: C

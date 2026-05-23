@@ -1,0 +1,61 @@
+Q1: terraform state list shows:
+A) All resources in the cloud
+B) Available resource types
+C) All resources ever created
+D) All resource addresses Terraform is currently managing — the mapping between your .tf code and actual cloud resources tracked in state
+Correct: D
+
+Q2: SCENARIO: You renamed aws_instance.web to aws_instance.frontend in code. Without any state operation, Terraform will:
+A) Update the name automatically
+B) Nothing changes
+C) Destroy the old "web" instance and create a new "frontend" instance — it sees a deletion and a creation because the state address changed
+D) Show an error
+Correct: C
+
+
+
+Q3: terraform import is used when:
+A) Importing modules from the registry
+B) Importing variable values
+C) Importing state from another backend
+D) Bringing existing cloud resources under Terraform management — you write the resource block, then import links it to the real resource's ID in state
+Correct: D
+
+Q4: DIAGNOSTIC: After terraform state rm aws_instance.legacy, what happens to the actual cloud instance?
+A) Nothing — the instance continues running. Terraform simply stops managing it. The resource exists in the cloud but is no longer in Terraform's state.
+B) It's tagged for deletion
+C) It's destroyed immediately
+D) It becomes read-only
+Correct: A
+
+Q5: terraform plan -refresh-only does:
+A) Updates the state file to match current cloud reality WITHOUT changing any resources — it accepts drift into state rather than reverting it
+B) Deletes resources that drifted
+C) Skips the refresh step
+D) Plans without applying
+Correct: A
+
+Q6: TRADEOFF: Using the moved block in code vs terraform state mv command:
+A) They're identical
+B) terraform state mv is manual and only affects local state. The moved block lives in code, goes through version control, and every team member gets the state update automatically on their next plan.
+C) state mv is always better
+D) moved block is deprecated
+Correct: B
+
+
+
+Q7: State locking prevents:
+A) Unauthorized access
+B) State file encryption
+C) Concurrent modifications — when two team members run apply simultaneously, locking ensures one waits until the other finishes, preventing state corruption
+D) State file deletion
+Correct: C
+
+
+
+Q8: SCENARIO: A colleague manually resized an EC2 instance through the AWS console. terraform plan now shows it wants to revert the change. Your three options:
+A) There's only one option — apply
+B) Apply (revert to code), update code to match reality (accept drift), or use ignore_changes on instance_type (permanently ignore that attribute's drift)
+C) You can only ignore it
+D) Delete the state file
+Correct: B

@@ -1,0 +1,76 @@
+# Lesson: Scaling — Manual & Automatic
+
+## [WHEN] You need this when:
+1. Traffic spikes and you need more capacity.
+2. Off-peak hours and you want to save resources.
+3. You need auto-scaling based on CPU/memory metrics.
+
+## [INTENT] "Scale applications manually and automatically."
+
+## [CONTEXT]
+Scaling means changing the number of pod replicas.
+More replicas = more capacity, more availability.
+Fewer replicas = less resource consumption.
+
+## [ACTION] Scaling strategies
+
+### Manual scaling:
+  kubectl scale deployment web --replicas=10
+
+  # Watch pods come up:
+  kubectl get pods -w
+
+  # Scale back down:
+  kubectl scale deployment web --replicas=3
+
+### Horizontal Pod Autoscaler (HPA):
+  # Scale based on CPU utilization:
+  kubectl autoscale deployment web \
+    --min=3 --max=20 --cpu-percent=70
+
+  # This creates an HPA resource:
+  kubectl get hpa
+
+  # When CPU > 70%: add pods (up to 20)
+  # When CPU < 70%: remove pods (down to 3)
+
+### HPA manifest:
+  apiVersion: autoscaling/v2
+  kind: HorizontalPodAutoscaler
+  metadata:
+    name: web-hpa
+  spec:
+    scaleTargetRef:
+      apiVersion: apps/v1
+      kind: Deployment
+      name: web
+    minReplicas: 3
+    maxReplicas: 20
+    metrics:
+      - type: Resource
+        resource:
+          name: cpu
+          target:
+            type: Utilization
+            averageUtilization: 70
+
+### Requirements for HPA:
+  1. Metrics server must be running (provides CPU/memory data)
+  2. Pods MUST have resource requests defined
+     (HPA calculates % of request, not % of node)
+  3. Resource requests act as the baseline for utilization math
+
+### Vertical scaling vs horizontal scaling:
+  Vertical: bigger pods (more CPU/RAM per pod)
+  Horizontal: more pods (more replicas)
+
+  Kubernetes prefers horizontal — it's what the Deployment
+  model is built for. Add pods, not bigger pods.
+
+## [EXPECTED RESULT]
+You can scale deployments manually, configure HPA for auto-scaling,
+and understand the resource request requirements.
+
+## Common Pain Point:
+"HPA shows <unknown> for CPU" → resource requests aren't set on
+the pods, or metrics-server isn't installed. HPA needs both.

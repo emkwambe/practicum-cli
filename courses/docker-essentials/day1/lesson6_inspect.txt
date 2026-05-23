@@ -1,0 +1,65 @@
+# Lesson: docker inspect — The Deep Debugger
+
+## [WHEN] You need this when:
+1. A container has network issues and you need its IP.
+2. You forgot what ports were published.
+3. You need to know which volumes are mounted where.
+4. Something is misconfigured and logs aren't enough.
+
+## [INTENT] "Show me EVERYTHING Docker knows about this container."
+
+## [CONTEXT]
+docker inspect returns a huge JSON blob with every config detail:
+network settings, mounts, environment variables, restart policy,
+the exact command being run, labels, and more.
+
+Most of the time, you don't need all of it — use --format to
+extract just the field you want.
+
+## [ACTION] docker inspect [options] <container|image|network|volume>
+Common patterns:
+  docker inspect web                           — full JSON output
+  docker inspect --format '{{.State.Status}}' web    — just the status
+  docker inspect --format '{{.NetworkSettings.IPAddress}}' web  — IP
+  docker inspect --format '{{json .Config.Env}}' web  — env variables
+  docker inspect --format '{{range .Mounts}}{{.Source}}:{{.Destination}}{{println}}{{end}}' web
+
+Ready-to-use one-liners (memorize these):
+  # Get IP address:
+  docker inspect -f '{{.NetworkSettings.IPAddress}}' web
+
+  # Check restart policy:
+  docker inspect -f '{{.HostConfig.RestartPolicy.Name}}' web
+
+  # See the command:
+  docker inspect -f '{{.Config.Cmd}}' web
+
+  # Health check result:
+  docker inspect -f '{{.State.Health.Status}}' web
+
+## [EXPECTED RESULT]
+Full output: massive JSON (pipe to less or jq).
+With --format: just the specific value you asked for.
+
+## Try it now:
+  docker run -d --name web nginx
+  docker inspect web | head -50
+  docker inspect -f '{{.NetworkSettings.IPAddress}}' web
+  docker inspect -f '{{.Config.Image}}' web
+  docker stop web && docker rm web
+
+## Technician Tip:
+docker inspect works on images, networks, volumes too — not just containers.
+When debugging, use it on ALL related objects:
+  docker inspect <container>       # container config
+  docker inspect <image>           # image layers, config
+  docker inspect <network>         # which containers are attached
+  docker inspect <volume>          # where data lives on host
+
+## DCA Exam Note:
+The exam loves asking "which command shows container X's IP?" —
+answer is always: docker inspect -f '{{.NetworkSettings.IPAddress}}' X
+
+## Next:
+Type menu to return. You have completed Day 1!
+You can now run, monitor, debug, and clean up containers.

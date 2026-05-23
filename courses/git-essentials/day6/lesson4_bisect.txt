@@ -1,0 +1,44 @@
+# Lesson: git bisect — Find the Commit That Broke Everything
+
+## [WHEN] You need this when:
+1. A bug appeared recently but you don't know which commit introduced it.
+2. Tests that used to pass are now failing.
+3. A feature worked yesterday but is broken today.
+4. You have a long commit history and manual checking is impractical.
+
+## [INTENT] "Find which commit broke things — binary search through history."
+
+## [CONTEXT]
+git bisect uses binary search to find the exact commit that introduced
+a bug. You tell Git one "good" commit (where things worked) and one
+"bad" commit (where things are broken). Git checks out the middle
+commit. You test it, mark it good or bad, and Git narrows down.
+With 1000 commits, bisect finds the bad one in about 10 steps.
+
+## [ACTION] git bisect <good|bad>
+Typical workflow:
+  git bisect start                  — begin bisect session
+  git bisect bad                    — current commit is broken
+  git bisect good abc1234           — this old commit worked
+  (Git checks out middle commit)
+  (test it — does the bug exist?)
+  git bisect good                   — if test passes
+  git bisect bad                    — if test fails
+  (Git narrows the range, checks out next commit)
+  (repeat until Git identifies the bad commit)
+  git bisect reset                  — end bisect, return to HEAD
+
+Automate if you have a test script:
+  git bisect run ./test.sh          — Git runs test.sh on each commit
+
+## [EXPECTED RESULT]
+After several iterations: "abc1234 is the first bad commit"
+Git shows the exact commit that introduced the problem.
+
+## Try it now:
+  git log --oneline -10
+  git bisect start
+  git bisect bad
+  git bisect good <older-commit-hash>
+  (follow the prompts)
+  git bisect reset

@@ -1,0 +1,55 @@
+Q1: awk -F',' '{print $2}' data.csv does:
+A) Prints the second line
+B) Counts commas
+C) Deletes column 2
+D) Prints the second comma-separated field from each line
+Correct: D
+
+Q2: SCENARIO: You need to sum column 3 of a CSV with 100K rows. Which tool?
+A) cat + sort
+B) grep + wc
+C) awk -F',' '{sum+=$3} END {print sum}' data.csv — awk handles numeric aggregation natively
+D) sed
+Correct: C
+
+Q3: sed -i 's/http:/https:/g' config.txt does:
+A) Replaces every http: with https: directly in the file — in-place edit, no backup unless you add -i.bak
+B) Deletes http lines
+C) Creates a backup first
+D) Prints changes without modifying
+Correct: A
+
+Q4: DIAGNOSTIC: Your regex grep -E '[0-9]{3}-[0-9]{4}' matches phone suffixes but also matches "123-4567890". How do you fix it to match exactly 3-4 digit patterns?
+A) Use a different tool
+B) grep is broken
+C) Add word boundaries or anchors: grep -oP '\b\d{3}-\d{4}\b' — prevents matching inside longer numbers
+D) You can't — regex always over-matches
+Correct: C
+
+Q5: The regex anchors ^ and $ match:
+A) Nothing — they're decorative
+B) Start and end of a word
+C) Any character
+D) Start and end of a line — ^ERROR matches lines starting with ERROR, log$ matches lines ending with log
+Correct: D
+
+Q6: TRADEOFF: awk vs sed for text processing:
+A) sed is for line-by-line find/replace; awk is for column-based processing and aggregation — use the right tool for the job
+B) They do the same thing
+C) awk is always better
+D) sed is always faster
+Correct: A
+
+Q7: SCENARIO: You're parsing a log file. Lines look like: "2026-05-22 ERROR [auth] Login failed for user=admin". You need to extract just the username after "user=". Which approach?
+A) awk '{print $NF}'
+B) grep -oP '(?<=user=)\w+' — Perl lookbehind extracts only the value after user=
+C) cut -d= -f2
+D) sed 's/.*user=//'
+Correct: B
+
+Q8: awk 'NR>1 {count[$3]++} END {for(k in count) print k, count[k]}' does:
+A) Sorts the file
+B) Counts lines
+C) Skips the header (NR>1), groups by column 3, and prints the count per group — like SQL GROUP BY
+D) Deletes duplicates
+Correct: C

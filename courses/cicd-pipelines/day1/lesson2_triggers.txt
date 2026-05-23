@@ -1,0 +1,92 @@
+# Lesson: Pipeline Triggers — When Does the Pipeline Run?
+
+## [WHEN] You need this when:
+1. You want CI to run on every push but CD only on merge to main.
+2. You need to build on tags (v1.0.0) but not on feature branches.
+3. You want to run a pipeline on a schedule (nightly tests).
+4. Your pipeline is running too often and wasting resources.
+
+## [INTENT] "Control exactly when my pipeline runs."
+
+## [CONTEXT]
+A trigger defines WHEN a pipeline executes. Get triggers wrong and
+your pipeline either runs too much (wasting money) or too little
+(missing bugs). The right triggers match your team's workflow.
+
+## [ACTION] Trigger types
+
+### Push trigger — runs on every push to specified branches:
+  on:
+    push:
+      branches: [main, develop]
+
+### Pull request trigger — runs when PR is opened/updated:
+  on:
+    pull_request:
+      branches: [main]
+
+### Tag trigger — runs when a version tag is pushed:
+  on:
+    push:
+      tags: ['v*']
+
+### Schedule trigger — cron-based (nightly, weekly):
+  on:
+    schedule:
+      - cron: '0 6 * * 1-5'    # 6 AM Monday-Friday
+
+### Manual trigger — run on demand from the UI:
+  on:
+    workflow_dispatch:
+      inputs:
+        environment:
+          description: 'Deploy to'
+          required: true
+          default: 'staging'
+
+### Path filter — only run when specific files change:
+  on:
+    push:
+      paths:
+        - 'src/**'
+        - 'Dockerfile'
+      paths-ignore:
+        - 'docs/**'
+        - '*.md'
+
+### Combined triggers (real-world example):
+  on:
+    push:
+      branches: [main]          # CI+CD on main
+    pull_request:
+      branches: [main]          # CI only on PRs
+    schedule:
+      - cron: '0 2 * * 0'      # Weekly security scan
+
+### Common patterns by team workflow:
+
+  Trunk-based development:
+    push to main → CI → CD to staging → manual approve → CD to prod
+
+  Feature branch workflow:
+    PR opened → CI (tests only)
+    PR merged to main → CI + CD (full pipeline)
+
+  Release branch workflow:
+    push to release/* → CI + build
+    tag v* → CD (deploy to production)
+
+## [EXPECTED RESULT]
+You can design triggers that match any team workflow. CI runs on
+the right events, CD only deploys when appropriate.
+
+## Technician Tip:
+Start strict, loosen later. Begin with:
+  - CI on every PR (catch bugs early)
+  - CD only on main (deploy only reviewed code)
+  - Never auto-deploy to production without a gate
+
+## Common Pain Point:
+"Pipeline runs on every commit to every branch" → you're missing
+branch filters. Add branches: [main] to limit where CI/CD runs.
+Save runner minutes. Save money.

@@ -1,0 +1,61 @@
+# Lesson: The Daily Git Workflow — Putting It All Together
+
+## [WHEN] You need this when:
+1. You start your workday and want to follow best practices.
+2. You are new to a team and need to know the standard flow.
+3. You want a reliable process that avoids mistakes.
+
+## [INTENT] "What is the correct sequence of Git commands every day?"
+
+## [CONTEXT]
+After three days of learning individual commands, here is how they
+fit together in a real daily workflow. Follow this pattern and you
+will avoid 90% of Git problems.
+
+## [ACTION] The Daily Workflow
+
+### Starting your day:
+  git switch main                   — go to main branch
+  git pull origin main              — get latest changes from team
+  git switch -c feature/my-task     — create a branch for today's work
+
+### While working:
+  (edit files...)
+  git status                        — check what changed
+  git diff                          — review your changes
+  git add .                         — stage everything (or specific files)
+  git commit -m "Add user validation" — commit with clear message
+
+### Multiple commits are GOOD:
+  (more edits...)
+  git add . && git commit -m "Add error handling"
+  (more edits...)
+  git add . && git commit -m "Add unit tests"
+
+### When done:
+  git push -u origin feature/my-task — push your branch
+  (Create a Pull Request on GitHub)
+
+### After PR is merged:
+  git switch main                   — go back to main
+  git pull origin main              — get the merged changes
+  git branch -d feature/my-task     — clean up your branch
+
+## [EXPECTED RESULT]
+A clean history of focused commits. Your team can review your
+work in a Pull Request. Main branch stays stable.
+
+## Try it now:
+  Practice the full workflow:
+  git switch main
+  git switch -c feature/practice
+  echo "practice" > practice.txt
+  git add . && git commit -m "Add practice file"
+  git switch main
+  git merge feature/practice
+  git branch -d feature/practice
+  git log --oneline -3
+
+## Next:
+Type menu to return. You have completed Day 3!
+You can now work with remotes, push, pull, and follow the daily workflow.

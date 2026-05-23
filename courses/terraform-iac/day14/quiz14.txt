@@ -1,0 +1,63 @@
+Q1: The complete infrastructure lifecycle in Terraform:
+A) Write → Init → Validate → Plan → Review → Apply → Monitor for drift → Iterate
+B) Plan → Apply → Destroy
+C) Write → Apply → Forget
+D) Init → Destroy → Apply
+Correct: A
+
+
+
+Q2: "Build once, parameterize per environment" means:
+A) Copy-paste between environments
+B) Build separate configs for each environment
+C) Only build for production
+D) One set of Terraform modules, different variable files per environment — same code produces dev, staging, and production
+Correct: D
+
+Q3: SCENARIO: A module you depend on releases a breaking change. Your pinned version protects you. When should you upgrade?
+A) Immediately — always use latest
+B) Never upgrade
+C) Only when forced
+D) Read the changelog, test the upgrade in dev, verify it works in staging, then update production — controlled migration
+Correct: D
+
+Q4: TRADEOFF: Terraform manages your infrastructure but a developer needs to debug a production issue by changing a security group manually. What's the right process?
+A) Make the change in Terraform code, PR, review, plan, apply — if urgent, apply immediately but still through code, then add the PR after
+B) Manual changes are fine
+C) Let them make the manual change — fix it later
+D) Disable Terraform temporarily
+Correct: A
+
+
+
+Q5: DIAGNOSTIC: After terraform apply, your output shows the server IP. But SSH fails with "connection timed out." What should you check?
+A) The server is too small
+B) The security group rules — Terraform created the server but may not have opened port 22. Check the config for ingress rules.
+C) Terraform is wrong
+D) The SSH key is expired
+Correct: B
+
+
+
+Q6: A well-organized Terraform project has:
+A) No documentation
+B) Only the state file
+C) Separated files (providers.tf, variables.tf, main.tf, outputs.tf), .gitignore for state, pinned provider versions, and a README
+D) Everything in one main.tf
+Correct: C
+
+
+
+Q7: SCENARIO: Your capstone builds dev and prod environments from the same code. The key difference between them should be:
+A) Different providers
+B) Different Terraform code
+C) Different .tfvars files — same code, different values for instance size, count, backup settings, and monitoring
+D) Different Terraform versions
+Correct: C
+
+Q8: The strongest evidence of Terraform competence is:
+A) Knowing all HCL syntax
+B) A working multi-environment project with modules, CI/CD integration, remote state, proper documentation, and drift detection
+C) Managing one server with Terraform
+D) Passing the certification exam
+Correct: B

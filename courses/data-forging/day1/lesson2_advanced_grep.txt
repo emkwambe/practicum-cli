@@ -1,0 +1,70 @@
+# Lesson: Advanced grep — Extract Patterns, Not Just Lines
+
+## [WHEN] You need this when:
+1. You need to extract IP addresses from a log (not the whole line).
+2. You want to match complex patterns (emails, timestamps, UUIDs).
+3. You need context around matches (lines before/after).
+4. You're building a data extraction pipeline.
+
+## [INTENT] "Extract specific data patterns from unstructured text."
+
+## [CONTEXT]
+Basic grep finds lines. Advanced grep extracts patterns.
+The key flag: -o (output ONLY the matching part, not the full line).
+Combined with -E (extended regex) or -P (Perl regex), you can
+extract structured data from unstructured text.
+
+## [ACTION] Advanced grep patterns
+
+### Extract, don't just filter:
+  grep "error" log.txt                    # full lines containing "error"
+  grep -o "[0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+" log.txt    # IPs only
+  grep -oE "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" file  # emails only
+  grep -oP "\d{4}-\d{2}-\d{2}" log.txt   # dates (YYYY-MM-DD) only
+
+### Context — lines around the match:
+  grep -B 3 "ERROR" log.txt              # 3 lines Before
+  grep -A 5 "ERROR" log.txt              # 5 lines After
+  grep -C 2 "ERROR" log.txt              # 2 lines Context (before+after)
+
+### Count and summarize:
+  grep -c "ERROR" log.txt                # count matching lines
+  grep -ci "error" log.txt               # case-insensitive count
+  grep -l "ERROR" /var/log/*.log         # which FILES contain errors
+  grep -rn "TODO" ./src/                 # recursive with line numbers
+
+### Invert — lines that DON'T match:
+  grep -v "^#" config.txt                # skip comments
+  grep -v "^$" file.txt                  # skip empty lines
+  grep -v "DEBUG\|INFO" app.log          # errors only (skip noise)
+
+### Multiple patterns:
+  grep -E "ERROR|WARN|FATAL" log.txt     # any of these
+  grep -E "^2026-04-(15|16|17)" log.txt  # specific dates
+
+### Fixed string (no regex interpretation):
+  grep -F "user.name" config.json        # literal dot, not regex "any char"
+
+### Practical: extract all unique IPs from a log
+  grep -oE "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" access.log | sort -u
+  # Every unique IP that appears in the log
+
+### Practical: count errors per hour
+  grep "ERROR" app.log | grep -oE "^[0-9-]+ [0-9]{2}" | sort | uniq -c
+  # Groups errors by YYYY-MM-DD HH
+
+## [EXPECTED RESULT]
+grep becomes a data extraction tool, not just a search tool.
+You can pull IPs, emails, timestamps, UUIDs from any text.
+
+## Technician Tip:
+grep -oP (Perl regex) is more powerful than grep -oE:
+  grep -oP '(?<=user=)[^ ]+' log.txt     # lookbehind: value after "user="
+  grep -oP '"name": "\K[^"]+' file.json   # extract JSON values (quick+dirty)
+
+But for proper JSON: use jq (Day 2). grep -oP is for unstructured text.
+
+## Common Pain Point:
+"grep is slow on huge files" → use grep -m 100 to stop after 100 matches.
+"grep returns binary file matches" → add -a (treat as text) or --binary-files=text.
+Windows line endings breaking patterns → dos2unix file first.

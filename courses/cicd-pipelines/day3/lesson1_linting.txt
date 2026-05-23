@@ -1,0 +1,88 @@
+# Lesson: Linting in CI — Catch Bugs Before They Run
+
+## [WHEN] You need this when:
+1. Team members have different code styles (tabs vs spaces wars).
+2. Bugs slip into production that a linter would have caught.
+3. Code reviews waste time on formatting instead of logic.
+4. You want automated quality gates in your pipeline.
+
+## [INTENT] "Enforce code quality automatically on every push."
+
+## [CONTEXT]
+Linting is static analysis — checking code WITHOUT running it.
+It catches: syntax errors, style violations, unused variables,
+security issues, and common mistakes. In CI, linting runs first
+because it's fast (seconds) and catches obvious problems early.
+
+## [ACTION] Linting in CI/CD pipelines
+
+### Bash/Shell linting (shellcheck):
+  - name: Lint shell scripts
+    run: |
+      sudo apt-get install -y shellcheck
+      find . -name '*.sh' -exec shellcheck {} +
+
+### JavaScript/TypeScript linting (ESLint):
+  - name: Lint
+    run: npx eslint . --max-warnings 0
+
+### Python linting (flake8 + black):
+  - name: Lint Python
+    run: |
+      pip install flake8 black
+      flake8 . --count --max-line-length=120
+      black --check .
+
+### Dockerfile linting (hadolint):
+  - name: Lint Dockerfile
+    uses: hadolint/hadolint-action@v3
+    with:
+      dockerfile: Dockerfile
+
+### YAML linting (yamllint):
+  - name: Lint YAML
+    run: |
+      pip install yamllint
+      yamllint .github/workflows/ docker-compose.yml
+
+### Complete lint job:
+  jobs:
+    lint:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+
+        - name: Lint shell scripts
+          run: shellcheck scripts/*.sh
+
+        - name: Lint Dockerfile
+          run: docker run --rm -i hadolint/hadolint < Dockerfile
+
+        - name: Lint YAML
+          run: yamllint .github/workflows/*.yml
+
+        - name: Check formatting
+          run: |
+            # Fail if any file has trailing whitespace
+            grep -rn ' $' src/ && exit 1 || true
+
+### Quality gates — block merges on failure:
+  Branch protection rules (GitHub Settings → Branches):
+  1. Require status checks to pass before merging
+  2. Select your lint job as a required check
+  3. Now: lint failure = PR cannot be merged
+
+## [EXPECTED RESULT]
+Every push is automatically checked for code quality. Bad code
+is blocked before it reaches code review. Reviews focus on logic.
+
+## Technician Tip:
+Run linting FIRST in your pipeline. It takes seconds and catches
+problems before you waste 5 minutes on tests.
+
+  Order: lint (5 sec) → test (2 min) → build (1 min) → deploy
+
+## Common Pain Point:
+"Too many lint errors to fix at once" → introduce linting gradually.
+Start with --max-warnings 100, reduce by 10 each sprint.
+Or: only lint changed files in PRs (not the entire codebase).

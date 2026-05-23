@@ -1,0 +1,59 @@
+Q1: RBAC answers two questions:
+A) What images can be pulled and from where
+B) WHAT can be done (Role) and WHO can do it (RoleBinding) — separating permissions from identity
+C) When pods can run and for how long
+D) Which nodes are available
+Correct: B
+
+
+
+Q2: SCENARIO: A developer accidentally deletes a production namespace. What RBAC control should have prevented this?
+A) NetworkPolicy
+B) A Role that grants only get/list/create on pods and deployments — NOT delete on namespaces. Least-privilege means no permissions beyond what the job requires.
+C) Resource quotas
+D) Pod security policies
+Correct: B
+
+
+
+Q3: Role vs ClusterRole:
+A) Role grants permissions within ONE namespace — ClusterRole grants permissions cluster-wide or on cluster-scoped resources like nodes
+B) They're the same
+C) ClusterRole is for admins only
+D) Role is for ServiceAccounts only
+Correct: A
+
+Q4: kubectl auth can-i delete deployments -n prod --as jane does:
+A) Deletes deployments as jane
+B) Lists jane's roles
+C) Creates a role for jane
+D) Tests whether user "jane" has permission to delete deployments in the prod namespace — essential for RBAC debugging without making changes
+Correct: D
+
+Q5: DIAGNOSTIC: A CI/CD pipeline gets "Forbidden" when trying to create deployments. The ServiceAccount exists and has a RoleBinding. What should you check?
+A) The pipeline code
+B) The container image
+C) Whether the RoleBinding's namespace matches where the deployment is being created — a RoleBinding in namespace "dev" doesn't grant permissions in "prod"
+D) Network connectivity
+Correct: C
+
+Q6: automountServiceAccountToken: false is a security best practice because:
+A) It saves memory
+B) It speeds up pod startup
+C) It prevents the pod from having automatic API access — a compromised pod can't use the mounted token to call the K8s API
+D) It disables logging
+Correct: C
+
+Q7: TRADEOFF: Using the built-in "edit" ClusterRole vs creating a custom Role:
+A) The edit ClusterRole grants broad read/write to most resources — a custom Role grants only the specific permissions needed, following least-privilege. Custom is more work but more secure.
+B) Always use edit
+C) Custom Roles are slower
+D) edit is more restrictive
+Correct: A
+
+Q8: Creating RBAC resources imperatively (kubectl create role/rolebinding) is preferred in the CKA exam because:
+A) YAML doesn't work for RBAC
+B) Imperative is more secure
+C) Declarative RBAC is deprecated
+D) Imperative commands are faster than writing YAML — in a 2-hour timed exam, every second counts, and kubectl create role handles the boilerplate
+Correct: D

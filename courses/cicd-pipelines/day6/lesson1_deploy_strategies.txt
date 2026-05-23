@@ -1,0 +1,119 @@
+# Lesson: Deployment Strategies — Ship Without Breaking Production
+
+## [WHEN] You need this when:
+1. You need to deploy to production without downtime.
+2. A bad deployment needs to be rolled back in under 60 seconds.
+3. You want to test new code on 5% of users before full rollout.
+4. Your boss says "we can't afford another production outage."
+
+## [INTENT] "Deploy safely with rollback capability."
+
+## [CONTEXT]
+Deployment is the riskiest part of CI/CD. The code passed tests,
+the image built successfully — but production is different.
+Real traffic. Real data. Real consequences.
+
+Deployment strategies manage this risk:
+  - How much traffic sees the new version?
+  - How fast can you roll back?
+  - How much infrastructure do you need?
+
+## [ACTION] Deployment strategies
+
+### 1. Direct deploy (simplest, riskiest):
+  Stop old version → start new version
+
+  Pros: Simple, no extra infrastructure
+  Cons: Downtime during switch, hard to rollback
+  Use: Internal tools, non-critical services
+
+  # In CI:
+  - name: Deploy
+    run: |
+      ssh deploy@server "docker pull myapp:$SHA && docker stop myapp && docker run -d --name myapp myapp:$SHA"
+
+### 2. Blue/Green deployment:
+  Two identical environments: Blue (current) and Green (new).
+  Switch traffic from Blue to Green in one step.
+
+  Before: [Users] → [Blue v1.0 (live)]     [Green (idle)]
+  Deploy: [Users] → [Blue v1.0]             [Green v1.1 (testing)]
+  Switch: [Users] → [Blue v1.0 (standby)]   [Green v1.1 (live)]
+  Rollback: Switch traffic back to Blue (instant)
+
+  Pros: Zero downtime, instant rollback
+  Cons: Double infrastructure cost, database migrations are tricky
+  Use: Web applications, APIs
+
+  # In CI:
+  - name: Deploy to green
+    run: |
+      ssh deploy@server "docker run -d --name green -p 8081:80 myapp:$SHA"
+      # Health check
+      curl -sf http://server:8081/health || exit 1
+  - name: Switch traffic
+    run: |
+      ssh deploy@server "nginx -s reload"  # update upstream to 8081
+
+### 3. Canary deployment:
+  Route a small percentage of traffic to the new version.
+  Monitor. Gradually increase.
+
+  Step 1: [95% → v1.0]  [5% → v1.1]   ← watch metrics
+  Step 2: [75% → v1.0]  [25% → v1.1]  ← looking good
+  Step 3: [0% → v1.0]   [100% → v1.1] ← full rollout
+
+  Pros: Minimal blast radius, catch issues with real traffic
+  Cons: Complex routing, needs good monitoring
+  Use: High-traffic services, ML models, major features
+
+### 4. Rolling update:
+  Replace instances one at a time. Always some running.
+
+  [v1.0] [v1.0] [v1.0] [v1.0]
+  [v1.1] [v1.0] [v1.0] [v1.0]  ← first replaced
+  [v1.1] [v1.1] [v1.0] [v1.0]  ← second replaced
+  [v1.1] [v1.1] [v1.1] [v1.0]
+  [v1.1] [v1.1] [v1.1] [v1.1]  ← complete
+
+  Pros: No extra infrastructure, zero downtime
+  Cons: Mixed versions during rollout, slower
+  Use: Kubernetes default, Docker Swarm
+
+### Rollback patterns:
+  # Quick rollback — redeploy previous version:
+  docker pull myapp:PREVIOUS_SHA
+  docker stop myapp && docker run -d --name myapp myapp:PREVIOUS_SHA
+
+  # Blue/green rollback — switch traffic back:
+  nginx upstream → blue:8080  (30 seconds)
+
+  # Canary rollback — route 100% to stable:
+  Set canary weight to 0%  (immediate)
+
+### Health checks (critical for all strategies):
+  # After deploy, verify the new version is healthy:
+  for i in {1..10}; do
+    status=$(curl -sf -o /dev/null -w "%{http_code}" http://server/health)
+    if [ "$status" = "200" ]; then
+      echo "Health check passed"
+      exit 0
+    fi
+    sleep 5
+  done
+  echo "Health check FAILED — rolling back"
+  # trigger rollback
+
+## [EXPECTED RESULT]
+You can choose the right deployment strategy for any service and
+implement rollback procedures that recover from failure in seconds.
+
+## Technician Tip:
+Start with blue/green. It's the best balance of simplicity and safety.
+Add canary when you have monitoring mature enough to detect issues
+at 5% traffic (requires good metrics and alerting).
+
+## Common Pain Point:
+"Rollback didn't work" → you didn't test your rollback procedure.
+Schedule a "rollback drill" quarterly. Deploy old version on purpose.
+If your rollback process isn't tested, it doesn't exist.

@@ -1,0 +1,43 @@
+# Lesson: Variables — Storing and Reusing Data
+
+## [WHEN] You need this when:
+1. You want to store a filename or path to reuse multiple times.
+2. You need to keep track of a counter in a loop.
+3. You are building a script that should work with different inputs.
+4. You want to make your commands more readable and maintainable.
+
+## [INTENT] "Save this value for later."
+
+## [CONTEXT]
+A variable is a named container that holds a value.
+In bash, you create a variable with name=value (NO spaces around =).
+You read its value with $name or ${name}.
+Variables exist only in the current shell session unless exported.
+
+## [ACTION] name=value
+Common patterns:
+  name="Alice"                    — store a string
+  count=42                        — store a number
+  file="/var/log/syslog"          — store a path
+  echo "Hello, $name"             — use the variable
+  echo "There are ${count} items" — use with braces (safer)
+  export PATH="$PATH:/opt/bin"    — make available to child processes
+
+Special variables:
+  $0    — the script's own name
+  $1    — first argument passed to the script
+  $#    — number of arguments
+  $?    — exit code of last command
+  $$    — process ID of current shell
+
+## [EXPECTED RESULT]
+The variable stores the value. echo $name prints it.
+No output when you assign — silence means success.
+
+## Try it now:
+  greeting="Hello World"
+  echo $greeting
+  echo "My shell is $SHELL and my user is $USER"
+
+## Next:
+Type menu to continue or try: name=$1 inside a script.

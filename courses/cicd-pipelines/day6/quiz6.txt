@@ -1,0 +1,55 @@
+Q1: Blue/green deployment achieves zero-downtime by:
+A) Deploying faster
+B) Running two identical environments and switching all traffic from old (blue) to new (green) instantly
+C) Using blue and green colored servers
+D) Deploying only at night
+Correct: B
+
+Q2: TRADEOFF: Tight budget, small team. Blue/green doubles infrastructure cost. Canary needs advanced monitoring you don't have. The pragmatic choice is:
+A) Deploy directly with no strategy
+B) Blue/green — shut down the idle environment between deploys to cut cost
+C) Canary — set up monitoring first
+D) Rolling update — no extra infrastructure, gradual replacement, zero downtime
+Correct: D
+
+Q3: SCENARIO: You deployed v1.1. Error rates spike to 15%. Your FIRST action:
+A) Read the logs to find the root cause
+B) Restart all servers
+C) Roll back to v1.0 immediately, THEN investigate
+D) Alert the CEO
+Correct: C
+
+Q4: Staging environments catch problems before users see them because they:
+A) Run faster than production
+B) Mirror production conditions — same image, similar config, realistic data — revealing deployment issues early
+C) Are required by compliance
+D) Are cheaper to run
+Correct: B
+
+Q5: DIAGNOSTIC: Same Docker image works on staging, fails on production. What's the most likely culprit?
+A) Docker is broken on production servers
+B) The image is corrupted during transfer
+C) Environment variable differences — database URLs, API keys, or feature flags differ between environments
+D) Production hardware is incompatible
+Correct: C
+
+Q6: A post-deployment smoke test should verify:
+A) That the CSS renders correctly
+B) That all unit tests pass again
+C) That the health endpoint returns 200, the deployed version matches the commit SHA, and core API calls work
+D) That the database is not empty
+Correct: C
+
+Q7: The environment: production key in GitHub Actions provides:
+C) Faster deployment
+B) Production-only code paths
+A) Environment-specific secrets plus required reviewers who must approve before the job runs
+D) Better error messages
+Correct: A
+
+Q8: SCENARIO: A developer asks "Why not skip staging and deploy straight to prod? It's faster." Your best response:
+A) They're right — staging wastes time for experienced teams
+B) Staging is only for enterprise companies
+D) The 5-minute staging delay catches config errors, missing env vars, and integration bugs before users are affected — preventing hours of outages
+C) It depends on the project size
+Correct: D

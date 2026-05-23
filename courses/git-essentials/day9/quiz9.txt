@@ -1,0 +1,55 @@
+Q1: SCENARIO: You need to undo your last commit but keep the changes staged (ready to recommit with a better message). Which command?
+A) git reset --hard HEAD~1 (loses changes entirely!)
+B) git revert HEAD
+C) git reset --soft HEAD~1 — undoes commit, keeps changes staged
+D) git checkout HEAD~1
+Correct: C
+
+Q2: DIAGNOSTIC: git push is rejected with "non-fast-forward". This means:
+A) Git is broken
+B) The remote has commits you don't have locally — pull first, resolve conflicts, then push
+C) You need to run git init
+D) The branch was deleted
+Correct: B
+
+Q3: git revert abc123 differs from git reset because:
+A) No difference
+B) Revert creates a NEW commit that undoes the changes — safe for shared branches. Reset rewrites history.
+C) Revert is faster
+D) Reset is safer
+Correct: B
+
+Q4: SCENARIO: You accidentally committed to main instead of your feature branch. The commit is only local (not pushed). How do you move it?
+A) Delete the repo
+B) Copy-paste the files manually
+C) git reset --soft HEAD~1 (undo on main), git switch -c feature, git commit (recommit on feature)
+D) Push to main anyway
+Correct: C
+
+Q5: TRADEOFF: git reset --hard vs --soft vs --mixed. When would you use --hard?
+C) Always — it's the safest
+B) Never — it's dangerous
+A) Only when you want to completely discard commits AND working changes — use with caution, have reflog as backup
+D) For moving commits between branches
+Correct: A
+
+Q6: When contributing to open source, the proper fork workflow is:
+A) Push directly to the original repo
+B) Fork → clone YOUR fork → branch → commit → push to YOUR fork → open PR to original
+C) Clone the original and push
+D) Email the maintainer
+Correct: B
+
+Q7: DIAGNOSTIC: You merged a feature branch and now the app is broken. You need to undo the merge on the shared main branch. The safe command is:
+A) git reset --hard HEAD~1 (rewrites history — breaks teammates)
+B) git merge --abort (only works during an active merge)
+C) git revert -m 1 HEAD — creates a new commit that reverses the merge, safe for shared branches
+D) Delete the main branch
+Correct: C
+
+Q8: SCENARIO: Before a release, you want to squash your 15 small feature commits into 3 clean, logical commits. Which command?
+A) git commit --amend (only fixes the last commit)
+B) git rebase -i HEAD~15 — interactive rebase lets you squash, reorder, and edit commits
+C) git merge --squash
+D) git reset HEAD~15
+Correct: B

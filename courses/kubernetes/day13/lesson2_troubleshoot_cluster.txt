@@ -1,0 +1,146 @@
+# Lesson: Troubleshooting Cluster Components — Control Plane & Nodes
+
+## [WHEN] You need this when:
+1. kubectl commands fail or hang.
+2. The API Server is unreachable.
+3. Nodes show NotReady status.
+4. Pods aren't being scheduled at all.
+5. CKA exam directly tests cluster component troubleshooting.
+
+## [INTENT] "Diagnose and fix control plane and node failures."
+
+## [CONTEXT]
+Application troubleshooting = your app is broken.
+Cluster troubleshooting = the infrastructure is broken.
+
+If the API Server is down, kubectl doesn't work at all.
+If the scheduler is down, new pods never start.
+If a kubelet is down, the node shows NotReady.
+
+## [ACTION] Cluster component troubleshooting
+
+### Control plane components and their failure modes:
+
+  ── API Server ──
+  Symptom: kubectl commands timeout or "connection refused"
+  Check:
+    sudo systemctl status kubelet     # on control plane node
+    sudo crictl ps | grep kube-api    # is the container running?
+    sudo cat /etc/kubernetes/manifests/kube-apiserver.yaml  # valid?
+    sudo journalctl -u kubelet | grep apiserver
+  Common causes:
+    - Bad manifest in /etc/kubernetes/manifests/
+    - Certificate expired
+    - etcd unreachable
+    - Port 6443 blocked
+  Fix: fix the manifest, renew certs, fix etcd, check firewall
+
+  ── etcd ──
+  Symptom: API Server errors, state not persisting
+  Check:
+    sudo crictl ps | grep etcd
+    sudo journalctl -u kubelet | grep etcd
+    etcdctl endpoint health
+  Common causes:
+    - Disk full (/var/lib/etcd)
+    - Certificate mismatch
+    - Corrupt data directory
+  Fix: free disk, fix certs, restore from backup
+
+  ── Scheduler ──
+  Symptom: pods stay Pending forever (Events show nothing)
+  Check:
+    sudo crictl ps | grep scheduler
+    kubectl get pods -n kube-system | grep scheduler
+    kubectl logs kube-scheduler-control-plane -n kube-system
+  Common causes:
+    - Scheduler pod crashed (bad config)
+    - Manifest typo
+  Fix: fix /etc/kubernetes/manifests/kube-scheduler.yaml
+
+  ── Controller Manager ──
+  Symptom: deployments don't create ReplicaSets, pods die and
+           aren't replaced, node controller doesn't mark nodes
+  Check:
+    sudo crictl ps | grep controller
+    kubectl logs kube-controller-manager-* -n kube-system
+  Fix: fix the static pod manifest
+
+### Node troubleshooting:
+
+  ── NotReady ──
+  Symptom: kubectl get nodes shows NotReady
+  Check:
+    kubectl describe node worker-1    # Conditions section
+    ssh worker-1
+    sudo systemctl status kubelet
+    sudo journalctl -u kubelet -f
+    sudo systemctl status containerd
+  Common causes:
+    - kubelet stopped or crashed
+    - containerd not running
+    - Disk pressure (kubelet reports DiskPressure condition)
+    - Memory pressure
+    - Network partition (node can't reach API Server)
+    - Certificate expired
+  Fix:
+    sudo systemctl restart kubelet
+    sudo systemctl restart containerd
+    Free disk space / increase resources
+    Fix network / renew certs
+
+  ── kubelet won't start ──
+  Check: sudo journalctl -u kubelet --no-pager | tail -50
+  Common causes:
+    - Wrong kubelet config (/var/lib/kubelet/config.yaml)
+    - Container runtime not running
+    - Swap enabled (kubelet refuses to start with swap on)
+    - Certificate issues
+  Fix: fix config, start runtime, swapoff -a, fix certs
+
+### Certificate troubleshooting:
+  # Check certificate expiry:
+  sudo kubeadm certs check-expiration
+
+  # Renew all certificates:
+  sudo kubeadm certs renew all
+
+  # Restart control plane after renewal:
+  sudo systemctl restart kubelet
+
+### Cluster-level logging:
+  # Control plane component logs:
+  kubectl logs -n kube-system kube-apiserver-*
+  kubectl logs -n kube-system kube-scheduler-*
+  kubectl logs -n kube-system kube-controller-manager-*
+  kubectl logs -n kube-system etcd-*
+  kubectl logs -n kube-system coredns-*
+
+  # Node-level logs:
+  sudo journalctl -u kubelet        # kubelet
+  sudo journalctl -u containerd     # container runtime
+
+  # Cluster events (all namespaces):
+  kubectl get events --all-namespaces --sort-by=.metadata.creationTimestamp
+
+### Resource monitoring:
+  kubectl top nodes                  # node CPU/memory
+  kubectl top pods --all-namespaces  # pod CPU/memory
+  kubectl describe node worker-1    # Allocatable vs Capacity vs Allocated
+
+### Systematic approach:
+  1. Can I reach the API Server? (kubectl cluster-info)
+  2. Are all nodes Ready? (kubectl get nodes)
+  3. Are control plane pods running? (kubectl get pods -n kube-system)
+  4. What do the events say? (kubectl get events)
+  5. What do the component logs say? (kubectl logs, journalctl)
+  6. What does the node say? (kubectl describe node, ssh + systemctl)
+
+## [EXPECTED RESULT]
+You can diagnose control plane failures, fix NotReady nodes,
+check certificates, and use journalctl for node-level debugging.
+
+## Technician Tip:
+CKA pattern: the exam breaks something and asks you to fix it.
+Static pod manifests in /etc/kubernetes/manifests/ are the most
+common break point. Check for typos in those files first.

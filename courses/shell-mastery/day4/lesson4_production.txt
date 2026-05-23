@@ -1,0 +1,105 @@
+# Lesson: Production Patterns — Logging, Locking, Config
+
+## [WHEN] You need this when:
+1. Your script runs on cron and you need to know what happened.
+2. Two copies of your script might run at the same time.
+3. You need configurable behavior without editing the script.
+
+## [INTENT] "Write scripts that behave professionally in production."
+
+## [CONTEXT]
+Production scripts need three things beyond basic logic:
+  1. Logging — record what happened and when
+  2. Locking — prevent duplicate runs
+  3. Configuration — separate settings from code
+
+## [ACTION] The three production patterns
+
+### Pattern 1: Logging
+  LOG_FILE="/var/log/myapp/backup.log"
+  mkdir -p "$(dirname "$LOG_FILE")"
+
+  log() {
+      local level="$1"; shift
+      echo "[$(date '+%F %T')] [$level] $*" | tee -a "$LOG_FILE"
+  }
+
+  log INFO "Backup started"
+  log WARN "Disk usage above 80%"
+  log ERROR "Connection to DB failed"
+
+  # Redirect ALL output to log:
+  exec &> >(tee -a "$LOG_FILE")
+  # Now every echo and error goes to both terminal AND log file
+
+### Pattern 2: Lock file (prevent double-run)
+  LOCK_FILE="/var/run/myapp.lock"
+
+  acquire_lock() {
+      if [ -f "$LOCK_FILE" ]; then
+          local pid
+          pid=$(cat "$LOCK_FILE")
+          if kill -0 "$pid" 2>/dev/null; then
+              echo "ERROR: Already running (PID $pid)" >&2
+              exit 1
+          else
+              echo "WARN: Stale lock file (PID $pid is dead), removing"
+              rm -f "$LOCK_FILE"
+          fi
+      fi
+      echo $$ > "$LOCK_FILE"
+      trap 'rm -f "$LOCK_FILE"' EXIT   # auto-clean on exit
+  }
+
+  acquire_lock
+  # ... do work ...
+  # lock auto-removed by trap
+
+### Pattern 3: Config file
+  # /etc/myapp/config
+  BACKUP_DIR="/mnt/backup"
+  RETENTION_DAYS=30
+  NOTIFY_EMAIL="admin@example.com"
+
+  # In script:
+  CONFIG_FILE="${CONFIG_FILE:-/etc/myapp/config}"
+  if [ -f "$CONFIG_FILE" ]; then
+      source "$CONFIG_FILE"
+  else
+      echo "WARN: No config file, using defaults"
+      BACKUP_DIR="/tmp/backup"
+      RETENTION_DAYS=7
+  fi
+
+### All three combined (production template):
+  #!/bin/bash
+  set -euo pipefail
+
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  SCRIPT_NAME="$(basename "$0")"
+  LOG_FILE="/var/log/${SCRIPT_NAME%.sh}.log"
+  LOCK_FILE="/var/run/${SCRIPT_NAME%.sh}.lock"
+  CONFIG_FILE="/etc/${SCRIPT_NAME%.sh}/config"
+
+  source "$SCRIPT_DIR/lib/utils.sh"   # log, die, etc.
+  [ -f "$CONFIG_FILE" ] && source "$CONFIG_FILE"
+  acquire_lock
+
+  log INFO "$SCRIPT_NAME started (PID $$)"
+  # ... actual work here ...
+  log INFO "$SCRIPT_NAME completed"
+
+## [EXPECTED RESULT]
+Your scripts log their actions, prevent duplicate runs, and read
+settings from config files — just like real production tools.
+
+## Technician Tip:
+The trap command is your cleanup guarantee:
+  trap 'cleanup_function' EXIT        # runs on ANY exit
+  trap 'echo "Interrupted"' INT TERM  # runs on Ctrl+C or kill
+
+Always clean up temp files and lock files with trap.
+
+## Next:
+Type menu to return. You have completed Day 4!
+You can now write modular, production-grade scripts with functions, libraries, and professional patterns.

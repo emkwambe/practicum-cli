@@ -1,0 +1,84 @@
+# Lesson: Kubernetes Architecture — Control Plane & Nodes
+
+## [WHEN] You need this when:
+1. You need to understand what's running inside a K8s cluster.
+2. An interview asks "explain the Kubernetes architecture."
+3. Something broke and you need to know which component is responsible.
+
+## [INTENT] "Know the components that make a cluster work."
+
+## [CONTEXT]
+A Kubernetes cluster has two parts:
+
+  Control Plane (the brain): decides what should run where
+  Worker Nodes (the muscle): actually run your containers
+
+## [ACTION] Architecture components
+
+### Control Plane components:
+  ┌─────────────────────────────────────┐
+  │           CONTROL PLANE             │
+  │                                     │
+  │  API Server ← you talk to this      │
+  │      │        (kubectl → API)       │
+  │      ▼                              │
+  │  etcd (database of cluster state)   │
+  │      │                              │
+  │      ▼                              │
+  │  Scheduler (assigns pods to nodes)  │
+  │      │                              │
+  │      ▼                              │
+  │  Controller Manager                 │
+  │  (ensures desired = actual state)   │
+  └─────────────────────────────────────┘
+
+  API Server: every kubectl command goes here. The single entry point.
+  etcd: key-value store holding the entire cluster state.
+  Scheduler: decides WHICH node runs a new pod (based on resources, constraints).
+  Controller Manager: runs control loops (ReplicaSet, Deployment, Node controllers).
+
+### Worker Node components:
+  ┌─────────────────────────────────────┐
+  │           WORKER NODE               │
+  │                                     │
+  │  kubelet (agent on each node)       │
+  │      │  "API Server told me to      │
+  │      │   run 3 pods, so I will"     │
+  │      ▼                              │
+  │  Container Runtime (containerd)     │
+  │      │                              │
+  │      ▼                              │
+  │  [Pod] [Pod] [Pod]                  │
+  │                                     │
+  │  kube-proxy (networking rules)      │
+  └─────────────────────────────────────┘
+
+  kubelet: agent on every node, takes orders from API Server, manages pods.
+  Container Runtime: actually runs containers (containerd, CRI-O).
+  kube-proxy: handles network routing to pods.
+
+### How it fits together:
+  1. You: kubectl apply -f deployment.yaml
+  2. API Server: receives the request, stores in etcd
+  3. Scheduler: "this pod needs 256MB RAM, node-2 has room" → assigns
+  4. kubelet on node-2: pulls the image, starts the container
+  5. Controller Manager: watches — if the pod dies, creates a replacement
+  6. kube-proxy: sets up networking so traffic reaches the pod
+
+### Local clusters for learning:
+  kind (Kubernetes IN Docker): runs a full K8s cluster inside Docker containers.
+  minikube: runs a single-node cluster in a VM or container.
+
+  kind is best for Practicum:
+    kind create cluster --name practicum
+    kubectl cluster-info
+
+  No cloud account. No VMs. Runs on your laptop with Docker.
+
+## [EXPECTED RESULT]
+You can explain the control plane vs worker node architecture
+and know which component handles scheduling, state, and networking.
+
+## Technician Tip:
+In the CKA exam, you're expected to troubleshoot control plane
+components. Know what each one does and where its logs live.

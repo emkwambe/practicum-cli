@@ -1,0 +1,90 @@
+Q1: jq '.' file.json does:
+A) Pretty-prints the JSON with syntax highlighting and indentation — also validates it
+B) Flattens the JSON
+C) Deletes the file
+D) Converts to CSV
+Correct: A
+
+Q2: jq '.users[].name' extracts:
+A) The "name" field from every element in the "users" array
+B) All fields from users
+C) The array index
+D) The first user only
+Correct: A
+
+Q3: SCENARIO: An API returns JSON with 500 records. You need only records where status is "active". Which jq filter?
+A) jq '.[] | .status'
+B) jq 'map(status)'
+C) jq '.active'
+D) jq '.[] | select(.status == "active")'
+Correct: D
+
+Q4: jq -r outputs:
+A) Read-only mode
+B) Raw strings without quotes — essential when piping jq output to other commands
+C) Recursive data
+D) Reversed JSON
+Correct: B
+
+Q5: DIAGNOSTIC: jq '.users.name' returns null but the data has users with names. What's wrong?
+A) jq needs --deep flag
+B) "users" is an array — you need .users[].name (iterate the array) or .users[0].name (first element)
+C) jq can't read nested data
+D) The field is misspelled
+Correct: B
+
+Q6: jq '[.[] | {name: .name, stars: .stargazers_count}]' does:
+A) Deletes fields
+B) Counts elements
+C) Sorts by stars
+D) Transforms each element into a new object with only name and stars — like SQL SELECT
+Correct: D
+
+Q7: jq -r '.[] | [.name, .language, .stars] | @csv' produces:
+A) A JSON array
+B) Tab-separated output
+C) CSV output — converts each record to comma-separated values, ready for spreadsheet import
+D) A formatted table
+Correct: C
+
+Q8: TRADEOFF: jq 'map(select(.age > 30))' vs jq '[.[] | select(.age > 30)]'. Difference?
+A) map only works on objects
+B) They produce the same result — map() is syntactic sugar for [.[] | ...]. Use map for readability.
+C) The second is wrong syntax
+D) map is faster
+Correct: B
+
+Q9: SCENARIO: You need the total sum of all "amount" fields in a JSON array. Which jq expression?
+A) jq '.[] | .amount' (prints each, doesn't sum)
+B) jq '[.[].amount] | add' — collects amounts into array, then sums
+C) jq 'sum(.amount)'
+D) jq '.amount'
+Correct: B
+
+Q10: jq --arg in a filter lets you:
+A) Set output format
+B) Enable verbose mode
+C) Pass shell variables into jq expressions — jq --arg name "$NAME" '.[] | select(.name == $name)'
+D) Add arguments to the JSON
+Correct: C
+
+Q11: DIAGNOSTIC: Your jq filter works on a sample but crashes on production data with "null (null) has no keys". What's happening?
+A) The file is too large
+B) jq has a bug
+C) Production JSON is encrypted
+D) Some records have null values where your filter expects objects — add ? (try) or // (default) to handle nulls gracefully
+Correct: D
+
+Q12: jq 'group_by(.category) | map({category: .[0].category, count: length})' does:
+A) Groups records by category and counts each group — like SQL GROUP BY + COUNT
+B) Deletes categories
+C) Sorts by category
+D) Flattens the data
+Correct: A
+
+Q13: SCENARIO: You need to merge two JSON files (users.json + orders.json) by user_id. Can jq do this?
+A) Only with a plugin
+B) Yes — jq -s '.[0] as $users | .[1][] | . + ($users[] | select(.id == .user_id))' merges, but it's complex. For large joins, use sqlite3 instead.
+C) Use cat to combine them first
+D) No — jq only reads one file
+Correct: B

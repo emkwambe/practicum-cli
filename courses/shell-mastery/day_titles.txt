@@ -1,0 +1,8 @@
+Day 1 — Script Fundamentals & Variables
+Day 2 — Conditionals & Decision Logic
+Day 3 — Loops, Arrays & Iteration
+Day 4 — Functions & Modular Scripts
+Day 5 — Assessment 1 (Monitoring Tool)
+Day 6 — Text Processing (awk, sed, regex)
+Day 7 — Error Handling, Traps & Debugging
+Day 8 — Final Capstone (Server Health Report)

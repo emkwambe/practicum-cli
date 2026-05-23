@@ -1,0 +1,123 @@
+# Lesson: etcd Backup & Restore — Protecting Cluster State
+
+## [WHEN] You need this when:
+1. You need to back up the entire cluster state before a risky operation.
+2. You need to restore from a catastrophic cluster failure.
+3. The CKA exam tests etcd backup/restore (Domain 1, 25%).
+4. Compliance requires recovery point objectives (RPOs).
+
+## [INTENT] "Back up and restore etcd to protect cluster state."
+
+## [CONTEXT]
+etcd is the brain's memory. Every K8s resource — every Deployment,
+Service, ConfigMap, Secret, RBAC rule — is stored in etcd.
+
+If etcd is lost: the cluster loses ALL state. Pods keep running
+(kubelet manages them locally) but the control plane can't manage,
+schedule, or recover anything.
+
+etcd backup = cluster state backup. It's the most critical
+disaster recovery operation in Kubernetes.
+
+## [ACTION] etcd operations
+
+### Understanding etcd:
+  etcd is a distributed key-value store.
+  In kubeadm clusters, it runs as a static pod:
+    /etc/kubernetes/manifests/etcd.yaml
+
+  Data directory: /var/lib/etcd
+  Certificates: /etc/kubernetes/pki/etcd/
+
+  # Check etcd health:
+  kubectl get pods -n kube-system | grep etcd
+  kubectl describe pod etcd-control-plane -n kube-system
+
+### etcdctl setup:
+  # etcdctl is the CLI for etcd operations
+  # Set the API version:
+  export ETCDCTL_API=3
+
+  # Required certificates for authentication:
+  export ETCDCTL_CACERT=/etc/kubernetes/pki/etcd/ca.crt
+  export ETCDCTL_CERT=/etc/kubernetes/pki/etcd/server.crt
+  export ETCDCTL_KEY=/etc/kubernetes/pki/etcd/server.key
+
+  # Verify connectivity:
+  etcdctl endpoint health
+  etcdctl member list
+
+### Backup:
+  etcdctl snapshot save /tmp/etcd-backup.db \
+    --endpoints=https://127.0.0.1:2379 \
+    --cacert=/etc/kubernetes/pki/etcd/ca.crt \
+    --cert=/etc/kubernetes/pki/etcd/server.crt \
+    --key=/etc/kubernetes/pki/etcd/server.key
+
+  # Verify the backup:
+  etcdctl snapshot status /tmp/etcd-backup.db --write-table
+
+  # Store backups off-cluster (S3, NFS, remote server).
+  # A backup that lives on the same server it's protecting
+  # isn't a backup — it's a hope.
+
+### Restore:
+  # Stop the API Server (move the static pod manifest):
+  sudo mv /etc/kubernetes/manifests/kube-apiserver.yaml /tmp/
+
+  # Restore to a NEW data directory:
+  etcdctl snapshot restore /tmp/etcd-backup.db \
+    --data-dir=/var/lib/etcd-restored
+
+  # Update the etcd static pod to use the new data directory:
+  # Edit /etc/kubernetes/manifests/etcd.yaml:
+  #   volumes:
+  #     - hostPath:
+  #         path: /var/lib/etcd-restored    # was /var/lib/etcd
+
+  # Move the API Server manifest back:
+  sudo mv /tmp/kube-apiserver.yaml /etc/kubernetes/manifests/
+
+  # Wait for control plane to come back:
+  kubectl get pods -n kube-system
+
+### Backup automation:
+  # CronJob for regular backups (or cron on the node):
+  # Daily at midnight:
+  0 0 * * * /usr/local/bin/etcdctl snapshot save \
+    /backup/etcd-$(date +\%Y\%m\%d).db \
+    --endpoints=https://127.0.0.1:2379 \
+    --cacert=/etc/kubernetes/pki/etcd/ca.crt \
+    --cert=/etc/kubernetes/pki/etcd/server.crt \
+    --key=/etc/kubernetes/pki/etcd/server.key
+
+### What etcd backup captures:
+  ✅ All K8s resources (deployments, services, secrets, RBAC)
+  ✅ Namespace definitions
+  ✅ Custom Resource Definitions
+  ❌ NOT persistent volume data (that's on the storage backend)
+  ❌ NOT container images (those are in the registry)
+  ❌ NOT application data inside containers
+
+### HA etcd clusters:
+  Production etcd runs as a 3 or 5 member cluster.
+  Quorum: majority must be healthy (2 of 3, 3 of 5).
+  If quorum is lost, etcd becomes read-only.
+
+  etcdctl member list   # see all members
+  etcdctl endpoint status --cluster  # health of each
+
+## [EXPECTED RESULT]
+You can back up and restore etcd using etcdctl, understand
+what's captured in the backup, and know the certificate paths.
+
+## Technician Tip:
+The CKA exam gives you the certificate paths. Don't memorize them.
+DO memorize: etcdctl snapshot save, etcdctl snapshot restore,
+and the --data-dir flag. Practice the restore sequence until you
+can do it in under 3 minutes.
+
+## Common Pain Point:
+"etcdctl: command not found" → it may be inside the etcd container.
+kubectl exec -it etcd-control-plane -n kube-system -- etcdctl ...
+Or install etcdctl on the node directly.

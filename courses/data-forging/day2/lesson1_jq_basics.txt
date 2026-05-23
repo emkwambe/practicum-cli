@@ -1,0 +1,86 @@
+# Lesson: jq Basics — Parse JSON from the Terminal
+
+## [WHEN] You need this when:
+1. An API returns JSON and you need one specific field.
+2. Your application logs are in JSON format.
+3. You need to transform JSON config files programmatically.
+4. You want to validate if a JSON file is well-formed.
+
+## [INTENT] "Read, query, and extract data from JSON on the command line."
+
+## [CONTEXT]
+JSON is everywhere: APIs, configs, logs, cloud CLIs (aws, gcloud, kubectl).
+jq is the "awk for JSON" — it reads JSON in, applies filters, outputs JSON.
+
+Install: sudo apt install jq (or brew install jq)
+
+Key concept: jq filters are FUNCTIONAL. Each filter takes JSON input,
+transforms it, and produces JSON output. Filters chain with |.
+
+## [ACTION] jq fundamentals
+
+### Pretty print (validate + format):
+  echo '{"name":"Eddy","age":30}' | jq '.'
+  # {
+  #   "name": "Eddy",
+  #   "age": 30
+  # }
+
+  cat ugly.json | jq '.'            # format any JSON file
+  curl -s https://api.example.com | jq '.'   # format API response
+
+### Access fields:
+  echo '{"name":"Eddy","city":"Charlotte"}' | jq '.name'
+  # "Eddy"
+
+  echo '{"name":"Eddy","city":"Charlotte"}' | jq -r '.name'
+  # Eddy   ← -r = raw (no quotes)
+
+### Nested fields:
+  echo '{"user":{"name":"Eddy","address":{"city":"Charlotte"}}}' | jq '.user.address.city'
+  # "Charlotte"
+
+### Arrays:
+  echo '[1,2,3,4,5]' | jq '.[0]'          # first element: 1
+  echo '[1,2,3,4,5]' | jq '.[-1]'         # last element: 5
+  echo '[1,2,3,4,5]' | jq '.[2:4]'        # slice: [3,4]
+  echo '[1,2,3,4,5]' | jq '.[]'           # iterate (one per line)
+  echo '[1,2,3,4,5]' | jq 'length'        # count: 5
+
+### Array of objects:
+  cat << 'EOF' | jq '.users[].name'
+  {"users": [{"name":"Alice","role":"admin"}, {"name":"Bob","role":"user"}]}
+  EOF
+  # "Alice"
+  # "Bob"
+
+### Multiple fields:
+  echo '{"name":"Eddy","age":30,"city":"Charlotte"}' | jq '{name, city}'
+  # {"name": "Eddy", "city": "Charlotte"}
+
+### The -r flag (CRITICAL for pipelines):
+  # With -r: raw strings, no quotes → pipeable to other tools
+  echo '{"ip":"10.0.0.1"}' | jq -r '.ip'
+  # 10.0.0.1   ← no quotes, ready for ping, curl, etc.
+
+  echo '{"ip":"10.0.0.1"}' | jq -r '.ip' | xargs ping -c 1
+
+## [EXPECTED RESULT]
+You can navigate any JSON structure and extract the exact value you need.
+
+## Try it now:
+  # GitHub API — get your public repos:
+  curl -s "https://api.github.com/users/emkwambe/repos" | jq '.[].name'
+
+## Technician Tip:
+Always start with jq '.' to see the structure before writing filters.
+Then build your filter one level at a time:
+  jq '.'                    # see everything
+  jq '.data'                # narrow to .data
+  jq '.data.results'        # narrow more
+  jq '.data.results[].name' # extract what you need
+
+## Common Pain Point:
+"jq: error — null" → the field doesn't exist at that path.
+Use ? to suppress null errors: jq '.maybe?.nested?'
+Or use // for defaults: jq '.name // "unknown"'

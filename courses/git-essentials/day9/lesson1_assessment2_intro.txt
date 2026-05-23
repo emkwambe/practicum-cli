@@ -1,0 +1,55 @@
+# Assessment 2: Advanced Git Workflows
+
+## [WHEN] You need this when:
+You have completed Days 6-8 and are ready to prove advanced Git skills.
+
+## [INTENT] "Prove I can recover from mistakes and set up professional workflows."
+
+## [CONTEXT]
+This assessment tests advanced Git: stash, rebase, tags, hooks,
+and professional repository standards. You will work with a
+simulated team repository.
+
+## [ACTION] Complete these tasks:
+
+### Task 1: Recovery drill
+  - In your practice repo, make 3 commits with different content
+  - Run: git reset --hard HEAD~2 (simulates an "oh no" moment)
+  - Use git reflog to find the lost commits
+  - Recover them using git cherry-pick or git reset --hard <hash>
+  - Verify: git log shows all 3 commits again
+
+### Task 2: Rebase workflow
+  - Create a branch feature/new-thing off main
+  - Add 2 commits to feature/new-thing
+  - Switch to main, add 1 commit
+  - Rebase feature/new-thing on main (not merge!)
+  - Verify linear history: git log --oneline --all --graph
+
+### Task 3: Release with tag
+  - Tag current main as v1.0.0 (annotated, with message)
+  - Verify: git show v1.0.0 shows the tag
+  - Write release notes in a file called RELEASE_NOTES.md
+
+### Task 4: Professional repo setup
+  Create all of these files in your repo:
+  - LICENSE (MIT is fine — copy from choosealicense.com)
+  - CONTRIBUTING.md (how to submit PRs)
+  - CHANGELOG.md (format: keepachangelog.com)
+  - .github/workflows/test.yml (a simple Actions workflow)
+
+### Task 5: Pre-commit hook
+  Create .git/hooks/pre-commit that:
+  - Rejects commits if any .sh file has bash syntax errors
+  - Make it executable: chmod +x .git/hooks/pre-commit
+  - Test it by committing a broken .sh file (should fail)
+
+## [EXPECTED RESULT]
+Your repo demonstrates:
+  - Recovery from destructive operations
+  - Clean rebase workflow with linear history
+  - Proper release tagging
+  - All professional repo files in place
+  - Working automation hook
+
+When ready, run: practicum assess2-git

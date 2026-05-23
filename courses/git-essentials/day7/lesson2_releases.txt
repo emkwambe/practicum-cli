@@ -1,0 +1,45 @@
+# Lesson: GitHub Releases — Publish Your Tags as Releases
+
+## [WHEN] You need this when:
+1. You tagged v1.0.0 and want users to download it easily.
+2. You want to publish release notes for each version.
+3. You need to attach binaries or installers to a release.
+4. You want a permanent public URL for each version.
+
+## [INTENT] "Publish this tag as a user-facing release with notes."
+
+## [CONTEXT]
+GitHub Releases are pages built on top of Git tags. A release has:
+  - A tag (the Git reference)
+  - A title (usually "Version 1.0.0" or a codename)
+  - Release notes (what changed, in Markdown)
+  - Assets (optional: binaries, installers, zip files)
+
+Users can see "Releases" on your GitHub repo page and download
+specific versions. This is how open source projects distribute
+their software.
+
+## [ACTION] Creating a release
+  1. Push your tag: git push origin v1.0.0
+  2. Go to GitHub → your repo → "Releases" (right sidebar)
+  3. Click "Draft a new release"
+  4. Choose the tag: v1.0.0
+  5. Release title: "Version 1.0.0 - Initial Release"
+  6. Describe the release:
+     ## What's New
+     - Feature X added
+     - Bug Y fixed
+     ## Breaking Changes
+     - API endpoint /old renamed to /new
+  7. Attach binaries if applicable
+  8. Click "Publish release"
+
+Automate releases with GitHub Actions:
+  Trigger on tag push → build → create release → upload artifacts
+
+## [EXPECTED RESULT]
+A public release page at github.com/user/repo/releases/tag/v1.0.0
+Users can download source code or attached binaries.
+
+## Try it now:
+  Push a tag to GitHub, then create a release through the UI.

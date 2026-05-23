@@ -1,0 +1,57 @@
+Q1: A Terraform module is:
+A) A single resource
+B) A plugin
+C) A backend configuration
+D) A directory of .tf files that packages related resources into a reusable unit with defined inputs and outputs
+Correct: D
+
+Q2: SCENARIO: You have identical web server configs in 5 projects. A security fix needs to be applied. Without modules, you must edit 5 files. With modules:
+A) You still edit 5 files
+B) Modules can't be updated
+C) Fix the module once, update the version reference in each project — the fix propagates to all
+D) Delete and recreate all projects
+Correct: C
+
+
+
+Q3: Module outputs are important because:
+A) They're optional
+B) Resources inside a module are private — outputs are the only way the calling config can access module values (like a function's return value)
+C) They create documentation
+D) They speed up applies
+Correct: B
+
+Q4: TRADEOFF: Using a Terraform Registry module (500+ lines, 50 inputs) vs writing your own 20-line module. When is your own better?
+A) Only for Docker resources
+B) Never — registry modules are always better
+C) Always — never use registry modules
+D) When your needs are simple — a small custom module is clearer and easier to maintain than configuring 50 inputs you don't need
+Correct: D
+
+Q5: version = "~> 5.5" in a module source means:
+A) The latest version
+B) Any version >= 5.5.0 and < 5.6.0 — allows patch updates, prevents breaking changes
+C) Version 5 or higher
+D) Exactly version 5.5
+Correct: B
+
+Q6: DIAGNOSTIC: Your module works locally but terraform init fails when a teammate clones the repo. Error: "module not found." What's wrong?
+A) Local path modules work if the directory exists — but if using a Git source, the ref may be wrong or the repo isn't accessible to the teammate
+B) Terraform doesn't support modules
+C) They need a different OS
+D) The module is deleted
+Correct: A
+
+Q7: The best time to create a module is:
+A) Before writing any Terraform
+B) After every resource
+C) When you see the same pattern repeated in 3+ projects — extract it then, not before
+D) Only for production
+Correct: C
+
+Q8: A module's README should include:
+A) Purpose, usage example, required inputs, optional inputs with defaults, outputs, and any prerequisites
+B) Only the license
+C) Just the module name
+D) The full source code
+Correct: A

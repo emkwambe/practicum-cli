@@ -1,0 +1,90 @@
+Q1: An ETL pipeline's Extract phase should:
+A) Generate reports
+B) Clean the data
+C) Pull raw data from sources (APIs, files, databases) and save it unmodified for reproducibility
+D) Load into the database
+Correct: C
+
+Q2: SCENARIO: Your pipeline processes 10,000 rows daily. Today it processed 10,000 but the source had 10,500. How do you catch this?
+A) Check file sizes
+B) Compare source row count to loaded row count — add a validation step that flags mismatches
+C) Run the pipeline twice
+D) You can't detect missing data
+Correct: B
+
+Q3: TRADEOFF: Your ETL pipeline can run as one monolithic script or separate scripts per stage. Which is better for production?
+A) Monolithic — simpler
+B) Use a GUI tool instead
+C) They're the same
+D) Separate scripts per stage — each can be tested independently, retried on failure, and logged separately
+Correct: D
+
+Q4: idempotent means a pipeline:
+A) Produces the same result whether you run it once or multiple times — critical for safe retries after failures
+B) Is fast
+C) Runs in parallel
+D) Uses no memory
+Correct: A
+
+Q5: DIAGNOSTIC: Your daily pipeline ran twice (cron overlap). Now the database has duplicate rows. How should you prevent this?
+A) Run cron less often
+B) Delete duplicates after each run
+C) Lock the database during runs
+D) Use UPSERT (INSERT ON CONFLICT UPDATE) or a staging table that's replaced entirely — design for idempotent loads
+Correct: D
+
+Q6: SCENARIO: The API you pull from changes their JSON schema overnight (renamed a field). Your pipeline crashes. The prevention:
+A) Both B and C are correct — validate AND pin versions when possible
+B) Pin the API version if available
+C) Validate the schema at the Extract stage — check that required fields exist before processing. Log the schema difference and alert.
+D) Check the API daily
+Correct: A
+
+Q7: A well-structured data pipeline logs:
+A) Only errors
+B) Start/end timestamps, row counts per stage, validation results, errors with context, and total runtime
+C) Only the final output
+D) Everything the commands print
+Correct: B
+
+Q8: jq -r '.[] | [.name, .value] | @csv' converts JSON to CSV. Why pipe to @csv instead of manual string building?
+A) @csv handles quoting, escaping commas and quotes inside values, and special characters correctly — manual building breaks on edge cases
+B) @csv adds headers
+C) No difference
+D) @csv is faster
+Correct: A
+
+Q9: SCENARIO: Your pipeline must process 3 data sources: a JSON API, a CSV file, and a SQLite database. The best integration point:
+A) Keep everything in JSON
+B) Convert everything to CSV
+C) Import all three into SQLite — SQL handles JOINs across sources, aggregation, and export to any format
+D) Process each separately and never combine
+Correct: C
+
+Q10: Data quality checks at the Load stage should verify:
+A) Only file size
+B) Only that the file exists
+C) Only column names
+D) Row counts match expectations, no null primary keys, values within expected ranges, no duplicate records
+Correct: D
+
+Q11: TRADEOFF: Running your pipeline at 2 AM (cron) vs triggered by new data arriving. When is scheduled better?
+A) Never — always use events
+B) Always
+C) They're the same
+D) Scheduled is simpler and predictable; event-driven is faster but complex. Use scheduled when data arrives on a known cadence (daily dumps).
+Correct: D
+
+Q12: SCENARIO: Your capstone pipeline must be handed off to another engineer. What documentation is essential?
+A) A video tutorial
+B) Only comments in the code
+C) README with architecture diagram, data flow, dependencies, configuration, run instructions, known limitations, and sample output
+D) Just the code
+Correct: C
+
+Q13: The difference between a working pipeline and a production pipeline:
+A) Production handles errors gracefully, validates data, logs everything, is idempotent, has documentation, and can be run by someone who didn't build it
+B) Production is just faster
+C) No difference
+D) Production has more features
+Correct: A

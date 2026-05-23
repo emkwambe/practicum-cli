@@ -1,0 +1,285 @@
+# Final Capstone: Production Release Simulation
+
+## THIS IS NOT A HOMEWORK ASSIGNMENT.
+
+This is a simulated professional engagement. You are the DevOps
+engineer. There's no step-by-step guide. You own the outcome.
+
+────────────────────────────────────────────────────
+
+## PHASE 1 — Problem Context
+
+### The Scenario:
+
+NovaPay is a 12-person fintech startup processing $2M in daily
+transactions. Their web application is deployed manually:
+
+  - The lead developer SSHs into the production server
+  - Runs "git pull && npm install && pm2 restart all"
+  - Hopes nothing breaks
+  - Last month: 3 production outages, 45 minutes average recovery
+  - The CEO just told your team: "The next outage costs us a client."
+
+You were hired last week as the first DevOps engineer. Your job:
+build a CI/CD pipeline that makes deployments safe, repeatable,
+and rollback-capable. You have one week.
+
+### What you know:
+  - The app is Node.js (Express), Dockerized, with a PostgreSQL DB
+  - Source code is on GitHub (main branch, no protection)
+  - The team has 4 developers who push directly to main
+  - There are unit tests (npm test) but nobody runs them
+  - There is a Dockerfile but it hasn't been updated in 6 months
+  - There is no staging environment
+  - There is no monitoring
+
+### What you DON'T know (you must decide):
+  - Which deployment strategy to use
+  - How strict the branch protection should be
+  - What the approval workflow should look like
+  - How to handle database migrations in the pipeline
+  - What the rollback procedure should be
+  - What monitoring is worth setting up first
+
+────────────────────────────────────────────────────
+
+## PHASE 2 — Requirements Discovery
+
+Before you write a single line of YAML, answer these questions
+in a file called DISCOVERY.md:
+
+  1. What are the biggest risks in NovaPay's current process?
+     (List at least 4 specific risks.)
+
+  2. What questions would you ask the development team before
+     designing the pipeline? (List at least 5 questions.)
+
+  3. What are the constraints?
+     - 12-person team (limited DevOps knowledge)
+     - $2M daily transactions (downtime = revenue loss)
+     - One week to deliver v1
+     - No existing staging environment
+
+  4. What does "success" look like? Define 3 measurable criteria.
+     (Example: "Mean recovery time drops from 45 min to under 5 min.")
+
+────────────────────────────────────────────────────
+
+## PHASE 3 — Planning & Design
+
+Create a file called ARCHITECTURE.md that includes:
+
+  1. Pipeline diagram (ASCII or Mermaid)
+     Show every stage from push to production.
+
+  2. Branching strategy recommendation
+     (Trunk-based? Feature branches? GitFlow? Why?)
+
+  3. Deployment strategy choice
+     (Blue/green? Canary? Rolling? Direct? Justify your choice
+     given NovaPay's constraints.)
+
+  4. Rollback procedure
+     Step-by-step: what happens when production breaks?
+     Who does what? How long should it take?
+
+  5. Risk assessment
+     What could go wrong with YOUR pipeline design?
+     List at least 3 risks and your mitigation for each.
+
+────────────────────────────────────────────────────
+
+## PHASE 4 — Execution
+
+Build the actual pipeline. Files required:
+
+### 4A. Repository setup
+  - .github/workflows/ci.yml
+  - .github/workflows/cd.yml
+  - Dockerfile (updated, multi-stage)
+  - .dockerignore
+  - BRANCH_PROTECTION.md (rules you'd configure)
+
+### 4B. CI Pipeline (ci.yml)
+  Must include:
+  - Triggers: push to main + pull_request to main
+  - Lint job (eslint or shellcheck)
+  - Test job with matrix (at least 2 Node versions)
+  - Dependency caching
+  - Pinned action versions
+  - Quality gate: tests must pass to merge
+
+### 4C. CD Pipeline (cd.yml)
+  Must include:
+  - Docker build + tag (commit SHA, not :latest)
+  - Push to container registry (GHCR or Docker Hub)
+  - Deploy to staging (environment: staging)
+  - Smoke test after staging deploy
+  - Manual approval gate for production
+  - Deploy to production (environment: production)
+  - Post-deploy health check + version verification
+
+### 4D. Rollback script (scripts/rollback.sh)
+  Must:
+  - Accept a version/SHA as argument
+  - Pull the specified image
+  - Stop current container
+  - Start previous version
+  - Run health check
+  - Log the rollback with timestamp
+  - Exit with appropriate code
+
+────────────────────────────────────────────────────
+
+## PHASE 5 — Failure Injection
+
+⚠️ SOMETHING GOES WRONG.
+
+After you've built your pipeline, simulate ONE of these failures:
+
+  A) A developer accidentally commits a .env file containing
+     DATABASE_URL=postgresql://admin:s3cret@prod-db:5432/novapay
+     to the repository. Detect it. Fix it. Prevent recurrence.
+
+  B) Your staging smoke test fails: the health endpoint returns
+     503 instead of 200. The container is running but the app
+     can't connect to the database. Diagnose and document.
+
+  C) Production deploy completes, health check passes, but
+     users report the app shows yesterday's version. The commit
+     SHA in the health endpoint doesn't match what you deployed.
+     Investigate and explain how this happened.
+
+Pick ONE. In a file called INCIDENT.md, document:
+  1. What happened (timeline)
+  2. Root cause
+  3. How you fixed it
+  4. What you changed to prevent recurrence
+  5. How long recovery took
+
+This is an incident response report. Write it like a professional.
+
+────────────────────────────────────────────────────
+
+## PHASE 6 — Communication
+
+Create a file called EXECUTIVE_SUMMARY.md.
+
+Write a 1-page summary for NovaPay's CEO (non-technical).
+Must include:
+  - What you built (no jargon — explain like they're smart but not technical)
+  - What problems it solves (tie to business impact: revenue, uptime, speed)
+  - What the risks are (be honest — what ISN'T covered yet?)
+  - What you recommend next (Phase 2 improvements)
+
+Also create a RUNBOOK.md:
+  - How to trigger a deployment
+  - How to roll back
+  - How to check if a deploy succeeded
+  - Who to contact if something goes wrong
+  - Common problems and their fixes
+
+────────────────────────────────────────────────────
+
+## PHASE 7 — Reflection
+
+At the bottom of your EXECUTIVE_SUMMARY.md, add a section:
+
+### Lessons Learned
+  - What tradeoffs did you make and why?
+  - What would you do differently with more time?
+  - What's the weakest part of your pipeline?
+  - If NovaPay grows to 50 engineers, what breaks first?
+
+────────────────────────────────────────────────────
+
+## SCORING RUBRIC
+
+Your capstone is evaluated across 7 dimensions, not a single score.
+
+### Pipeline Correctness (20%)
+  [ ] CI triggers on correct events
+  [ ] Tests and lint run and block on failure
+  [ ] Docker build produces tagged image
+  [ ] CD deploys to staging then production
+  [ ] Secrets are never in code
+
+### Testing Strategy (15%)
+  [ ] Matrix testing across versions
+  [ ] Smoke tests verify staging health
+  [ ] Post-deploy health check on production
+  [ ] Quality gates block bad merges
+
+### Security Controls (15%)
+  [ ] Secrets managed via GitHub encrypted secrets
+  [ ] No credentials in Dockerfile or code
+  [ ] Branch protection documented
+  [ ] Secret detection or pre-commit hook mentioned
+
+### Deployment Reliability (15%)
+  [ ] Deployment strategy chosen and justified
+  [ ] Same image deployed to staging and production
+  [ ] Health checks verify correct version (SHA)
+  [ ] Environment-specific configuration
+
+### Rollback & Readiness (10%)
+  [ ] rollback.sh works with version argument
+  [ ] Health check after rollback
+  [ ] Rollback procedure documented in RUNBOOK.md
+  [ ] Recovery time target defined
+
+### Documentation & Communication (10%)
+  [ ] EXECUTIVE_SUMMARY.md is clear and non-technical
+  [ ] RUNBOOK.md has actionable procedures
+  [ ] ARCHITECTURE.md includes diagram and justifications
+  [ ] INCIDENT.md follows professional incident report format
+
+### Debugging & Failure Response (10%)
+  [ ] Failure injection scenario completed
+  [ ] Root cause identified correctly
+  [ ] Prevention measures documented
+  [ ] Timeline is specific and realistic
+
+### Professional Workflow (5%)
+  [ ] Clean repo structure
+  [ ] Meaningful commit messages
+  [ ] Files are well-organized and readable
+
+### Score Interpretation:
+  90-100%  Operational competence — ready for a DevOps role
+  75-89%   Strong foundation — ready with mentorship
+  60-74%   Developing — review weak dimensions and retry
+  Below 60% Review Days 1-7 before reattempting
+
+────────────────────────────────────────────────────
+
+## FINAL DELIVERABLES
+
+Your submission is a Git repository containing:
+
+  .github/workflows/ci.yml
+  .github/workflows/cd.yml
+  Dockerfile
+  .dockerignore
+  scripts/rollback.sh
+  DISCOVERY.md
+  ARCHITECTURE.md
+  BRANCH_PROTECTION.md
+  INCIDENT.md
+  EXECUTIVE_SUMMARY.md    (includes Lessons Learned)
+  RUNBOOK.md
+
+Total: 11 files. Every file is scored.
+
+────────────────────────────────────────────────────
+
+## THE STANDARD
+
+When you're done, ask yourself:
+
+  "If I showed this repo in a DevOps engineer interview,
+   would the hiring manager take me seriously?"
+
+If yes — you've passed. Not just the capstone. The course.
+
+## 🎓 Generate your certificate: practicum certificate

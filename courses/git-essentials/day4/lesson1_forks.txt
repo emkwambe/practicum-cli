@@ -1,0 +1,38 @@
+# Lesson: Forks — Your Own Copy of Someone Else's Project
+
+## [WHEN] You need this when:
+1. You want to contribute to an open source project you don't own.
+2. You need your own copy of a repo to experiment with.
+3. A project's contribution guide says "fork the repository."
+
+## [INTENT] "Get my own copy of this project that I can push to."
+
+## [CONTEXT]
+A fork is a server-side copy of someone else's repository into your
+GitHub account. You can push to your fork freely. When your changes
+are ready, you create a Pull Request to propose merging them back
+into the original project.
+Fork = your copy on GitHub. Clone = your copy on your machine.
+Typical flow: Fork on GitHub → Clone to local → Work → Push to fork → PR
+
+## [ACTION] Fork workflow
+  1. On GitHub: click "Fork" button on the original repo
+  2. git clone https://github.com/YOUR-USERNAME/repo.git
+  3. git remote add upstream https://github.com/ORIGINAL/repo.git
+  4. (make changes, commit)
+  5. git push origin your-branch
+  6. On GitHub: create Pull Request from your fork to original
+
+Keep your fork updated:
+  git fetch upstream
+  git switch main
+  git merge upstream/main
+  git push origin main
+
+## [EXPECTED RESULT]
+You have two remotes: origin (your fork) and upstream (original project).
+You push to origin, create PRs to upstream.
+
+## Try it now:
+  (Fork a repo on GitHub, then clone your fork)
+  git remote -v    (should show origin = your fork)

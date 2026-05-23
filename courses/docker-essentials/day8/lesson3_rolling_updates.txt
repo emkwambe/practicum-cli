@@ -1,0 +1,116 @@
+# Lesson: Rolling Updates — Zero-Downtime Deploys
+
+## [WHEN] You need this when:
+1. You need to deploy a new version without taking the service down.
+2. You want gradual rollout to catch issues before all replicas update.
+3. You need automatic rollback if the new version fails health checks.
+4. Compliance requires controlled, auditable deployments.
+
+## [INTENT] "Update my service to a new version without dropping requests."
+
+## [CONTEXT]
+Swarm replaces tasks one (or a few) at a time. While some replicas run
+the old version and others the new, the load balancer keeps sending
+traffic to all healthy ones. Users see no downtime.
+
+Update parameters control the rollout:
+  --update-parallelism N      — how many to update at once (default 1)
+  --update-delay 10s          — wait between batches
+  --update-failure-action     — what to do if new task fails (pause, continue, rollback)
+  --update-monitor 30s        — observation window for new task
+  --update-max-failure-ratio  — fraction of failures before action (0.1 = 10%)
+
+## [ACTION] Configure and trigger updates
+
+### Set update strategy at create time:
+  docker service create \
+    --name web \
+    --replicas 6 \
+    --update-parallelism 2 \
+    --update-delay 10s \
+    --update-failure-action rollback \
+    --update-monitor 30s \
+    --update-max-failure-ratio 0.2 \
+    --publish 8080:80 \
+    nginx:1.24
+
+### Trigger an update by changing the image:
+  docker service update --image nginx:1.25 web
+
+### Watch the rollout:
+  docker service ps web                 — see old shutting down, new starting
+  watch docker service ps web           — live view (Linux)
+  docker service inspect --pretty web   — current update status
+
+### Pause/resume an update:
+  docker service update --update-paused=true web
+  docker service update --update-paused=false web
+
+### Manual rollback:
+  docker service rollback web           — go back to previous spec
+
+### Failure-action options:
+  pause      — stop updating, leave mixed version (default)
+  continue   — keep going despite failures
+  rollback   — automatically revert to previous version
+
+## [EXPECTED RESULT]
+With --update-parallelism=2 and --update-delay=10s on 6 replicas:
+  T=0:   replicas 1,2 → updating; 3,4,5,6 → still old
+  T=10s: replicas 1,2 → new; 3,4 → updating
+  T=20s: replicas 1-4 → new; 5,6 → updating
+  T=30s: all 6 → new
+
+Service stays UP throughout. Load balancer routes only to healthy tasks.
+
+## Try it now (single-node swarm):
+  docker swarm init
+  docker service create \
+    --name web \
+    --replicas 4 \
+    --update-parallelism 1 \
+    --update-delay 5s \
+    --update-failure-action rollback \
+    --publish 8080:80 \
+    nginx:1.24
+
+  docker service ps web
+
+  # Update to new version
+  docker service update --image nginx:1.25 web
+
+  # Watch the rollout (run quickly in another terminal):
+  docker service ps web
+
+  # Inspect update status
+  docker service inspect --pretty web | grep -A 5 "Update"
+
+  # Cleanup
+  docker service rm web
+  docker swarm leave --force
+
+## Technician Tip — failure detection:
+Without HEALTHCHECK, Swarm only knows "did the container start?"
+With HEALTHCHECK, Swarm knows "is the app actually working?"
+
+Always combine rolling updates with healthchecks (HEALTHCHECK in Dockerfile
+or --health-cmd at service create). Otherwise, a broken image will deploy
+"successfully" — until users notice.
+
+Set --update-monitor longer than your healthcheck's start-period.
+Otherwise Swarm declares the new task healthy before it actually is.
+
+## Common Pain Point:
+"Update succeeded but the app is broken" → no healthcheck, so Swarm
+considered "process running" as success. Always add a healthcheck
+that hits the actual app endpoint.
+
+"Update is stuck" → check `docker service ps web` for the ERROR column.
+Often: image pull failed, healthcheck failing, resource constraint.
+Use `docker service update --update-paused=false web` to retry.
+
+## DCA Exam Note:
+Know all the --update-* flags and their defaults.
+Know that --update-failure-action defaults to "pause".
+Know docker service rollback reverts to the PREVIOUS spec only (not arbitrary).
+Know that `--update-parallelism 0` updates ALL at once (no rolling).

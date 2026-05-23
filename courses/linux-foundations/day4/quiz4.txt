@@ -1,0 +1,55 @@
+Q1: Which command shows ALL running processes with full detail (user, PID, CPU, memory)?
+A) ps aux
+B) top -list
+C) list --processes
+D) proc --all
+Correct: A
+
+Q2: SCENARIO: A process is frozen and won't respond to normal kill. Which signal forces termination?
+A) kill PID (default SIGTERM)
+B) kill -HUP PID
+C) kill -9 PID (SIGKILL — cannot be caught or ignored)
+D) kill -STOP PID
+Correct: C
+
+Q3: You started a long backup with command &. How do you bring it back to the foreground?
+A) bg 1
+B) resume 1
+D) fg %1
+C) front 1
+Correct: D
+
+Q4: DIAGNOSTIC: You installed Python but typing "python" says "command not found". What should you check?
+A) Python wasn't actually installed
+B) The server needs a restart
+C) The Python binary isn't in your PATH — check with which python3 or echo $PATH
+D) Python doesn't work on Linux
+Correct: C
+
+Q5: alias ll='ls -la' does what?
+A) Creates a file called ll
+B) Creates a shortcut so typing "ll" runs "ls -la"
+C) Permanently renames the ls command
+D) Lists all aliases
+Correct: B
+
+Q6: SCENARIO: Your server is running slow. You need to find what's eating the most CPU. Which command?
+A) df -h
+B) free -m
+C) ps aux --sort=-%cpu | head -10
+D) uptime
+Correct: C
+
+Q7: find . -name "*.log" -size +100M does what?
+A) Deletes all .log files over 100MB
+B) Finds .log files larger than 100MB in the current directory tree
+C) Creates 100MB log files
+D) Moves large log files
+Correct: B
+
+Q8: DIAGNOSTIC: df -h shows /dev/sda1 is 95% full. Which command helps you find WHERE the space is being used?
+A) free -h
+B) ps aux
+C) du -sh /* | sort -rh | head
+D) ls -la /
+Correct: C

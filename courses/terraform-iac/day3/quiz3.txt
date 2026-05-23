@@ -1,0 +1,57 @@
+Q1: Terraform determines which provider to use for a resource by:
+A) The resource name
+B) The order providers are listed
+C) The resource type prefix — "aws_instance" maps to the "aws" provider, "cloudflare_record" maps to "cloudflare" — each prefix corresponds to exactly one provider
+D) The region setting
+Correct: C
+
+Q2: SCENARIO: You need an AWS instance in us-east-1 and another in eu-west-1. How do you configure this?
+A) Use two separate Terraform projects
+B) Use different workspaces
+C) Set the region per resource
+D) Create two aws provider blocks — one default and one with alias = "eu" — then reference provider = aws.eu on the EU resource
+Correct: D
+
+Q3: The required_providers block in the terraform block does:
+A) Installs providers automatically
+B) Declares which providers the config needs, their source addresses, and version constraints — terraform init uses this to download the correct plugins
+C) Downloads provider source code
+D) Authenticates with providers
+Correct: B
+
+Q4: DIAGNOSTIC: terraform init fails with "Failed to query available provider packages." What should you check?
+A) Network connectivity — Terraform needs to reach the registry to download providers. Also verify the source address is correct (e.g., "hashicorp/aws" not "aws/aws").
+B) The state file
+C) The terraform version
+D) Environment variables
+Correct: A
+
+Q5: .terraform.lock.hcl serves the same purpose as:
+A) package-lock.json in Node.js — it records exact provider versions and checksums so every team member gets identical provider binaries
+B) terraform.tfstate
+C) A Dockerfile
+D) .gitignore
+Correct: A
+
+Q6: TRADEOFF: Version constraint "~> 5.0" vs "= 5.31.0":
+A) They're equivalent
+B) Pessimistic is always better
+C) Exact is always better
+D) Pessimistic (~> 5.0) allows any 5.x update automatically — flexible but risky if 5.x introduces bugs. Exact (= 5.31.0) is safe but requires manual updates for every patch.
+Correct: D
+
+Q7: Which file should be committed to version control?
+A) .terraform/ directory
+B) terraform.tfstate
+C) .terraform.lock.hcl — it ensures all team members use identical provider versions, similar to committing package-lock.json
+D) .tfvars with secrets
+Correct: C
+
+
+
+Q8: Provider aliases are required when:
+A) Using any provider
+B) Using multiple instances of the SAME provider with different configurations — like two AWS regions or two AWS accounts in one Terraform config
+C) Using third-party providers
+D) Using modules
+Correct: B

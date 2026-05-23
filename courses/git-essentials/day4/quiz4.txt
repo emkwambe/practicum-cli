@@ -1,0 +1,55 @@
+Q1: A "fork" on GitHub is:
+A) A way to delete a repository
+D) A personal copy of someone else's repository under your account — you can modify it freely
+C) A branch inside the original repo
+B) A Git command
+Correct: D
+
+Q2: SCENARIO: You want to contribute to an open-source project. The correct workflow is:
+A) Push directly to the original repo
+B) Email the maintainer your code
+C) Fork the repo, create a branch, make changes, push to YOUR fork, open a pull request to the original
+D) Clone and push
+Correct: C
+
+Q3: A pull request (PR) is:
+A) A command to download code
+B) A request for the maintainer to PULL your changes into their branch after review
+C) A way to delete a branch
+D) An issue report
+Correct: B
+
+Q4: TRADEOFF: Your team debates PR reviews. Option A: require 2 approvals (slower but safer). Option B: require 0 (fast but risky). What's the professional standard?
+A) No reviews needed — trust the developers
+B) At least 1 required reviewer — catches bugs before merge without slowing the team too much
+C) 5 reviewers for every PR
+D) Reviews are optional
+Correct: B
+
+Q5: SCENARIO: You open a PR and there's a merge conflict with main. What do you do?
+C) Close the PR and create a new one
+B) Ask the maintainer to fix it
+A) Merge main into your branch locally, resolve the conflicts, push the resolution, then the PR is clean
+D) Delete your branch
+Correct: A
+
+Q6: GitHub Issues are best used for:
+A) Only bug reports
+B) Tracking bugs, feature requests, tasks, and discussions — each with labels, assignees, and milestones
+C) Sending messages to teammates
+D) Storing documentation
+Correct: B
+
+Q7: DIAGNOSTIC: You forked a repo 3 months ago. Now your fork is 47 commits behind the original. How do you update it?
+A) Delete your fork and re-fork
+B) Add the original as a remote (upstream), fetch, merge upstream/main into your main, push
+C) GitHub automatically updates forks
+D) Run git pull origin
+Correct: B
+
+Q8: Before contributing to an open-source project, you should FIRST:
+A) Start coding immediately
+B) Read CONTRIBUTING.md for the project's guidelines, coding standards, and PR process
+C) Open an issue demanding changes
+D) Fork every repo you find
+Correct: B

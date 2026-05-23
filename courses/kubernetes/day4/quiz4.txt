@@ -1,0 +1,59 @@
+Q1: nodeSelector does:
+A) Labels the node
+B) Requires pods to schedule only on nodes with matching labels — pods stay Pending if no node matches
+C) Selects which pods to run
+D) Limits node resources
+Correct: B
+
+
+
+Q2: SCENARIO: You have GPU nodes and regular nodes. GPU training pods should ONLY run on GPU nodes. Regular pods should NEVER run on GPU nodes. The correct combination:
+A) nodeSelector only
+B) Label the pods
+C) Just use affinity
+D) Taint the GPU nodes (dedicated=gpu:NoSchedule) AND add both a toleration and nodeSelector to GPU training pods — taints repel, tolerations+selectors attract
+Correct: D
+
+Q3: The difference between required and preferred node affinity:
+A) They're the same
+B) Required ignores labels
+C) Preferred is faster
+D) Required (hard) means the pod stays Pending if no node matches — Preferred (soft) means the scheduler tries but schedules elsewhere if needed
+Correct: D
+
+Q4: Pod anti-affinity with topologyKey: kubernetes.io/hostname ensures:
+A) Matching pods are spread across different nodes — critical for HA so a single node failure doesn't kill all replicas
+B) Pods run on the same node
+C) Pods avoid GPU nodes
+D) Only one pod exists
+Correct: A
+
+Q5: DIAGNOSTIC: A pod is stuck in Pending. kubectl describe shows "0/3 nodes are available: 3 node(s) had untolerated taint." What's wrong?
+A) The cluster is full
+B) All nodes have taints that the pod doesn't tolerate — either add a toleration to the pod or remove a taint from at least one node
+C) The image is wrong
+D) The namespace is full
+Correct: B
+
+
+
+Q6: kubectl drain does:
+A) Cordons the node (marks unschedulable) and safely evicts all pods, respecting PodDisruptionBudgets — the production-safe way to take a node offline
+B) Deletes the node
+C) Restarts all pods
+D) Removes taints
+Correct: A
+
+Q7: TRADEOFF: PriorityClasses with preemption enabled means:
+A) All pods run faster
+B) Pods start in alphabetical order
+C) Higher-priority pods can evict lower-priority pods when resources are scarce — powerful for critical workloads but dangerous if misconfigured
+D) Only priority pods run
+Correct: C
+
+Q8: kubectl taint nodes worker-1 key=value:NoExecute does:
+A) Prevents new scheduling only
+B) Labels the node
+C) Prevents new pods AND evicts existing pods that don't tolerate the taint — NoExecute is the most aggressive taint effect
+D) Drains the node
+Correct: C

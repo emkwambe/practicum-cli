@@ -1,0 +1,101 @@
+# Lesson: Tagging Strategies for CI/CD
+
+## [WHEN] You need this when:
+1. Your CI pipeline produces images on every commit.
+2. You need to roll back to an old version safely.
+3. You want both stable and latest tags.
+4. Auditors ask "exactly which image is in production?"
+
+## [INTENT] "Use tags so I can deploy, roll back, and audit reliably."
+
+## [CONTEXT]
+:latest is dangerous in production — it's mutable. Pin to specific
+versions for reproducibility.
+
+Standard tagging strategies:
+
+### 1. Semantic versioning (releases)
+  myapp:1.2.3        — exact version
+  myapp:1.2          — latest patch in 1.2.x
+  myapp:1            — latest minor in 1.x
+  myapp:latest       — current release
+
+When you push 1.2.3, also tag 1.2, 1, and latest:
+  docker tag myapp:1.2.3 myapp:1.2
+  docker tag myapp:1.2.3 myapp:1
+  docker tag myapp:1.2.3 myapp:latest
+  docker push --all-tags myapp
+
+### 2. Git commit SHA (CI builds, every commit)
+  myapp:a3f9c12              — short SHA (7 chars)
+  myapp:a3f9c12abc...        — full SHA (40 chars)
+
+### 3. Branch + commit (CI builds, ongoing development)
+  myapp:main-a3f9c12
+  myapp:feature-login-a3f9c12
+
+### 4. Date-based (nightly builds)
+  myapp:2026-04-16
+  myapp:nightly-2026-04-16
+
+### 5. Environment + version
+  myapp:1.2.3-staging
+  myapp:1.2.3-production
+  myapp:1.2.3-canary
+
+## [ACTION] CI/CD tagging recipe
+Typical GitHub Actions or GitLab CI step:
+
+  # Extract short git SHA
+  SHA=$(git rev-parse --short HEAD)
+
+  # Build with multiple tags
+  docker build \
+    -t ghcr.io/myorg/myapp:$SHA \
+    -t ghcr.io/myorg/myapp:main \
+    .
+
+  # Push both tags
+  docker push ghcr.io/myorg/myapp:$SHA
+  docker push ghcr.io/myorg/myapp:main
+
+  # On a release tag:
+  if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+    VERSION=${GITHUB_REF#refs/tags/v}
+    docker tag ghcr.io/myorg/myapp:$SHA ghcr.io/myorg/myapp:$VERSION
+    docker tag ghcr.io/myorg/myapp:$SHA ghcr.io/myorg/myapp:latest
+    docker push ghcr.io/myorg/myapp:$VERSION
+    docker push ghcr.io/myorg/myapp:latest
+  fi
+
+## [EXPECTED RESULT]
+You can deploy by SHA (immutable, perfect for production) or
+by version (humans understand). Either way, you know exactly what's running.
+
+## Try it now:
+Build something and tag it three ways:
+  docker build -t myapp:1.0.0 .
+  docker tag myapp:1.0.0 myapp:1.0
+  docker tag myapp:1.0.0 myapp:1
+  docker tag myapp:1.0.0 myapp:latest
+  docker images myapp           # see all tags pointing to same image ID
+
+## Technician Tip — pinning by digest (most rigorous):
+For absolutely-immutable production deployments:
+  docker pull nginx:1.25.3@sha256:abcd1234...
+
+The digest is the SHA256 of the image. Tags can be retagged; digests
+cannot. Get the digest from docker inspect or the registry UI.
+
+In compose:
+  image: nginx@sha256:abcd1234...
+
+## Common Pain Point:
+"We deployed yesterday's `:latest` and it broke production" — that's
+the :latest trap. Someone pushed a new :latest to the registry and your
+deploy pulled the new one. Always pin to specific tags or digests.
+
+## DCA Exam Note:
+Know that you can have multiple tags pointing to the same IMAGE ID.
+Know that --all-tags or -a on push uploads all tags.
+Know that digests (sha256:...) are immutable; tags are mutable.

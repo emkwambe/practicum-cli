@@ -1,0 +1,35 @@
+# Lesson: git log — View Commit History
+
+## [WHEN] You need this when:
+1. You want to see what changes were made and by whom.
+2. You need to find a specific commit to revert or reference.
+3. Your manager asks "what did you work on this week?"
+4. You are investigating when a bug was introduced.
+
+## [INTENT] "Show me the history of changes."
+
+## [CONTEXT]
+git log shows every commit in reverse chronological order (newest first).
+Each entry shows: hash, author, date, and message. The log is your
+project's complete timeline — every change ever made is here.
+
+## [ACTION] git log
+Common patterns:
+  git log                           — full log (press q to exit)
+  git log --oneline                 — compact: one line per commit
+  git log --oneline -5              — last 5 commits only
+  git log --graph --oneline         — visual branch history
+  git log --author="Alice"          — commits by specific person
+  git log --since="2 weeks ago"     — recent commits only
+  git log -- file.txt               — history of one specific file
+
+## [EXPECTED RESULT]
+A list of commits with hash, author, date, and message.
+Press q to exit the pager. Arrow keys to scroll.
+
+## Try it now:
+  git log
+  git log --oneline
+
+## Next:
+Use git diff to see exactly what changed.

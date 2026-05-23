@@ -1,0 +1,36 @@
+# Lesson: awk — Pattern Scanning and Data Extraction
+
+## [WHEN] You need this when:
+1. cut cannot handle your data format (irregular spacing).
+2. You need to do math on column values (sum, average).
+3. You want to reformat output (rearrange columns, add text).
+4. You need conditional extraction (print line only if column > 100).
+
+## [INTENT] "Extract and transform structured data with conditions."
+
+## [CONTEXT]
+awk is a powerful text processing language. For daily sysadmin work,
+you only need a few patterns. awk reads input line by line, splits each
+line into fields ($1, $2, etc.), and lets you print, filter, or calculate.
+By default, fields are separated by whitespace.
+
+## [ACTION] awk 'pattern {action}' file
+Common one-liners:
+  awk '{print $1}' file              — print first field of each line
+  awk '{print $1, $3}' file          — print fields 1 and 3
+  awk -F: '{print $1}' /etc/passwd   — colon delimiter, print usernames
+  awk '$3 > 100 {print $1}' data     — print field 1 where field 3 > 100
+  awk '{sum+=$2} END {print sum}'     — sum all values in column 2
+  awk 'NR==5' file                   — print only line 5
+  awk 'NR>=10 && NR<=20' file        — print lines 10-20
+  ps aux | awk '$3 > 50 {print $11}' — processes using >50% CPU
+
+Special variables:
+  $0 = entire line, $1 = first field, NR = line number, NF = number of fields
+
+## [EXPECTED RESULT]
+Only the matching/transformed data is printed.
+
+## Try it now:
+  echo -e "Alice 90\nBob 85\nCarol 95" | awk '$2 > 88 {print $1, "passed"}'
+  awk -F: '{print $1, $6}' /etc/passwd | head -5

@@ -1,0 +1,57 @@
+Q1: Kubernetes solves problems Docker alone cannot. The most important:
+A) Self-healing, scaling, rolling updates, and service discovery across multiple servers
+B) Making images smaller
+C) Replacing Docker entirely
+D) Building containers faster
+Correct: A
+
+Q2: SCENARIO: At 3 AM, a container running on Server 2 crashes. Nobody is awake. With Kubernetes:
+A) You need a monitoring tool to restart it
+B) Docker Compose restarts it
+C) K8s automatically restarts the container or reschedules it to a healthy node — no human intervention needed
+D) The container stays down until morning
+Correct: C
+
+Q3: The Kubernetes control plane includes:
+A) API Server, etcd, Scheduler, and Controller Manager — the brain that manages cluster state
+B) Docker and containerd
+C) Only the API Server
+D) kubelet and container runtime
+Correct: A
+
+Q4: kubectl is:
+A) A monitoring tool
+B) The Kubernetes CLI — every cluster operation goes through kubectl to the API Server
+C) A node agent
+D) A container runtime
+Correct: B
+
+Q5: DIAGNOSTIC: kubectl get pods shows nothing. You know you deployed to a namespace called "staging". What happened?
+A) kubectl is misconfigured
+B) Pods were deleted
+C) You're querying the default namespace — use kubectl get pods -n staging to see the right namespace
+D) The cluster is broken
+Correct: C
+
+Q6: kind (Kubernetes in Docker) is useful for learning because:
+A) It's the only way to run Kubernetes
+B) It runs a full K8s cluster inside Docker containers on your laptop — no cloud account or VM needed
+C) It only runs one pod
+D) It's faster than real Kubernetes
+Correct: B
+
+
+
+Q7: TRADEOFF: Docker Compose vs Kubernetes. When is Compose still the right choice?
+A) Only for databases
+B) Never — always use Kubernetes
+C) Kubernetes is always simpler
+D) Single-server development environments where multi-node scaling, self-healing, and zero-downtime updates aren't needed
+Correct: D
+
+Q8: The kubelet agent on each worker node:
+A) Manages the control plane
+B) Stores cluster state
+C) Schedules pods
+D) Takes instructions from the API Server and ensures the assigned pods are running on that node
+Correct: D

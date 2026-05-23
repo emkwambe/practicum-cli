@@ -1,0 +1,86 @@
+# Lesson: Docker Compose — Multi-Container Apps in One File
+
+## [WHEN] You need this when:
+1. Your app needs a database, cache, queue, AND web server.
+2. You're tired of typing 5 docker run commands every time.
+3. New developers join and you want them productive in 1 command.
+4. Your dev environment needs to match production exactly.
+
+## [INTENT] "Define and run my entire multi-service application in one file."
+
+## [CONTEXT]
+Docker Compose lets you describe a complete application stack in a
+YAML file (docker-compose.yml or compose.yml). One command starts
+everything: containers, networks, volumes — all configured.
+
+Why this matters: a typical web app has a frontend, backend, database,
+and cache. Without Compose, that's 4 docker run commands with the
+right flags, in the right order. With Compose:
+  docker compose up -d
+
+That's it.
+
+Compose v2 ships with Docker Desktop and as a Docker plugin. Use
+"docker compose" (with space). Old "docker-compose" (with hyphen)
+is the v1 standalone binary — still works but legacy.
+
+## [ACTION] A minimal compose file
+File: docker-compose.yml (or compose.yml)
+
+  services:
+    web:
+      image: nginx:alpine
+      ports:
+        - "8080:80"
+    db:
+      image: postgres:16
+      environment:
+        POSTGRES_PASSWORD: secret
+      volumes:
+        - dbdata:/var/lib/postgresql/data
+
+  volumes:
+    dbdata:
+
+Then:
+  docker compose up -d        — start everything in background
+  docker compose ps           — list services
+  docker compose logs -f      — tail logs from all services
+  docker compose down         — stop and remove everything
+
+## [EXPECTED RESULT]
+Compose creates:
+  - A network (project_default) — services find each other by name
+  - A container per service (named project-service-1)
+  - Any defined volumes
+
+Inside any service, "db" resolves to the database container's IP.
+Inside any service, "web" resolves to the web container's IP.
+
+## Try it now:
+  mkdir compose-demo && cd compose-demo
+  cat > docker-compose.yml << 'EOF'
+  services:
+    redis:
+      image: redis:alpine
+    web:
+      image: nginx:alpine
+      ports:
+        - "8080:80"
+  EOF
+  docker compose up -d
+  docker compose ps
+  docker compose exec web ping -c 2 redis
+  docker compose down
+
+## Technician Tip:
+Project name = directory name by default. Override with -p:
+  docker compose -p myproject up -d
+
+This matters when running multiple compose stacks on one host —
+without -p, they'll conflict on container/network names.
+
+## DCA Exam Note:
+DCA still references "docker-compose" (v1 syntax) in some questions.
+Both work. Compose v2 (docker compose) is the current standard.
+Know YAML structure: services, volumes, networks at the top level.

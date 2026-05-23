@@ -1,0 +1,74 @@
+# CI/CD Pipelines — What You're Training For
+
+## 🎯 This course makes you the person who automates deployment
+
+After completing all 8 days, you will be able to:
+
+  ✅ CONTINUOUS INTEGRATION (95% of DevOps job postings)
+     - Trigger automated builds on every push
+     - Run test suites automatically
+     - Lint, scan, and validate code before merge
+     - Block broken code from reaching main branch
+
+  ✅ CONTINUOUS DELIVERY (90% of DevOps job postings)
+     - Build and push Docker images from CI
+     - Deploy to staging automatically
+     - Promote to production with approval gates
+     - Roll back failed deployments in seconds
+
+  ✅ GITHUB ACTIONS (most popular CI/CD platform, 2026)
+     - Write workflow YAML files from scratch
+     - Use marketplace actions and custom actions
+     - Matrix builds, caching, artifacts
+     - Secrets management and environment protection
+
+  ✅ DEPLOYMENT STRATEGIES (85% of DevOps roles)
+     - Blue/green deployments
+     - Canary releases
+     - Rolling updates
+     - Feature flags and rollback procedures
+
+  ✅ PIPELINE SECURITY (80% of DevOps roles)
+     - Secrets management (never in code)
+     - Environment isolation (staging vs production)
+     - Dependency scanning
+     - Signed commits and protected branches
+
+## 📋 Skills You Will Develop (by day)
+
+  Day 1: CI/CD concepts, pipeline anatomy, build triggers
+  Day 2: GitHub Actions — workflows, jobs, steps, runners
+  Day 3: Build & test automation — lint, test, report
+  Day 4: Docker in CI — build, tag, push to registry
+  Day 5: Assessment 1 — build a complete CI pipeline
+  Day 6: Deployment strategies — staging, prod, rollback
+  Day 7: Secrets, environments, and multi-stage pipelines
+  Day 8: Capstone — full CI/CD: commit → test → build → deploy
+
+## 🏆 By the end, you can:
+
+  - Write a CI/CD pipeline from scratch for any project
+  - Automate testing so broken code never reaches production
+  - Build and push Docker images automatically on every merge
+  - Deploy to staging and production with safety gates
+  - Roll back a bad deployment in under 60 seconds
+  - Manage secrets without ever putting them in code
+
+## 💼 Roles this prepares you for:
+
+  - DevOps Engineer
+  - Platform Engineer
+  - Release Engineer / Build Engineer
+  - Site Reliability Engineer (SRE)
+  - Cloud Infrastructure Engineer
+
+  Average salary range: $90,000 - $140,000
+
+## 🎓 Certification alignment:
+
+  - CKA (CI/CD is a core exam domain)
+  - AWS DevOps Engineer Professional
+  - GitHub Actions Certification
+  - GitLab CI/CD Certification
+
+## ▶ Ready? Type any key to begin.

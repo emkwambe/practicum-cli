@@ -1,0 +1,118 @@
+# Lesson: Terraform Modules — DRY Infrastructure
+
+## [WHEN] You need this when:
+1. You're copy-pasting the same resource blocks across projects.
+2. You need consistent infrastructure patterns across teams.
+3. Your main.tf is 500+ lines and unmanageable.
+4. You want to create a reusable "server template" for your org.
+
+## [INTENT] "Build reusable infrastructure components with modules."
+
+## [CONTEXT]
+A module is a directory of .tf files that packages related
+resources into a reusable unit. Think of it as a function
+for infrastructure.
+
+  Without modules:
+    Project A: 200 lines of VPC + subnet + security group + instance
+    Project B: same 200 lines, copy-pasted, slightly different
+    Project C: same 200 lines, copy-pasted, bugs from B copied too
+
+  With modules:
+    modules/web-server/ → reusable web server module
+    Project A: module "web" { source = "./modules/web-server" }
+    Project B: module "web" { source = "./modules/web-server" }
+    Fix a bug once → all projects get the fix.
+
+## [ACTION] Building and using modules
+
+### Module structure:
+  modules/web-server/
+  ├── main.tf          # resources
+  ├── variables.tf     # inputs (what the caller configures)
+  ├── outputs.tf       # outputs (what the module exposes)
+  └── README.md        # documentation
+
+### Module inputs (variables.tf):
+  variable "name" {
+    description = "Name prefix for resources"
+    type        = string
+  }
+
+  variable "image" {
+    description = "Docker image to deploy"
+    type        = string
+    default     = "nginx:alpine"
+  }
+
+  variable "port" {
+    description = "Host port to expose"
+    type        = number
+    default     = 8080
+  }
+
+### Module resources (main.tf):
+  resource "docker_container" "web" {
+    name  = var.name
+    image = docker_image.app.image_id
+
+    ports {
+      internal = 80
+      external = var.port
+    }
+  }
+
+  resource "docker_image" "app" {
+    name = var.image
+  }
+
+### Module outputs (outputs.tf):
+  output "container_id" {
+    value = docker_container.web.id
+  }
+
+  output "url" {
+    value = "http://localhost:${var.port}"
+  }
+
+### Using the module (root main.tf):
+  module "app1" {
+    source = "./modules/web-server"
+    name   = "app1"
+    image  = "nginx:alpine"
+    port   = 8080
+  }
+
+  module "app2" {
+    source = "./modules/web-server"
+    name   = "app2"
+    image  = "httpd:alpine"
+    port   = 8081
+  }
+
+  output "app1_url" {
+    value = module.app1.url
+  }
+
+  # Two web servers from the same module, different configs.
+
+### Module best practices:
+  1. One module = one concern (web server, database, network)
+  2. Every variable has a description and type
+  3. Every module has a README with usage example
+  4. Pin module versions when using remote sources
+  5. Test modules independently before using in production
+
+## [EXPECTED RESULT]
+You can extract repeated infrastructure patterns into reusable
+modules with clear inputs and outputs.
+
+## Technician Tip:
+Start with a flat main.tf. Extract modules ONLY when you see
+duplication across 3+ projects. Premature modularization
+creates unnecessary complexity.
+
+## Common Pain Point:
+"Module output not found" → you must declare outputs in the
+module's outputs.tf. Resources inside a module are private
+unless explicitly output.

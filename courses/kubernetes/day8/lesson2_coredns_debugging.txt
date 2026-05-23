@@ -1,0 +1,113 @@
+# Lesson: CoreDNS & Network Debugging
+
+## [WHEN] You need this when:
+1. Service discovery isn't working — pods can't resolve service names.
+2. You need to understand how DNS works inside a cluster.
+3. The CKA exam asks you to troubleshoot DNS resolution.
+4. Inter-pod communication fails and you don't know why.
+
+## [INTENT] "Understand cluster DNS and systematically debug network issues."
+
+## [CONTEXT]
+Every Kubernetes cluster runs CoreDNS (or kube-dns) as the cluster
+DNS server. When a pod calls http://backend:80, CoreDNS resolves
+"backend" to the Service's ClusterIP.
+
+## [ACTION] CoreDNS and network debugging
+
+### DNS resolution inside the cluster:
+  Service DNS:     service-name.namespace.svc.cluster.local
+  Short form:      service-name (same namespace)
+  Cross-namespace: service-name.other-namespace
+
+  Pod DNS:         pod-ip-dashed.namespace.pod.cluster.local
+  (10.244.1.5 → 10-244-1-5.default.pod.cluster.local)
+
+  StatefulSet pod: pod-name.headless-svc.namespace.svc.cluster.local
+  (postgres-0.postgres-headless.default.svc.cluster.local)
+
+### CoreDNS components:
+  kubectl get pods -n kube-system -l k8s-app=kube-dns
+  kubectl get svc -n kube-system kube-dns
+  kubectl get configmap -n kube-system coredns -o yaml
+
+  CoreDNS runs as a Deployment in kube-system.
+  The kube-dns Service (ClusterIP) is what pods use for DNS.
+  The Corefile (in the ConfigMap) configures DNS behavior.
+
+### Testing DNS from inside a pod:
+  # Launch a debug pod:
+  kubectl run dns-test --image=busybox:1.36 --rm -it -- sh
+
+  # Inside the pod:
+  nslookup backend.default.svc.cluster.local
+  nslookup kubernetes.default.svc.cluster.local
+  cat /etc/resolv.conf    # shows the DNS server IP
+
+  # /etc/resolv.conf should point to the kube-dns Service IP:
+  nameserver 10.96.0.10
+  search default.svc.cluster.local svc.cluster.local cluster.local
+
+### Network debugging workflow:
+  1. Can the pod reach the DNS server?
+     kubectl exec -it pod -- nslookup kubernetes
+
+  2. Can the pod resolve the target service?
+     kubectl exec -it pod -- nslookup backend
+
+  3. Can the pod reach the target IP directly?
+     kubectl exec -it pod -- wget -qO- http://10.96.100.5:3000
+
+  4. Can the pod reach the target by name?
+     kubectl exec -it pod -- wget -qO- http://backend:3000
+
+  If step 1 fails: CoreDNS is down
+  If step 2 fails: Service doesn't exist or wrong namespace
+  If step 3 fails: NetworkPolicy or target pod is down
+  If step 4 fails: DNS resolves but connection is refused (port/app issue)
+
+### Common DNS failures:
+  "could not resolve host" →
+    - CoreDNS pods are down: kubectl get pods -n kube-system
+    - Service doesn't exist: kubectl get svc
+    - Wrong namespace: use FQDN (svc.other-ns.svc.cluster.local)
+    - Egress NetworkPolicy blocking port 53
+
+  "connection timed out" →
+    - NetworkPolicy blocking traffic
+    - Target pods not running
+    - Service selector mismatch (no endpoints)
+
+  "connection refused" →
+    - App isn't listening on the expected port
+    - Wrong targetPort in Service definition
+    - Container crashed (check logs)
+
+### Debugging tools available in the CKA exam:
+  kubectl exec — get inside a pod
+  kubectl run --rm -it — launch a temporary debug pod
+  kubectl get endpoints — verify service backends
+  kubectl describe svc — check selectors
+  kubectl logs -n kube-system coredns-xxx — CoreDNS logs
+
+### CNI (Container Network Interface):
+  The CNI plugin handles pod-to-pod networking at the node level.
+  Common CNI plugins: Calico, Cilium, Flannel, Weave.
+
+  kubectl get pods -n kube-system | grep -E "calico|cilium|flannel"
+
+  If the CNI is broken:
+  - Pods can't communicate across nodes
+  - Pods stuck in ContainerCreating
+  - kubectl describe pod shows "network not ready"
+
+  Fix: reinstall the CNI plugin or check its DaemonSet.
+
+## [EXPECTED RESULT]
+You can troubleshoot DNS resolution, debug pod-to-pod connectivity,
+and understand the CoreDNS → Service → Pod resolution chain.
+
+## Technician Tip:
+In the CKA exam, if networking seems broken, always check CoreDNS
+first: kubectl get pods -n kube-system -l k8s-app=kube-dns. If those
+pods aren't Running, fix them before debugging anything else.

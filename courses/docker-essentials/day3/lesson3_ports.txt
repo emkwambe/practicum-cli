@@ -1,0 +1,67 @@
+# Lesson: Port Mapping — Make Containers Reachable from the Host
+
+## [WHEN] You need this when:
+1. You started a webserver container but can't reach it from your browser.
+2. You need to run multiple instances of the same app on different ports.
+3. You need to map a privileged port (80, 443) to a container.
+4. Your container's app port conflicts with another service.
+
+## [INTENT] "Make this container's port accessible from outside."
+
+## [CONTEXT]
+By default, container ports are ISOLATED. Even if nginx listens on
+port 80 inside the container, you can't reach it from your host —
+unless you publish that port.
+
+The -p flag publishes ports:
+  -p HOST_PORT:CONTAINER_PORT
+  -p 8080:80    means: forward host's 8080 to container's 80
+
+You can publish multiple ports with multiple -p flags.
+You can bind to a specific host interface: -p 127.0.0.1:8080:80
+
+## [ACTION] Port publishing patterns
+Common patterns:
+  docker run -d -p 8080:80 nginx                — host:8080 → container:80
+  docker run -d -p 80:80 nginx                  — host:80 → container:80
+  docker run -d -p 127.0.0.1:8080:80 nginx      — bind only to localhost
+  docker run -d -p 8080:80 -p 8443:443 nginx    — multiple ports
+  docker run -d -P nginx                        — publish all EXPOSEd ports to random hosts
+  docker run -d -p 8080:80/udp myapp            — UDP instead of TCP
+
+Inspecting:
+  docker port web                  — show all port mappings for "web"
+  docker ps                        — PORTS column shows mappings
+
+## [EXPECTED RESULT]
+After publishing, the app is reachable on the host:
+  docker run -d -p 8080:80 --name web nginx
+  curl http://localhost:8080
+  # or open http://localhost:8080 in browser
+
+## Try it now:
+  docker run -d -p 8080:80 --name web1 nginx
+  docker run -d -p 8081:80 --name web2 nginx
+  curl http://localhost:8080
+  curl http://localhost:8081
+  docker port web1
+  docker stop web1 web2 && docker rm web1 web2
+
+## Technician Tip — port already in use:
+"bind: address already in use" means the host port is taken.
+Find what's using it:
+  sudo ss -tlnp | grep :8080
+  sudo lsof -i :8080
+Either stop that service or pick a different host port.
+
+## Common Pain Point:
+"My app inside the container can't reach the host's database" →
+inside a container, "localhost" = the container itself, NOT the host.
+On Mac/Windows, use: host.docker.internal
+On Linux: use the host's IP, or run with --network host.
+
+## DCA Exam Note:
+Know -p HOST:CONTAINER format.
+Know -P (capital) publishes all EXPOSEd ports to random host ports.
+Know that EXPOSE in Dockerfile is documentation only — it does NOT
+publish ports. You still need -p at runtime.

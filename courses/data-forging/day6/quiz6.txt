@@ -1,0 +1,55 @@
+Q1: curl -sL URL does:
+A) Sends a POST request
+B) Saves to a file
+C) -s (silent, no progress bar) -L (follow redirects) — fetches the URL cleanly for piping
+D) Uploads data
+Correct: C
+
+Q2: SCENARIO: An API returns paginated results (100 per page). You need all 5 pages. The approach:
+A) curl once and hope
+B) A loop: for page in 1 2 3 4 5; do curl -s "URL?page=$page" | jq '.data[]'; done — iterate pages, extract data
+C) Ask the API owner for all data
+D) Only get the first page
+Correct: B
+
+Q3: curl -H 'Authorization: Bearer TOKEN' adds:
+A) A user agent
+B) A cookie
+C) A content type
+D) An authentication header — required by most APIs to verify your identity
+Correct: D
+
+Q4: TRADEOFF: Fetching API data synchronously (one request at a time) vs parallel. When does parallel help?
+A) When you have many independent requests (e.g., 50 different endpoints) — xargs -P 4 or GNU parallel. But respect rate limits.
+B) Never — APIs are always fast
+C) Only for uploads
+D) Always
+Correct: A
+
+Q5: DIAGNOSTIC: Your API pipeline worked yesterday but today curl returns HTTP 429. What's happening?
+A) 429 = Too Many Requests — you're being rate-limited. Add delays (sleep) between requests or reduce concurrency.
+B) The URL changed
+C) The API is broken
+D) Your network is down
+Correct: A
+
+Q6: curl -s URL | jq '.results[]' | while read -r item; do ... is a pattern for:
+A) Deleting data
+B) Authenticating
+C) Uploading data
+D) Streaming API results — processing each record as it arrives without loading everything into memory
+Correct: D
+
+Q7: SCENARIO: You're building a pipeline that fetches weather data every hour. The API key should NOT be in the script. Where should it be?
+A) In the URL
+B) Hardcoded in the script
+C) In an environment variable or a .env file that's .gitignored — sourced at runtime, never committed
+D) In the README
+Correct: C
+
+Q8: A well-built API pipeline should handle:
+A) Only authentication
+B) Only JSON parsing
+C) HTTP errors (4xx/5xx), empty responses, rate limits, network timeouts, and malformed data — with logging for each
+D) Only the happy path
+Correct: C

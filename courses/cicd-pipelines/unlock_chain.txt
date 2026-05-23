@@ -1,0 +1,17 @@
+# CI/CD Pipelines unlock chain
+# Day 1: what_is_cicd, triggers, platforms
+what_is_cicd|triggers
+triggers|platforms
+# Day 2: first_workflow, jobs_steps, actions_caching
+first_workflow|jobs_steps
+jobs_steps|actions_caching
+# Day 3: linting, testing
+linting|testing
+# Day 4: docker_build, registries
+docker_build|registries
+# Day 6: deploy_strategies, staging_cd
+deploy_strategies|staging_cd
+# Day 7: secrets, reusable
+secrets|reusable
+# Day 8: review, capstone
+review|capstone

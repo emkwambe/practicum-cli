@@ -1,0 +1,59 @@
+Q1: A Job differs from a Deployment because:
+A) Jobs run pods to completion and stop — Deployments keep pods running indefinitely
+B) Jobs use different images
+C) Jobs can't use resource limits
+D) Jobs run faster
+Correct: A
+
+Q2: SCENARIO: A database migration Job has been running for 2 hours. It usually finishes in 10 minutes. What should you have configured?
+A) More replicas
+B) activeDeadlineSeconds — a timeout that kills the Job if it exceeds the expected duration, preventing runaway resource consumption
+C) A bigger node
+D) A CronJob instead
+Correct: B
+
+
+
+Q3: The restartPolicy for a Job pod must be:
+A) Never or OnFailure — because "Always" would make K8s restart the pod forever, defeating the Job's run-to-completion purpose
+B) Always
+C) Any value works
+D) OnFailure only
+Correct: A
+
+Q4: A CronJob with concurrencyPolicy: Forbid means:
+A) No CronJobs can run
+B) Only one pod ever exists
+C) It runs faster
+D) If the previous run is still active, the new scheduled run is skipped — prevents overlapping executions
+Correct: D
+
+Q5: DIAGNOSTIC: A CronJob scheduled for "0 2 * * *" isn't firing. kubectl get jobs shows no new Jobs. What should you check?
+A) Delete and recreate it
+B) Change to a Deployment
+C) Check if a previous Job is still running (Forbid policy blocks new runs), verify the schedule syntax, and check startingDeadlineSeconds
+D) The cluster clock
+Correct: C
+
+Q6: DaemonSets ensure:
+A) Maximum one pod per cluster
+B) Pods run on the control plane
+C) Exactly one pod runs on every (or every matching) node — when nodes join, pods are added automatically; when nodes leave, pods are removed
+D) High availability for web apps
+Correct: C
+
+Q7: TRADEOFF: A DaemonSet vs a Deployment with replicas equal to node count:
+A) They're identical
+B) DaemonSets automatically add/remove pods as nodes join/leave — Deployments don't track node membership, so you'd need to manually adjust replicas
+C) Deployments are better for logging
+D) DaemonSets use less memory
+Correct: B
+
+
+
+Q8: SCENARIO: Your log-collector DaemonSet shows 4/5 nodes running. One node is missing the pod. kubectl describe shows the node has a taint. What's the fix?
+A) Delete the node
+B) Scale the DaemonSet
+C) Remove the DaemonSet
+D) Add a toleration to the DaemonSet spec matching the node's taint — DaemonSets respect taints like any other workload
+Correct: D

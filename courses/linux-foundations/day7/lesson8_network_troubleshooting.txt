@@ -1,0 +1,36 @@
+# Lesson: Network Troubleshooting — The Diagnostic Pipeline
+
+## [WHEN] You need this when:
+1. "The app cannot connect to the database" — production is down.
+2. A user reports the website is unreachable.
+3. After a server migration, services cannot communicate.
+
+## [INTENT] "Why cannot A talk to B? Diagnose step by step."
+
+## [CONTEXT]
+Network troubleshooting follows a systematic bottom-up approach.
+Each step eliminates a category of problems.
+
+## [ACTION] The Diagnostic Pipeline
+Step 1: ip addr               — do I have an IP?
+Step 2: ping gateway           — can I reach the router?
+Step 3: ping target            — can I reach the host?
+Step 4: dig hostname           — is DNS working?
+Step 5: ss -tlnp | grep port  — is the service listening?
+Step 6: curl target:port       — can I connect?
+Step 7: traceroute target      — where does the path break?
+
+Common fixes:
+  No IP = dhclient or static config
+  DNS fails = check /etc/resolv.conf
+  Service not listening = systemctl start service
+  Firewall blocks = iptables/ufw rule
+
+## [EXPECTED RESULT]
+You identify exactly which layer is broken and fix it.
+
+## Try it now:
+  ip addr | grep inet
+  ip route
+  ping -c 2 localhost
+  ss -tlnp | head -5

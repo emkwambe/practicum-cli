@@ -1,0 +1,40 @@
+# Lesson: git branch — Create Parallel Workstreams
+
+## [WHEN] You need this when:
+1. You want to work on a new feature without breaking the main code.
+2. You need to experiment with an idea safely.
+3. Multiple people are working on different features at once.
+4. You need to fix a bug while a feature is in progress.
+
+## [INTENT] "Work on something new without affecting what already works."
+
+## [CONTEXT]
+A branch is a separate line of development. The default branch is
+usually called main (or master). When you create a new branch, Git
+makes a copy of the current state. Changes on one branch do not
+affect other branches until you merge them.
+Think of it as making a photocopy of a document — you can scribble
+on the copy without ruining the original.
+
+## [ACTION] git branch / git switch
+Common patterns:
+  git branch                        — list all branches (* = current)
+  git branch feature-login          — create a new branch
+  git switch feature-login          — switch to a branch
+  git switch -c feature-login       — create AND switch in one step
+  git branch -d feature-login       — delete a branch (after merging)
+  git branch -D feature-login       — force delete (even if not merged)
+
+Legacy (still works):
+  git checkout feature-login        — switch to branch
+  git checkout -b feature-login     — create + switch
+
+## [EXPECTED RESULT]
+git branch shows all branches with * marking the current one.
+Switching branches changes your working directory to that branch's state.
+
+## Try it now:
+  git branch feature-greeting
+  git branch
+  git switch feature-greeting
+  git branch

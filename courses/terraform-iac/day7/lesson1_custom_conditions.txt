@@ -1,0 +1,125 @@
+# Lesson: Custom Conditions — Validation & Checks
+
+## [WHEN] You need this when:
+1. A variable must meet specific criteria (CIDR must be /16 or larger).
+2. You want to catch configuration errors before apply.
+3. Infrastructure must pass post-apply health checks.
+4. The exam added custom conditions as a NEW 004 objective (Obj 4g).
+
+## [INTENT] "Validate inputs and infrastructure with custom conditions."
+
+## [CONTEXT]
+terraform validate catches syntax errors. Custom conditions catch
+LOGIC errors: "this CIDR is too small," "this instance type doesn't
+exist in this region," "this environment name isn't valid."
+
+Three mechanisms:
+  Input validation → catch bad variables before plan
+  Preconditions → catch bad state before resource creation
+  Postconditions → verify assumptions after creation
+  Check blocks → continuous infrastructure validation
+
+## [ACTION] Custom conditions
+
+### Input validation (variable blocks):
+  variable "environment" {
+    type = string
+    validation {
+      condition     = contains(["dev", "staging", "prod"], var.environment)
+      error_message = "Environment must be dev, staging, or prod."
+    }
+  }
+
+  variable "cidr_block" {
+    type = string
+    validation {
+      condition     = can(cidrhost(var.cidr_block, 0))
+      error_message = "Must be a valid CIDR notation (e.g., 10.0.0.0/16)."
+    }
+  }
+
+  variable "instance_count" {
+    type = number
+    validation {
+      condition     = var.instance_count > 0 && var.instance_count <= 10
+      error_message = "Instance count must be between 1 and 10."
+    }
+  }
+
+  # Multiple validation blocks per variable are allowed:
+  variable "bucket_name" {
+    type = string
+    validation {
+      condition     = length(var.bucket_name) >= 3
+      error_message = "Bucket name must be at least 3 characters."
+    }
+    validation {
+      condition     = can(regex("^[a-z0-9-]+$", var.bucket_name))
+      error_message = "Bucket name can only contain lowercase letters, numbers, and hyphens."
+    }
+  }
+
+### Preconditions (before resource creation):
+  resource "aws_instance" "web" {
+    ami           = data.aws_ami.ubuntu.id
+    instance_type = var.instance_type
+
+    lifecycle {
+      precondition {
+        condition     = data.aws_ami.ubuntu.architecture == "x86_64"
+        error_message = "AMI must be x86_64 architecture."
+      }
+    }
+  }
+
+  # Preconditions fail the plan — resource is never created.
+  # Use for assumptions about data sources or other resources.
+
+### Postconditions (after resource creation):
+  resource "aws_instance" "web" {
+    ami           = var.ami_id
+    instance_type = "t3.micro"
+
+    lifecycle {
+      postcondition {
+        condition     = self.public_ip != ""
+        error_message = "Instance must have a public IP assigned."
+      }
+    }
+  }
+
+  # Postconditions check the created resource. If they fail,
+  # the resource exists but Terraform marks it as errored.
+  # Use self to reference the resource's own attributes.
+
+### Check blocks (continuous validation):
+  check "health_check" {
+    data "http" "api" {
+      url = "https://${aws_lb.main.dns_name}/health"
+    }
+
+    assert {
+      condition     = data.http.api.status_code == 200
+      error_message = "Application health check failed."
+    }
+  }
+
+  # Check blocks are advisory — they warn but don't block.
+  # Useful for: endpoint health, certificate expiry, DNS propagation.
+  # Run on every plan/apply.
+
+### Precondition vs postcondition vs check:
+  Variable validation → catches bad INPUT before plan
+  Precondition → catches bad ASSUMPTIONS before creation
+  Postcondition → verifies RESULTS after creation
+  Check block → advisory MONITORING on every run
+
+## [EXPECTED RESULT]
+You can write input validations, pre/postconditions, and check
+blocks to catch errors at every stage of the Terraform workflow.
+
+## Technician Tip:
+Exam 004 specifically added this objective. Key distinction:
+variable validation uses condition + error_message in the variable
+block. Preconditions and postconditions go inside lifecycle blocks.
+Check blocks are standalone and non-blocking.

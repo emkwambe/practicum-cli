@@ -1,0 +1,96 @@
+# Lesson: Ingress — HTTP Routing & TLS Termination
+
+## [WHEN] You need this when:
+1. You need multiple apps on the same domain (api.example.com, app.example.com).
+2. You need HTTPS/TLS termination at the cluster edge.
+3. NodePort and LoadBalancer per service gets expensive (one LB per service).
+
+## [INTENT] "Route external HTTP traffic to services with Ingress."
+
+## [CONTEXT]
+Without Ingress: each service that needs external access gets its own
+LoadBalancer. 10 services = 10 load balancers = 10 bills.
+
+With Ingress: one Ingress controller (one load balancer) routes traffic
+to multiple services based on hostname or path.
+
+  Ingress Controller (nginx, traefik)
+      │
+      ├─ api.example.com   → api-service
+      ├─ app.example.com   → web-service
+      └─ example.com/docs  → docs-service
+
+## [ACTION] Ingress resources
+
+### Ingress manifest:
+  apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    name: app-ingress
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /
+  spec:
+    ingressClassName: nginx
+    rules:
+      - host: app.example.com
+        http:
+          paths:
+            - path: /
+              pathType: Prefix
+              backend:
+                service:
+                  name: web-service
+                  port:
+                    number: 80
+      - host: api.example.com
+        http:
+          paths:
+            - path: /
+              pathType: Prefix
+              backend:
+                service:
+                  name: api-service
+                  port:
+                    number: 80
+
+### TLS termination:
+  spec:
+    tls:
+      - hosts:
+          - app.example.com
+        secretName: app-tls-cert
+    rules:
+      - host: app.example.com
+        # ... same as above
+
+  # The TLS certificate is stored as a K8s Secret.
+  # cert-manager can automate Let's Encrypt certificates.
+
+### Ingress controllers:
+  An Ingress resource is just a routing rule.
+  You need an Ingress CONTROLLER to enforce it:
+    - NGINX Ingress Controller (most popular)
+    - Traefik
+    - HAProxy
+    - AWS ALB Controller
+
+  # Install NGINX Ingress on kind:
+  kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+
+### Debugging Ingress:
+  kubectl get ingress                   # list rules
+  kubectl describe ingress app-ingress  # check backends
+  kubectl logs -n ingress-nginx deploy/ingress-nginx-controller
+
+  # 404? → path or host doesn't match any rule
+  # 502? → backend service or pods aren't running
+  # No address? → ingress controller isn't running
+
+## [EXPECTED RESULT]
+You can set up Ingress for host-based and path-based routing,
+configure TLS, and debug routing issues.
+
+## Common Pain Point:
+"Ingress shows no ADDRESS" → the ingress controller isn't installed
+or isn't running. It's a separate deployment — it doesn't come
+with Kubernetes by default.

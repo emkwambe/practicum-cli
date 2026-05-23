@@ -1,0 +1,36 @@
+# Lesson: git push — Send Your Commits to the Server
+
+## [WHEN] You need this when:
+1. You finished work locally and want your team to see it.
+2. You want to back up your code to GitHub.
+3. You created a branch locally and want it on the remote.
+4. You merged a feature and need to update the shared main branch.
+
+## [INTENT] "Upload my local commits to the remote server."
+
+## [CONTEXT]
+git push sends your local commits to a remote repository. It only
+uploads commits that the remote does not have yet — it does not upload
+everything every time. You must commit before you can push.
+The first time you push a new branch, use -u to set the upstream
+tracking. After that, plain git push works.
+
+## [ACTION] git push
+Common patterns:
+  git push                          — push current branch to its upstream
+  git push origin main              — push main branch to origin
+  git push -u origin feature-login  — push new branch + set tracking
+  git push origin --delete old-branch — delete a remote branch
+  git push --tags                   — push all tags to remote
+
+## [EXPECTED RESULT]
+Shows upload progress and "branch -> branch" confirmation.
+Example: "main -> main" means your main was updated on the server.
+
+## Try it now:
+  echo "update" >> hello.txt
+  git add . && git commit -m "Update hello"
+  git push origin main
+
+## Next:
+Use git pull to get changes others have pushed.

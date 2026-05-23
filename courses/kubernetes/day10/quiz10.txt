@@ -1,0 +1,55 @@
+Q1: A PersistentVolumeClaim (PVC) is:
+A) A request for storage — K8s finds or creates a PersistentVolume that matches the size and access mode
+B) A backup
+C) A container volume
+D) A physical disk
+Correct: A
+
+Q2: SCENARIO: Your PostgreSQL pod restarts and all data is gone. The Deployment uses emptyDir for storage. The fix:
+A) Use a bigger node
+B) Add more replicas
+C) Replace emptyDir with a PersistentVolumeClaim — emptyDir dies with the pod, PVCs persist independently
+D) Use a Secret for data
+Correct: C
+
+Q3: StatefulSets differ from Deployments because:
+A) They can't scale
+B) They don't use images
+C) They're faster
+D) Each pod gets a stable hostname (db-0, db-1), its own PVC, and ordered startup/shutdown — needed for databases and clustered workloads
+Correct: D
+
+Q4: DIAGNOSTIC: A PVC is stuck in Pending state. kubectl describe pvc shows "no persistent volumes available." What's wrong?
+A) The cluster is full
+B) No PersistentVolume matches the claim — either the StorageClass doesn't exist, or dynamic provisioning isn't configured
+C) PVCs don't work on kind
+D) The namespace is wrong
+Correct: B
+
+Q5: A headless Service (clusterIP: None) is required for StatefulSets because:
+A) It gives each pod its own DNS entry (db-0.headless-svc) instead of load balancing — needed when clients must reach specific replicas
+B) It's faster
+C) Regular Services don't work with StatefulSets
+D) It saves IP addresses
+Correct: A
+
+Q6: TRADEOFF: Running a database as a StatefulSet on K8s vs using a managed service (RDS, Cloud SQL):
+A) Managed services can't do replication
+B) Managed services handle backups, replication, upgrades, and HA automatically — StatefulSets give you control but you own ALL operational complexity
+C) StatefulSet is always better
+D) They're the same effort
+Correct: B
+
+Q7: The reclaimPolicy on a PersistentVolume determines:
+A) How fast data is written
+B) The storage class
+C) Who can access the volume
+D) What happens when the PVC is deleted — Retain keeps the data (manual cleanup), Delete removes the data permanently
+Correct: D
+
+Q8: volumeClaimTemplates in a StatefulSet:
+A) Create a unique PVC per pod — db-0 gets data-db-0, db-1 gets data-db-1. Each pod has its own isolated storage.
+B) Share one PVC across all pods
+C) Are optional for databases
+D) Only work with NFS
+Correct: A

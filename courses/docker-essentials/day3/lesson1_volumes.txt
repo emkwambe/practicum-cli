@@ -1,0 +1,80 @@
+# Lesson: Volumes — Persistent Data for Containers
+
+## [WHEN] You need this when:
+1. Your database container restarts and loses all data.
+2. You want to edit source code on the host and see changes inside the container.
+3. Multiple containers need to share the same data.
+4. You need to back up data from a container.
+
+## [INTENT] "Keep data alive even after the container is destroyed."
+
+## [CONTEXT]
+Containers are EPHEMERAL — when you delete a container, everything
+inside it is gone. That's great for the application code but disastrous
+for data (databases, uploads, configs).
+
+Volumes solve this by storing data OUTSIDE the container's writable layer.
+Two main types:
+
+1. Named volumes (Docker manages them):
+   docker volume create pgdata
+   docker run -v pgdata:/var/lib/postgresql/data postgres
+   Data persists even after container is deleted.
+
+2. Bind mounts (you control the host path):
+   docker run -v /host/path:/container/path nginx
+   Good for: live-reloading dev, config files, logs you want to see on host.
+
+There's also tmpfs (in-memory, non-persistent) for secrets/temp data.
+
+## [ACTION] Volume operations
+Common patterns:
+  # Named volume (recommended for data)
+  docker volume create pgdata
+  docker run -d --name db -v pgdata:/var/lib/postgresql/data \
+             -e POSTGRES_PASSWORD=secret postgres
+
+  # Bind mount (dev workflow)
+  docker run -v $(pwd):/app node npm start
+
+  # Read-only mount
+  docker run -v /etc/nginx.conf:/etc/nginx/nginx.conf:ro nginx
+
+  # List and inspect
+  docker volume ls
+  docker volume inspect pgdata
+  docker volume rm pgdata
+  docker volume prune          # removes unused volumes
+
+## [EXPECTED RESULT]
+With a volume, you can delete and recreate the container, and the
+data survives:
+  docker rm -f db
+  docker run -d --name db -v pgdata:/var/lib/postgresql/data postgres
+  # All previous data is still there!
+
+## Try it now:
+  docker volume create test-vol
+  docker run --rm -v test-vol:/data alpine sh -c 'echo hello > /data/file.txt'
+  docker run --rm -v test-vol:/data alpine cat /data/file.txt
+  docker volume inspect test-vol
+  docker volume rm test-vol
+
+## Technician Tip — the :ro flag:
+For config files that should NEVER be written to, use :ro (read-only):
+  docker run -v $(pwd)/app.conf:/etc/app/app.conf:ro myapp
+
+Even if the container is compromised, it can't modify your config.
+
+## Common Pain Point:
+"Permission denied" writing to a bind mount → the container's user
+doesn't match the host file owner. Fix options:
+  1. Run container as that user: docker run --user 1000:1000 ...
+  2. Chown on the host: chown -R 1000:1000 ./data
+
+## DCA Exam Note:
+Know the three mount types:
+  volume      — Docker-managed, best for data
+  bind        — host path, good for dev
+  tmpfs       — in-memory, non-persistent
+Know -v (short) vs --mount (explicit, recommended for production).

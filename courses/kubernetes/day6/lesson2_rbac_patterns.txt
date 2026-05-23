@@ -1,0 +1,136 @@
+# Lesson: RBAC Patterns — Production Access Control Design
+
+## [WHEN] You need this when:
+1. You're designing access control for a team with multiple roles.
+2. You need to secure a multi-tenant cluster.
+3. Compliance (HIPAA, SOC2) requires documented access controls.
+4. The CKA exam asks you to create RBAC policies under time pressure.
+
+## [INTENT] "Design and implement production RBAC patterns."
+
+## [CONTEXT]
+RBAC isn't just about creating Roles. It's about designing
+an access control model that's secure, auditable, and maintainable.
+
+## [ACTION] Production RBAC patterns
+
+### Pattern 1: Team-based access (most common):
+  # Developers: read + deploy in their namespace
+  kind: Role
+  metadata:
+    name: developer
+    namespace: app-team
+  rules:
+    - apiGroups: ["", "apps"]
+      resources: ["pods", "services", "deployments", "configmaps"]
+      verbs: ["get", "list", "watch", "create", "update", "patch"]
+    - apiGroups: [""]
+      resources: ["pods/log", "pods/exec"]
+      verbs: ["get", "create"]
+
+  # Ops/SRE: full access in all namespaces
+  kind: ClusterRole
+  metadata:
+    name: sre
+  rules:
+    - apiGroups: ["*"]
+      resources: ["*"]
+      verbs: ["*"]
+    # Still NOT cluster-admin — can't modify RBAC itself
+
+  # Read-only (dashboards, monitoring):
+  kind: ClusterRole
+  metadata:
+    name: viewer
+  rules:
+    - apiGroups: ["", "apps", "batch"]
+      resources: ["*"]
+      verbs: ["get", "list", "watch"]
+
+### Pattern 2: CI/CD ServiceAccount:
+  # Only needs: create/update deployments, read configmaps
+  kind: Role
+  metadata:
+    name: deployer
+    namespace: production
+  rules:
+    - apiGroups: ["apps"]
+      resources: ["deployments"]
+      verbs: ["get", "list", "create", "update", "patch"]
+    - apiGroups: [""]
+      resources: ["configmaps", "secrets"]
+      verbs: ["get", "list"]
+
+  # NOT: delete, not pods directly, not RBAC, not nodes
+
+### Pattern 3: Namespace isolation (multi-tenant):
+  # Each team gets their own namespace
+  # Each team can only access their namespace
+  # Cluster resources (nodes) visible to ops only
+
+  kubectl create namespace team-alpha
+  kubectl create namespace team-beta
+
+  # Role + RoleBinding per team, per namespace
+  # No ClusterRoleBindings for teams
+
+### Aggregated ClusterRoles:
+  # K8s built-in roles use aggregation:
+  kubectl get clusterroles | grep -E "^(admin|edit|view)"
+
+  admin → full namespace access (no RBAC, no resource quotas)
+  edit  → read/write most resources (no roles, no bindings)
+  view  → read-only
+
+  # Bind a built-in role:
+  kubectl create rolebinding dev-edit \
+    --clusterrole=edit \
+    --user=jane \
+    --namespace=dev
+
+### Common CKA RBAC tasks:
+  # Create a Role that allows listing/getting pods and creating deployments:
+  kubectl create role app-manager \
+    --verb=get,list,watch --resource=pods \
+    --verb=create,update --resource=deployments \
+    -n staging
+
+  # Bind it to a user:
+  kubectl create rolebinding app-manager-binding \
+    --role=app-manager \
+    --user=jane \
+    -n staging
+
+  # Bind it to a ServiceAccount:
+  kubectl create rolebinding deployer-binding \
+    --role=app-manager \
+    --serviceaccount=staging:ci-deployer \
+    -n staging
+
+### Debugging RBAC:
+  # "Forbidden" error → missing RBAC permission
+  kubectl auth can-i create deployments -n prod --as jane
+  # no
+
+  # What CAN jane do?
+  kubectl auth can-i --list -n prod --as jane
+
+  # Common mistake: RoleBinding in wrong namespace
+  # The RoleBinding namespace must match the Role namespace
+
+### Security principles:
+  1. Least privilege: minimum permissions for the task
+  2. No shared ServiceAccounts across applications
+  3. No cluster-admin for anything except break-glass
+  4. automountServiceAccountToken: false unless needed
+  5. Regular audit: who has what access?
+
+## [EXPECTED RESULT]
+You can design team-based RBAC, create CI/CD ServiceAccounts,
+use kubectl imperative commands for RBAC (CKA speed), and debug
+Forbidden errors.
+
+## Technician Tip:
+CKA exam tip: kubectl create role and kubectl create rolebinding
+are faster than writing YAML. Master the imperative commands.
+Every second counts in a 2-hour performance exam.

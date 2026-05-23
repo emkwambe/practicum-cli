@@ -1,0 +1,29 @@
+# Lesson: scp & rsync — Transfer Files Between Machines
+
+## [WHEN] You need this when:
+1. You need to deploy code from your laptop to a server.
+2. You want to pull log files from a remote server for analysis.
+3. You need to back up a database dump to another machine.
+4. You are syncing files between two servers.
+
+## [INTENT] "Copy files between my machine and a remote server."
+
+## [CONTEXT]
+scp (secure copy) works like cp but over SSH — encrypted.
+rsync is smarter — it only transfers changed parts, saving time.
+
+## [ACTION] scp / rsync
+  scp file.txt user@host:/path/    — upload a file
+  scp user@host:/path/file.txt .   — download a file
+  scp -r folder/ user@host:/path/  — upload a directory
+  rsync -avz folder/ user@host:/path/  — sync folder to remote
+  rsync -avz --delete src/ dest/   — mirror (delete extras)
+
+Flags: a=archive, v=verbose, z=compress
+
+## [EXPECTED RESULT]
+Files appear on the destination. rsync shows progress.
+
+## Try it now:
+  echo "test" > /tmp/transfer_test.txt
+  ls -la /tmp/transfer_test.txt

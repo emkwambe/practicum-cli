@@ -1,0 +1,78 @@
+# Lesson: Pods — The Smallest Deployable Unit
+
+## [WHEN] You need this when:
+1. You need to understand what runs inside Kubernetes.
+2. You're writing your first YAML manifest.
+3. A pod is crashing and you need to understand why.
+
+## [INTENT] "Understand pods as the atomic unit and write pod manifests."
+
+## [CONTEXT]
+A pod is one or more containers that share:
+  - Network (same IP, can talk via localhost)
+  - Storage (shared volumes)
+  - Lifecycle (created and destroyed together)
+
+Most pods run a single container. Multi-container pods are for
+tightly-coupled helpers (logging sidecars, proxies).
+
+## [ACTION] Working with pods
+
+### Pod manifest (pod.yaml):
+  apiVersion: v1
+  kind: Pod
+  metadata:
+    name: web
+    labels:
+      app: web
+      tier: frontend
+  spec:
+    containers:
+      - name: nginx
+        image: nginx:1.25-alpine
+        ports:
+          - containerPort: 80
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "250m"
+
+### Create and inspect:
+  kubectl apply -f pod.yaml
+  kubectl get pods
+  kubectl describe pod web
+  kubectl logs web
+  kubectl exec -it web -- sh
+
+### Pod lifecycle:
+  Pending  → container image pulling, waiting for scheduling
+  Running  → at least one container is running
+  Succeeded → all containers exited 0 (for batch jobs)
+  Failed   → at least one container exited non-zero
+  CrashLoopBackOff → container keeps crashing, K8s backs off retries
+
+### Labels matter:
+  Labels are key-value pairs on every resource.
+  Services, Deployments, and other resources use label SELECTORS
+  to find and manage pods.
+
+  Labels: app: web, tier: frontend, env: prod
+  Selector: app=web → finds all pods with that label
+
+### Why you almost never create pods directly:
+  Pods are mortal. When a pod dies, it stays dead.
+  Nobody recreates it. Use Deployments instead — they manage
+  pod lifecycle, replicas, and updates automatically.
+
+  Direct pod creation is only for: debugging, one-off tasks, learning.
+
+## [EXPECTED RESULT]
+You can write pod manifests, understand the pod lifecycle,
+and know why Deployments (not bare pods) are used in production.
+
+## Common Pain Point:
+"Pod stuck in Pending" → kubectl describe pod name. Look at Events.
+Usually: insufficient resources, image pull failure, or no matching node.

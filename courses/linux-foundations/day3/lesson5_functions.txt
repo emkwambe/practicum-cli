@@ -1,0 +1,51 @@
+# Lesson: Functions — Reusable Code Blocks
+
+## [WHEN] You need this when:
+1. You find yourself copying the same code in multiple places.
+2. You want to organize a long script into logical sections.
+3. You need to perform a task that takes arguments (like a mini-program).
+4. You want to make your scripts easier to read and maintain.
+
+## [INTENT] "Define a named block of code I can call later."
+
+## [CONTEXT]
+A function is a named group of commands.
+Define it once, call it many times with different arguments.
+Arguments are accessed with $1, $2, etc. (just like script arguments).
+Functions can return exit codes (0=success) but not strings directly
+— use echo inside the function and capture with $().
+
+## [ACTION] name() { commands; }
+Common patterns:
+  greet() {                            — simple function
+      echo "Hello, $1!"
+  }
+  greet "Alice"                        — call it
+
+  log() {                              — logging function
+      echo "[$(date '+%H:%M:%S')] $*"
+  }
+  log "Starting backup"
+
+  is_root() {                          — return true/false
+      [ "$(id -u)" -eq 0 ]
+  }
+  if is_root; then echo "You are root"; fi
+
+  get_ip() {                           — capture output
+      hostname -I | awk '{print $1}'
+  }
+  my_ip=$(get_ip)
+  echo "My IP is $my_ip"
+
+## [EXPECTED RESULT]
+The function executes its commands when called.
+It can accept arguments and return exit codes.
+
+## Try it now:
+  say_hi() { echo "Hi, $1!"; }
+  say_hi "World"
+  say_hi "Linux"
+
+## Next:
+Type menu to continue or try writing a function with error handling.

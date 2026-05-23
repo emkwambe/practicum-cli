@@ -1,0 +1,81 @@
+# Lesson: The Terraform Module Registry — Standing on Shoulders
+
+## [WHEN] You need this when:
+1. You need a VPC, EKS cluster, or RDS database and don't want to write 500 lines.
+2. You want community-vetted, well-tested infrastructure patterns.
+3. You need to use a remote module from GitHub or the registry.
+
+## [INTENT] "Use published modules and understand versioning and trust."
+
+## [CONTEXT]
+The Terraform Registry (registry.terraform.io) hosts thousands of
+pre-built modules for AWS, GCP, Azure, and more. These are
+community or HashiCorp-maintained, tested, and versioned.
+
+## [ACTION] Using registry modules
+
+### Using a registry module:
+  module "vpc" {
+    source  = "terraform-aws-modules/vpc/aws"
+    version = "5.5.0"
+
+    name = "my-vpc"
+    cidr = "10.0.0.0/16"
+
+    azs             = ["us-east-1a", "us-east-1b"]
+    private_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
+    public_subnets  = ["10.0.101.0/24", "10.0.102.0/24"]
+
+    enable_nat_gateway = true
+  }
+
+  # This replaces 200+ lines of VPC, subnet, route table,
+  # internet gateway, NAT gateway configuration.
+
+### Using a GitHub module:
+  module "app" {
+    source = "github.com/myorg/terraform-modules//web-server?ref=v1.0.0"
+  }
+
+### Version constraints:
+  version = "5.5.0"         # exact version
+  version = "~> 5.5"        # >= 5.5.0, < 5.6.0 (patch updates only)
+  version = ">= 5.0, < 6.0" # range
+
+  ALWAYS pin versions. An unpinned module can break your infra
+  when the author pushes a breaking change.
+
+### Evaluating a module before using it:
+  1. Check downloads and stars (popularity = battle-tested)
+  2. Read the README and examples
+  3. Check inputs (variables) and outputs
+  4. Check the source code for hardcoded values or assumptions
+  5. Check the version history (active maintenance?)
+  6. Prefer "verified" modules (HashiCorp-reviewed)
+
+### Building your own registry:
+  For organizations, create internal modules in a Git repo:
+  terraform-modules/
+  ├── modules/
+  │   ├── web-server/
+  │   ├── database/
+  │   ├── network/
+  │   └── monitoring/
+  └── README.md
+
+  Reference with Git source:
+  source = "git::https://github.com/myorg/terraform-modules.git//modules/web-server?ref=v2.0.0"
+
+## [EXPECTED RESULT]
+You can find, evaluate, and use registry modules with proper
+version pinning, and build internal module libraries.
+
+## Technician Tip:
+Registry modules are great starting points but may include
+more than you need. For simple cases, writing your own 20-line
+module may be cleaner than configuring 50 inputs on a registry module.
+
+## Common Pain Point:
+"Module version not found" → check the exact version format.
+Registry uses semver (1.2.3). GitHub uses ?ref=tag_name.
+Run terraform init -upgrade to fetch new versions.

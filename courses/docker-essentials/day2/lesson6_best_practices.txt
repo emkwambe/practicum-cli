@@ -1,0 +1,91 @@
+# Lesson: Dockerfile Best Practices — Production Quality
+
+## [WHEN] You need this when:
+1. You're writing a Dockerfile that will run in production.
+2. Your images are huge and need to be smaller.
+3. Security team flagged your image for vulnerabilities.
+4. Your team's Dockerfiles are inconsistent and you want standards.
+
+## [INTENT] "Write a Dockerfile that is small, secure, fast, and reliable."
+
+## [CONTEXT]
+A production-grade Dockerfile follows proven patterns. Here are the
+rules that separate amateur from professional images.
+
+## [ACTION] The Production Dockerfile Checklist
+
+### 1. Use specific base image tags (not :latest)
+  ❌ FROM node
+  ✅ FROM node:20.11-alpine    ← specific version + small variant
+
+### 2. Use slim/alpine variants when possible
+  ❌ FROM python:3.11          (~900 MB)
+  ✅ FROM python:3.11-slim     (~150 MB)
+  ✅ FROM python:3.11-alpine   (~50 MB, but may need more work)
+
+### 3. Combine RUN statements to reduce layers
+  ❌ RUN apt-get update
+     RUN apt-get install -y curl
+     RUN apt-get install -y git
+  ✅ RUN apt-get update && \
+        apt-get install -y curl git && \
+        rm -rf /var/lib/apt/lists/*
+
+### 4. Never hardcode secrets
+  ❌ ENV DB_PASSWORD=secret123
+  ✅ Use docker secrets, env vars at runtime, or external vault
+
+### 5. Run as non-root user
+  ❌ (default: runs as root)
+  ✅ RUN useradd -m -u 1000 app
+     USER app
+
+### 6. Use .dockerignore
+  Exclude: .git, node_modules, .env, *.log, tests/, docs/
+
+### 7. Set WORKDIR explicitly
+  ❌ RUN cd /app && npm start
+  ✅ WORKDIR /app
+     CMD ["npm", "start"]
+
+### 8. Use COPY, not ADD (unless unpacking an archive)
+  ❌ ADD file.txt /app/          (auto-extracts archives, confusing)
+  ✅ COPY file.txt /app/         (simple, predictable)
+
+### 9. Use HEALTHCHECK
+  ✅ HEALTHCHECK --interval=30s --timeout=3s \
+        CMD curl -f http://localhost/health || exit 1
+
+### 10. Pin dependencies
+  ❌ RUN npm install              (uses latest)
+  ✅ RUN npm ci                   (uses lockfile, reproducible)
+
+## [EXPECTED RESULT]
+A Dockerfile that produces a small, secure, predictable image.
+Build with: docker build -t myapp:v1.0 .
+Expect: 50-150 MB for most apps (not GBs).
+
+## Example: Production Python Dockerfile
+
+  FROM python:3.11-slim
+  WORKDIR /app
+
+  RUN apt-get update && \
+      apt-get install -y --no-install-recommends curl && \
+      rm -rf /var/lib/apt/lists/*
+
+  COPY requirements.txt .
+  RUN pip install --no-cache-dir -r requirements.txt
+
+  COPY . .
+
+  RUN useradd -m -u 1000 app && chown -R app:app /app
+  USER app
+
+  EXPOSE 8000
+  HEALTHCHECK --interval=30s CMD curl -f http://localhost:8000/health || exit 1
+  CMD ["python", "-u", "app.py"]
+
+## Next:
+Type menu to return. You have completed Day 2!
+You can now write production-quality Dockerfiles that build small, fast, secure images.

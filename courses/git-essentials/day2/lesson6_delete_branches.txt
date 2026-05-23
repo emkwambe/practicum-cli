@@ -1,0 +1,36 @@
+# Lesson: Deleting Branches — Clean Up After Merging
+
+## [WHEN] You need this when:
+1. A feature branch was merged and is no longer needed.
+2. You started a branch but abandoned the idea.
+3. The branch list is getting cluttered with old branches.
+4. A code review is complete and the PR was merged.
+
+## [INTENT] "Remove branches that are done."
+
+## [CONTEXT]
+After merging a feature branch, it should be deleted. The commits
+are now part of main — the branch name is just a pointer you no
+longer need. Keeping old branches clutters the project and confuses
+teammates about what is active.
+Use -d for safe delete (only if merged). Use -D to force delete.
+
+## [ACTION] git branch -d <branch>
+Common patterns:
+  git branch -d feature-login       — delete (safe, only if merged)
+  git branch -D experiment          — force delete (even if not merged)
+  git branch -a                     — list all branches (local + remote)
+  git push origin --delete feature  — delete a remote branch
+
+## [EXPECTED RESULT]
+"Deleted branch feature-login (was abc1234)."
+The branch no longer appears in git branch output.
+
+## Try it now:
+  git branch
+  git branch -d test-branch
+  git branch
+
+## Next:
+Type menu to return. You have completed Day 2!
+You can now branch, merge, resolve conflicts, and organize work.

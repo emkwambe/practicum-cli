@@ -1,0 +1,57 @@
+Q1: SCENARIO: A pod can resolve "kubernetes" via nslookup but can't connect to a service called "backend" in a different namespace. What's most likely wrong?
+A) CoreDNS is broken
+B) The backend doesn't exist
+C) The pod is using the short name "backend" which only resolves in the SAME namespace — use the FQDN backend.other-namespace.svc.cluster.local for cross-namespace resolution
+D) NetworkPolicy blocks DNS
+Correct: C
+
+Q2: When debugging network connectivity between pods, the correct layer order is:
+A) Start at Ingress and work down
+B) Check all layers simultaneously
+C) Start at the application
+D) Start at the bottom — CNI (pod-to-pod basic), then DNS (name resolution), then Services (endpoints), then NetworkPolicies (firewall), then Ingress (external). Fix lower layers first.
+Correct: D
+
+Q3: DIAGNOSTIC: kubectl get endpoints shows addresses for a Service, but curl from a pod times out. DNS resolves correctly. The most likely cause:
+A) A NetworkPolicy is blocking traffic between the source pod and the target pods — endpoints exist (selector matches) and DNS works, so the firewall layer is the remaining suspect
+B) The Service is misconfigured
+C) The cluster is slow
+D) The pod needs more CPU
+Correct: A
+
+Q4: SCENARIO: After applying an egress NetworkPolicy to API pods, they get "could not resolve host: database.prod.svc.cluster.local." The database Service exists. What's missing?
+A) The database pod is down
+B) CoreDNS needs restarting
+C) The egress policy doesn't allow DNS (UDP/TCP port 53) — every egress policy MUST include a rule allowing port 53 or pods can't resolve any service names
+D) The namespace label is wrong
+Correct: C
+
+Q5: A Service with type LoadBalancer shows EXTERNAL-IP as "Pending" indefinitely. This happens because:
+A) No cloud load balancer controller exists — LoadBalancer type requires a cloud provider or MetalLB to provision an external IP. On bare metal without MetalLB, it stays Pending forever.
+B) The Service YAML is wrong
+C) The pods aren't ready
+D) DNS isn't configured
+Correct: A
+
+Q6: TRADEOFF: Ingress vs Gateway API for managing external traffic:
+A) Ingress is newer and better
+B) Gateway API is the newer standard — it provides more expressive routing (header-based, weighted), role-based configuration (infra team manages Gateway, dev team manages HTTPRoutes), and better multi-tenancy. Ingress is simpler but limited.
+C) They're identical
+D) Gateway API only works on cloud
+Correct: B
+
+
+
+Q7: SCENARIO: An Ingress returns 502 Bad Gateway for a specific path. The Ingress controller pod is Running. What should you check?
+A) The Ingress controller version
+B) TLS certificates
+C) DNS configuration
+D) Whether the backend Service has Ready endpoints — 502 means the Ingress controller reached the backend but got an error. Check the Service exists, has endpoints, and the target pods are healthy.
+Correct: D
+
+Q8: The CKA exam's most critical networking debugging command is:
+A) kubectl get pods
+B) kubectl get endpoints — this single command reveals whether a Service has backend pods registered. Empty endpoints explains most "can't reach the service" problems and is faster than checking selectors, labels, and pods separately.
+C) kubectl describe node
+D) kubectl top pods
+Correct: B

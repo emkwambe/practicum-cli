@@ -1,0 +1,54 @@
+# Lesson: docker exec — Run Commands Inside a Running Container
+
+## [WHEN] You need this when:
+1. You want to debug a running container without stopping it.
+2. You need to check the database inside the postgres container.
+3. You want to inspect files inside a container.
+4. An app is misbehaving and you need to poke around.
+
+## [INTENT] "Run a command inside this running container."
+
+## [CONTEXT]
+docker exec runs a new process inside an already-running container.
+Different from docker run, which CREATES a new container.
+Most common use: get a shell inside a container for debugging.
+
+Remember: the container must be RUNNING. If stopped, use docker start first,
+or use docker run to create a fresh one.
+
+## [ACTION] docker exec [options] <container> <command>
+Common patterns:
+  docker exec -it web bash         — interactive shell (bash)
+  docker exec -it web sh           — shell in minimal images (alpine)
+  docker exec web ls /app          — run a one-shot command
+  docker exec -u root web apt update  — run as root
+  docker exec -w /etc web pwd      — specify working directory
+  docker exec -e DEBUG=1 web env   — add environment variable
+
+## [EXPECTED RESULT]
+You either get an interactive shell or see command output.
+Exit the shell with: exit  (or Ctrl+D)
+
+## Try it now:
+  docker run -d --name web nginx
+  docker exec web ls /etc/nginx
+  docker exec web cat /etc/nginx/nginx.conf
+  docker exec -it web bash
+  # inside: cd /usr/share/nginx/html && ls
+  # exit
+  docker stop web && docker rm web
+
+## Technician Tip (the #1 Docker debugging habit):
+When a container misbehaves, always start with this combo:
+  docker logs <container>          # see what the app says
+  docker exec -it <container> sh   # explore inside
+  docker inspect <container>       # see config and networking
+
+If you can't get a shell ("executable file not found"), the image
+doesn't have bash. Try: sh, ash, or /bin/busybox sh for Alpine images.
+
+## DCA Exam Note:
+Know the difference:
+  docker run = create a NEW container
+  docker exec = run a command in an EXISTING running container
+  docker attach = connect to the main process (rarely used)

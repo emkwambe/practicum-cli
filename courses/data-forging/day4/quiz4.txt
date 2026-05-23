@@ -1,0 +1,55 @@
+Q1: sqlite3 needs no server because:
+A) It's a file-based database — the entire database is one file on disk, no daemon process needed
+B) It connects to MySQL
+C) It uses the cloud
+D) It's not a real database
+Correct: A
+
+Q2: SCENARIO: You have sales.csv and want to run SQL queries against it. The fastest path:
+A) Use awk
+B) Convert to JSON first
+C) sqlite3 db '.mode csv' '.import sales.csv sales' 'SELECT product, SUM(amount) FROM sales GROUP BY product'
+D) Set up PostgreSQL
+Correct: C
+
+Q3: After importing, CREATE INDEX idx_date ON sales(date) does:
+A) Creates an index that makes queries filtering by date dramatically faster — especially on large tables
+B) Renames the column
+C) Sorts the table
+D) Deletes the date column
+Correct: A
+
+Q4: TRADEOFF: When should you use sqlite3 over awk/jq for data analysis?
+A) Only for databases over 1TB
+B) Never — awk handles everything
+C) When you need JOINs across tables, GROUP BY with HAVING, window functions, or complex aggregation that would be painful in awk
+D) Always — SQL is better
+Correct: C
+
+Q5: DIAGNOSTIC: You import a CSV into sqlite3 but numeric queries return wrong results. SUM(revenue) returns 0. What's wrong?
+A) The CSV is corrupted
+B) sqlite3 can't do math
+C) The revenue column was imported as TEXT not NUMERIC — sqlite3 imports CSV values as text by default. Cast: CAST(revenue AS REAL)
+D) You need PostgreSQL
+Correct: C
+
+Q6: sqlite3 -csv -header db 'SELECT ...' outputs:
+A) Formatted table
+B) JSON format
+C) CSV with a header row — ready to pipe to other tools or redirect to a file
+D) Binary data
+Correct: C
+
+Q7: SCENARIO: You need to combine sales data from 3 CSV files (Q1, Q2, Q3) and find the top 10 products by total revenue. Best approach:
+A) Use grep to find products
+B) Import all 3 into sqlite3, UNION ALL, then SELECT product, SUM(revenue) GROUP BY product ORDER BY 2 DESC LIMIT 10
+C) Concatenate with cat and use awk
+D) Open in Excel
+Correct: B
+
+Q8: .schema in sqlite3 shows:
+A) The CREATE TABLE statements for all tables — your database structure
+B) The data
+C) The file size
+D) The version
+Correct: A

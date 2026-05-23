@@ -1,0 +1,90 @@
+# Lesson: xsv — Blazing Fast CSV Processing
+
+## [WHEN] You need this when:
+1. Your CSV has 10 million rows and csvkit is too slow.
+2. You need sub-second response on large datasets.
+3. You want to build an index for repeated queries.
+4. You need frequency counts, joins, or stats at speed.
+
+## [INTENT] "Process massive CSVs at the speed of compiled code."
+
+## [CONTEXT]
+xsv is written in Rust. It's 10-100x faster than csvkit for large files.
+It streams data (constant memory) for most operations.
+
+Install: cargo install xsv (or download binary from GitHub)
+  Or: sudo apt install xsv (some distros)
+
+xsv subcommands mirror csvkit but are designed for speed:
+  xsv headers   — list column names
+  xsv select    — extract columns
+  xsv search    — filter rows (regex)
+  xsv sort      — sort by column
+  xsv frequency — count unique values per column
+  xsv stats     — column statistics
+  xsv join      — join two CSVs
+  xsv index     — create an index for instant random access
+  xsv slice     — extract row ranges
+  xsv count     — count rows (instant with index)
+  xsv sample    — random sample of N rows
+  xsv flatten   — show one record per block (debug view)
+
+## [ACTION] xsv essentials
+
+### Inspect:
+  xsv headers data.csv                     # column names
+  xsv count data.csv                       # row count
+  xsv stats data.csv | xsv table          # stats as pretty table
+  xsv slice -i 0 -l 5 data.csv | xsv table  # first 5 rows
+
+### Index for speed (do this first on big files):
+  xsv index data.csv                       # creates data.csv.idx
+  xsv count data.csv                       # now instant (reads index)
+  xsv slice -i 1000 -l 10 data.csv        # instant row access
+
+### Select columns:
+  xsv select name,email data.csv
+  xsv select 1,3,5 data.csv               # by number
+  xsv select '!notes,internal' data.csv    # exclude columns
+
+### Filter rows:
+  xsv search -s status "active" data.csv   # WHERE status contains "active"
+  xsv search -s email "@gmail" data.csv    # email contains @gmail
+  xsv search -s age "^3[0-9]$" data.csv   # regex: age 30-39
+  xsv search -v -s status "inactive" data.csv  # NOT inactive
+
+### Frequency counts (like GROUP BY + COUNT):
+  xsv frequency -s city data.csv           # count per city
+  xsv frequency -s status -l 20 data.csv   # top 20 statuses
+
+### Sort:
+  xsv sort -s revenue -R data.csv          # sort descending
+  xsv sort -s name data.csv               # alphabetical
+
+### Sample (random rows):
+  xsv sample 100 data.csv                 # random 100 rows
+  xsv sample 1000 huge.csv > sample.csv   # quick dataset peek
+
+### Join two CSVs:
+  xsv join user_id users.csv user_id orders.csv   # inner join
+  xsv join --left user_id users.csv user_id orders.csv  # left join
+
+### Pipeline: top 10 cities by user count
+  xsv frequency -s city data.csv | xsv sort -s count -R | xsv slice -l 10 | xsv table
+
+## [EXPECTED RESULT]
+Operations that take 30 seconds with csvkit finish in 0.3 seconds with xsv.
+On a 10M row file, xsv frequency finishes while csvstat is still loading.
+
+## Technician Tip — when to use which:
+  csvkit → complex operations (SQL queries, type inference, Excel conversion)
+  xsv   → speed (filtering, counting, joining, frequency on large files)
+
+Best of both worlds:
+  xsv search -s status "error" huge.csv | csvsql --query "SELECT ..."
+  # xsv filters fast, csvkit does the complex query on the small result
+
+## Common Pain Point:
+"xsv not found" → install from GitHub releases:
+  curl -LO https://github.com/BurntSushi/xsv/releases/download/0.13.0/xsv-0.13.0-x86_64-unknown-linux-musl.tar.gz
+  tar xzf xsv-*.tar.gz && sudo mv xsv /usr/local/bin/

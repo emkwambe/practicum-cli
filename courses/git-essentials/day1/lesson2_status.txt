@@ -1,0 +1,34 @@
+# Lesson: git status — See What Changed
+
+## [WHEN] You need this when:
+1. You made changes and want to know what Git sees.
+2. You are about to commit and want to verify what will be included.
+3. You forgot which files you modified since the last commit.
+4. You see a confusing error and need to understand the repo state.
+
+## [INTENT] "What has changed since my last commit?"
+
+## [CONTEXT]
+Git tracks files in three states:
+  Untracked — Git doesn't know about this file yet
+  Modified  — File changed but not staged for commit
+  Staged    — File is ready to be committed
+git status shows you all three. It is the most-used Git command.
+Run it constantly — before every add, before every commit.
+
+## [ACTION] git status
+Common patterns:
+  git status                        — full status with hints
+  git status -s                     — short format (M=modified, A=added, ?=untracked)
+
+## [EXPECTED RESULT]
+Shows files grouped by state: staged (green), modified (red), untracked.
+If nothing changed: "nothing to commit, working tree clean"
+
+## Try it now:
+  touch hello.txt
+  git status
+  (You will see hello.txt as "Untracked")
+
+## Next:
+Use git add to stage your file for commit.

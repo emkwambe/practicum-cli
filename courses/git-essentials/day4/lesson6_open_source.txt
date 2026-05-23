@@ -1,0 +1,39 @@
+# Lesson: Contributing to Open Source — The Complete Flow
+
+## [WHEN] You need this when:
+1. You want to make your first open source contribution.
+2. A project has a bug you can fix or a feature you can add.
+3. You want to build your public portfolio.
+
+## [INTENT] "Contribute to someone else's project the right way."
+
+## [CONTEXT]
+Open source contributions follow a specific etiquette:
+  1. Read CONTRIBUTING.md first
+  2. Check existing issues before creating new ones
+  3. Fork → Branch → Commit → Push → PR
+  4. Be patient — maintainers are volunteers
+  5. Small, focused PRs get merged faster than large ones
+
+## [ACTION] The complete open source contribution flow
+  1. Find the project on GitHub
+  2. Read CONTRIBUTING.md and CODE_OF_CONDUCT.md
+  3. Check Issues → find one labeled "good first issue"
+  4. Fork the repository (GitHub button)
+  5. git clone https://github.com/YOUR-USER/repo.git
+  6. git remote add upstream https://github.com/ORIGINAL/repo.git
+  7. git switch -c fix/issue-42
+  8. (make your changes)
+  9. git add . && git commit -m "Fix email validation — Fixes #42"
+  10. git push -u origin fix/issue-42
+  11. Go to GitHub → Create Pull Request to upstream
+  12. Wait for review, respond to feedback, iterate
+
+## [EXPECTED RESULT]
+Your PR gets reviewed, potentially revised, and merged.
+You appear as a contributor to the project. This is visible
+on your GitHub profile and resume.
+
+## Next:
+Type menu to return. You have completed Day 4!
+You can now collaborate with any team using forks, PRs, and issues.

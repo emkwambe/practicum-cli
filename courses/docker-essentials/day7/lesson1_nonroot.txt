@@ -1,0 +1,92 @@
+# Lesson: Run as Non-Root — The #1 Container Security Win
+
+## [WHEN] You need this when:
+1. Security team flags every image you ship.
+2. Compliance (SOC 2, PCI, FedRAMP) requires it.
+3. You want to limit blast radius if the app is compromised.
+4. Your Kubernetes cluster has Pod Security Standards enabled.
+
+## [INTENT] "Run my app as a non-root user inside the container."
+
+## [CONTEXT]
+By DEFAULT, containers run as root (UID 0). If an attacker exploits
+your app, they're root inside the container. With certain misconfigurations
+(privileged mode, host volume mounts, kernel exploits), root in container
+can become root on the host.
+
+Running as a non-root user is the single most impactful security control.
+It's basically free — just a few lines in your Dockerfile.
+
+## [ACTION] Make your container run as non-root
+
+### Method 1: Create a user in the Dockerfile (most common)
+  FROM python:3.11-slim
+  WORKDIR /app
+  COPY . .
+  RUN pip install -r requirements.txt
+
+  # Create a user, give them ownership of /app
+  RUN useradd -m -u 1000 -s /bin/bash app && \
+      chown -R app:app /app
+  USER app
+
+  CMD ["python", "app.py"]
+
+### Method 2: Use a built-in non-root user
+Many official images include a non-root user:
+  node:20            → user "node" (UID 1000)
+  python:3.11-slim   → no built-in (you must add)
+  postgres           → user "postgres" (UID 999, set automatically)
+  nginx              → runs workers as "nginx" but master as root
+
+For node:
+  USER node
+  CMD ["node", "app.js"]
+
+### Method 3: Override at runtime
+  docker run --user 1000:1000 nginx
+  docker run -u $(id -u):$(id -g) -v $(pwd):/app node npm test
+
+  # Useful for matching host user to avoid permission issues with bind mounts.
+
+## [EXPECTED RESULT]
+Inside the container:
+  $ docker exec myapp id
+  uid=1000(app) gid=1000(app) groups=1000(app)
+
+If an attacker gets shell access, they can't:
+  - Install OS packages (no sudo)
+  - Modify system files
+  - Escape to host as root
+  - Bind to privileged ports (<1024)
+
+## Try it now:
+  # Run nginx as user 1000 (will fail because nginx wants to bind port 80):
+  docker run --rm -u 1000:1000 nginx
+  # See the permission error → that's the point: non-root can't bind to <1024
+
+  # Use unprivileged port:
+  docker run -d --user 1000:1000 -p 8080:8080 \
+    -e NGINX_PORT=8080 nginxinc/nginx-unprivileged
+
+## Technician Tip — bind mount permissions:
+With non-root containers + bind mounts, the host user must own the mounted dir:
+  chown -R 1000:1000 ./data
+  docker run -u 1000:1000 -v $(pwd)/data:/app/data myapp
+
+Or use named volumes (Docker handles permissions automatically).
+
+## Common Pain Point:
+"App runs as root locally but my prod container fails as non-root":
+  Most often: app tries to write to a directory it doesn't own.
+  Fix: in Dockerfile, chown the working dir BEFORE switching user.
+
+"App needs port 80 but won't run as root":
+  Use an unprivileged port (8080, 8000, etc.) and have a load balancer
+  or ingress controller handle the public port.
+
+## DCA Exam Note:
+Know that USER directive in Dockerfile changes the runtime user.
+Know that --user UID:GID at runtime overrides the Dockerfile's USER.
+Know that ports below 1024 require root (CAP_NET_BIND_SERVICE).
+Know that named volumes auto-handle permissions; bind mounts don't.

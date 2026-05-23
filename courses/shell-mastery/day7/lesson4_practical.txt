@@ -1,0 +1,101 @@
+# Lesson: Practical — Error-Resilient Backup Script
+
+## [WHEN] You need this when:
+You want to combine traps, validation, logging, and error handling.
+
+## [INTENT] "Build a backup script that never fails silently."
+
+## [CONTEXT]
+This is a real production pattern: backup script that runs on cron,
+validates everything, logs all actions, and reports failures.
+
+## [ACTION] Complete error-resilient backup script
+
+  #!/bin/bash
+  set -euo pipefail
+
+  # --- Config ---
+  BACKUP_SOURCE="${BACKUP_SOURCE:-/var/www}"
+  BACKUP_DEST="${BACKUP_DEST:-/mnt/backup}"
+  RETENTION_DAYS="${RETENTION_DAYS:-30}"
+  LOG_FILE="/var/log/backup.log"
+  LOCK_FILE="/var/run/backup.lock"
+
+  # --- Helpers ---
+  log()  { echo "[$(date '+%F %T')] [$1] $2" | tee -a "$LOG_FILE"; }
+  die()  { log "FATAL" "$1"; exit 1; }
+
+  cleanup() {
+      rm -f "$LOCK_FILE"
+      if [ "${BACKUP_OK:-0}" -eq 1 ]; then
+          log "INFO" "Backup completed successfully"
+      else
+          log "ERROR" "Backup FAILED — check logs"
+      fi
+  }
+  trap cleanup EXIT
+  trap 'log "WARN" "Interrupted by user"; exit 130' INT TERM
+  trap 'log "ERROR" "Command failed at line $LINENO: $BASH_COMMAND"' ERR
+
+  # --- Lock ---
+  if [ -f "$LOCK_FILE" ]; then
+      pid=$(cat "$LOCK_FILE")
+      if kill -0 "$pid" 2>/dev/null; then
+          die "Already running (PID $pid)"
+      fi
+      log "WARN" "Stale lock (PID $pid dead), removing"
+      rm -f "$LOCK_FILE"
+  fi
+  echo $$ > "$LOCK_FILE"
+
+  # --- Validate ---
+  log "INFO" "=== Backup started ==="
+  [ -d "$BACKUP_SOURCE" ] || die "Source not found: $BACKUP_SOURCE"
+  [ -d "$BACKUP_DEST" ] || die "Destination not found: $BACKUP_DEST"
+  [ -w "$BACKUP_DEST" ] || die "Destination not writable: $BACKUP_DEST"
+  command -v tar >/dev/null || die "tar is not installed"
+
+  # --- Check disk space ---
+  avail_kb=$(df "$BACKUP_DEST" | awk 'NR==2 {print $4}')
+  source_kb=$(du -sk "$BACKUP_SOURCE" | awk '{print $1}')
+  if (( source_kb > avail_kb )); then
+      die "Not enough space: need ${source_kb}K, have ${avail_kb}K"
+  fi
+  log "INFO" "Space check: need ${source_kb}K, have ${avail_kb}K — OK"
+
+  # --- Create backup ---
+  TIMESTAMP=$(date +%F_%H%M%S)
+  ARCHIVE="$BACKUP_DEST/backup_${TIMESTAMP}.tar.gz"
+
+  log "INFO" "Creating: $ARCHIVE"
+  tar czf "$ARCHIVE" -C "$(dirname "$BACKUP_SOURCE")" "$(basename "$BACKUP_SOURCE")"
+  log "INFO" "Archive size: $(du -h "$ARCHIVE" | awk '{print $1}')"
+
+  # --- Verify ---
+  tar tzf "$ARCHIVE" >/dev/null || die "Archive verification failed!"
+  log "INFO" "Archive verified"
+
+  # --- Cleanup old backups ---
+  old_count=$(find "$BACKUP_DEST" -name "backup_*.tar.gz" -mtime +"$RETENTION_DAYS" | wc -l)
+  if (( old_count > 0 )); then
+      log "INFO" "Removing $old_count backups older than $RETENTION_DAYS days"
+      find "$BACKUP_DEST" -name "backup_*.tar.gz" -mtime +"$RETENTION_DAYS" -delete
+  fi
+
+  BACKUP_OK=1
+
+## What this demonstrates:
+  ✅ set -euo pipefail (strict mode)
+  ✅ trap EXIT (always cleans up lock file)
+  ✅ trap INT TERM (handles Ctrl+C)
+  ✅ trap ERR (logs the failing command and line)
+  ✅ Lock file (prevents double-run)
+  ✅ Input validation (source, dest, disk space)
+  ✅ Logging (timestamped, to file)
+  ✅ Archive verification (tar tzf)
+  ✅ Old backup cleanup (retention policy)
+  ✅ Clear success/failure reporting
+
+## Next:
+Type menu to return. You have completed Day 7!
+You can now write scripts that handle errors gracefully and never fail silently.

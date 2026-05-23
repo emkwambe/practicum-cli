@@ -1,0 +1,8 @@
+Day 1 — CI/CD Concepts & Pipeline Anatomy
+Day 2 — GitHub Actions Fundamentals
+Day 3 — Build & Test Automation
+Day 4 — Docker in CI (Build, Tag, Push)
+Day 5 — Assessment 1 (Complete CI Pipeline)
+Day 6 — Deployment Strategies & Rollbacks
+Day 7 — Secrets, Environments & Multi-Stage
+Day 8 — Capstone: Full CI/CD Pipeline

@@ -1,0 +1,132 @@
+# Lesson: RBAC Fundamentals — Roles, Bindings & ServiceAccounts
+
+## [WHEN] You need this when:
+1. A developer should view pods but not delete them.
+2. A CI/CD pipeline needs deploy permissions but not cluster-admin.
+3. An intern accidentally deleted production — you need access control.
+4. Compliance requires audit trails of who did what.
+
+## [INTENT] "Implement least-privilege access control with RBAC."
+
+## [CONTEXT]
+RBAC = Role-Based Access Control.
+It answers two questions:
+  WHAT can be done? → Role (permissions)
+  WHO can do it? → RoleBinding (assignment)
+
+Without RBAC: anyone with cluster access can do anything.
+With RBAC: each user/service gets exactly the permissions they need.
+
+## [ACTION] RBAC components
+
+### The four RBAC resources:
+  Role              → permissions within ONE namespace
+  ClusterRole       → permissions cluster-wide (all namespaces)
+  RoleBinding       → assigns a Role to a user/group/SA in one namespace
+  ClusterRoleBinding → assigns a ClusterRole cluster-wide
+
+### Role (namespace-scoped):
+  apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    name: pod-reader
+    namespace: dev
+  rules:
+    - apiGroups: [""]          # core API group (pods, services, etc.)
+      resources: ["pods"]
+      verbs: ["get", "list", "watch"]
+
+    - apiGroups: [""]
+      resources: ["pods/log"]
+      verbs: ["get"]
+
+### Common verbs:
+  get        → read a specific resource
+  list       → list all resources of a type
+  watch      → stream changes
+  create     → create new resources
+  update     → modify existing resources
+  patch      → partially modify
+  delete     → delete resources
+  deletecollection → delete multiple at once
+
+### Common apiGroups:
+  ""                  → core (pods, services, configmaps, secrets, nodes)
+  "apps"              → deployments, statefulsets, daemonsets, replicasets
+  "batch"             → jobs, cronjobs
+  "networking.k8s.io" → ingresses, networkpolicies
+  "rbac.authorization.k8s.io" → roles, rolebindings
+
+### RoleBinding:
+  apiVersion: rbac.authorization.k8s.io/v1
+  kind: RoleBinding
+  metadata:
+    name: read-pods-dev
+    namespace: dev
+  subjects:
+    - kind: User
+      name: jane
+      apiGroup: rbac.authorization.k8s.io
+    - kind: ServiceAccount
+      name: ci-deployer
+      namespace: dev
+  roleRef:
+    kind: Role
+    name: pod-reader
+    apiGroup: rbac.authorization.k8s.io
+
+  This gives both "jane" and the "ci-deployer" ServiceAccount
+  the pod-reader permissions in the "dev" namespace.
+
+### ServiceAccounts:
+  Every pod runs as a ServiceAccount. Default: "default" SA.
+
+  kubectl create serviceaccount ci-deployer -n dev
+
+  # Assign to a pod:
+  spec:
+    serviceAccountName: ci-deployer
+
+  # Disable auto-mounting the token (security best practice):
+  spec:
+    automountServiceAccountToken: false
+
+### ClusterRole + ClusterRoleBinding (cluster-wide):
+  apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRole
+  metadata:
+    name: node-viewer
+  rules:
+    - apiGroups: [""]
+      resources: ["nodes"]
+      verbs: ["get", "list", "watch"]
+
+  # Bind cluster-wide:
+  kind: ClusterRoleBinding
+  metadata:
+    name: ops-node-viewer
+  subjects:
+    - kind: Group
+      name: ops-team
+  roleRef:
+    kind: ClusterRole
+    name: node-viewer
+
+### Testing permissions:
+  # Can I list pods in dev?
+  kubectl auth can-i list pods -n dev
+
+  # Can jane delete deployments in prod?
+  kubectl auth can-i delete deployments -n prod --as jane
+
+  # What can the ci-deployer SA do?
+  kubectl auth can-i --list --as system:serviceaccount:dev:ci-deployer
+
+## [EXPECTED RESULT]
+You can create Roles, ClusterRoles, bind them to users and
+ServiceAccounts, and test permissions with kubectl auth can-i.
+
+## Technician Tip:
+Never give cluster-admin to application ServiceAccounts. Start with
+no permissions, add exactly what's needed, test with can-i. If you
+can't articulate why a permission is needed, don't grant it.

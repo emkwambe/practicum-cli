@@ -1,0 +1,108 @@
+# Lesson: Defining Services — The Heart of Compose
+
+## [WHEN] You need this when:
+1. You need to define how each container should run.
+2. You want one service to wait for another (database before app).
+3. You need different settings for dev vs production.
+4. You want to mix custom-built images with public ones.
+
+## [INTENT] "Specify exactly how each container in my stack should run."
+
+## [CONTEXT]
+A service is one logical container in your stack. Each service can:
+  - Use an existing image (image:) OR build from Dockerfile (build:)
+  - Mount volumes
+  - Open ports
+  - Set environment variables
+  - Depend on other services
+  - Have its own healthcheck
+
+## [ACTION] Common service options
+Full example:
+
+  services:
+    web:
+      build: ./frontend                    # build from local Dockerfile
+      ports:
+        - "8080:80"
+      environment:
+        - API_URL=http://api:3000
+      depends_on:
+        api:
+          condition: service_healthy
+      restart: unless-stopped
+
+    api:
+      build:
+        context: ./backend
+        dockerfile: Dockerfile.prod
+      environment:
+        DB_HOST: db
+        DB_PASSWORD_FILE: /run/secrets/db_password
+      depends_on:
+        db:
+          condition: service_started
+      healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+        interval: 10s
+        retries: 5
+
+    db:
+      image: postgres:16
+      environment:
+        POSTGRES_PASSWORD: ${DB_PASSWORD}      # from .env file
+      volumes:
+        - dbdata:/var/lib/postgresql/data
+      restart: unless-stopped
+
+  volumes:
+    dbdata:
+
+Variable substitution: ${DB_PASSWORD} reads from a .env file
+in the same directory as docker-compose.yml.
+
+## [EXPECTED RESULT]
+docker compose up reads the file, builds where needed, creates
+volumes, networks, and starts services in dependency order.
+
+## Try it now:
+Create a simple stack:
+
+  cat > docker-compose.yml << 'EOF'
+  services:
+    cache:
+      image: redis:alpine
+
+    web:
+      image: nginx:alpine
+      ports:
+        - "8080:80"
+      depends_on:
+        - cache
+      restart: unless-stopped
+  EOF
+  docker compose up -d
+  docker compose ps
+  docker compose exec web sh -c 'wget -qO- cache:6379 || echo "binary protocol, ping works"'
+  docker compose down
+
+## Technician Tip — depends_on:
+Plain depends_on only waits for the container to START — not for the app
+inside to be ready. For real "wait until the database accepts connections,"
+use:
+
+  depends_on:
+    db:
+      condition: service_healthy
+
+This requires the upstream service to have a HEALTHCHECK defined.
+
+## Common Pain Point:
+"Service started but app crashes — can't connect to database" → the DB
+container started but the database server isn't accepting connections yet.
+Add a healthcheck to the db service and use service_healthy condition.
+
+## DCA Exam Note:
+Know depends_on syntax (list form vs dict form).
+Know that depends_on does NOT wait for app readiness without health conditions.
+Know variable substitution uses ${VAR} or ${VAR:-default}.

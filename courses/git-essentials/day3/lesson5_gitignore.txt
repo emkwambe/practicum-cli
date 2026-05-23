@@ -1,0 +1,45 @@
+# Lesson: .gitignore — Keep Files Out of the Repository
+
+## [WHEN] You need this when:
+1. You have passwords, API keys, or secrets that must not be committed.
+2. Build artifacts (node_modules, __pycache__, .class files) clutter the repo.
+3. OS files (.DS_Store, Thumbs.db) keep appearing in git status.
+4. Log files or temp files should not be version controlled.
+
+## [INTENT] "Tell Git to ignore these files permanently."
+
+## [CONTEXT]
+.gitignore is a text file that lists patterns of files Git should ignore.
+Files matching these patterns will not appear in git status and cannot
+be accidentally committed. Create it in the root of your repository.
+WARNING: .gitignore only affects UNTRACKED files. If a file is already
+committed, you must remove it with git rm --cached first.
+
+## [ACTION] Create .gitignore
+Common patterns to ignore:
+  node_modules/                     — npm dependencies
+  __pycache__/                      — Python compiled files
+  *.pyc                             — Python bytecode
+  .env                              — environment variables / secrets
+  *.log                             — log files
+  dist/                             — build output
+  .DS_Store                         — macOS system file
+  *.o                               — compiled C/C++ objects
+  .idea/                            — JetBrains IDE settings
+  .vscode/                          — VS Code settings
+
+Commands:
+  touch .gitignore                  — create the file
+  echo "node_modules/" >> .gitignore — add a pattern
+  git add .gitignore                — commit the ignore file itself
+  git rm --cached secret.env        — stop tracking a committed file
+
+## [EXPECTED RESULT]
+Files matching .gitignore patterns disappear from git status.
+They still exist on disk but Git pretends they do not exist.
+
+## Try it now:
+  echo "*.log" > .gitignore
+  touch app.log
+  git status    (app.log should NOT appear)
+  git add .gitignore && git commit -m "Add .gitignore"

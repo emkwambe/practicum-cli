@@ -1,0 +1,55 @@
+Q1: SCENARIO: Your database container stores data inside the container. You restart it and all data is gone. The fix:
+A) Use a volume — docker run -v dbdata:/var/lib/postgresql/data — data persists outside the container
+B) Don't restart containers
+C) Back up the container before restarting
+D) Use a bigger container
+Correct: A
+
+Q2: The difference between a named volume and a bind mount:
+A) Bind mounts are faster
+B) No practical difference
+C) Named volumes are managed by Docker (portable, reliable); bind mounts map a host directory (good for dev, risky for prod)
+D) Named volumes are temporary
+Correct: C
+
+Q3: SCENARIO: Two containers (app + db) need to communicate. The app uses "db" as the hostname. What makes this work?
+A) They share the same IP
+B) You hardcode the IP address
+C) They use localhost
+D) Docker DNS — containers on the same custom network resolve each other by name automatically
+Correct: D
+
+Q4: docker run -p 8080:3000 maps:
+A) Container port 8080 to host port 3000
+B) Host port 8080 to container port 3000 — requests to localhost:8080 reach the app on 3000 inside
+C) Both ports to 8080
+D) Nothing — wrong syntax
+Correct: B
+
+Q5: DIAGNOSTIC: Your container health check fails but the app is actually running fine. Most likely cause:
+A) Docker is broken
+B) The container is too small
+C) Health checks don't work in Docker
+D) The health check command is wrong — checking the wrong port, path, or using a tool not installed in the image
+Correct: D
+
+Q6: Environment variables in Docker are passed with:
+A) docker run --config
+B) docker run --settings
+C) docker run -e DB_HOST=localhost
+D) Editing /etc/environment inside the container
+Correct: C
+
+Q7: TRADEOFF: Bind mounts (-v ./src:/app) are great for development because:
+A) They're more secure
+B) They use less disk space
+C) Code changes on your host appear instantly inside the container — no rebuild needed
+D) They're faster than volumes
+Correct: C
+
+Q8: Resource limits (--memory=256m --cpus=0.5) prevent:
+A) Containers from starting
+B) Docker from using swap
+C) Network issues
+D) A single runaway container from consuming all host resources and crashing other containers
+Correct: D

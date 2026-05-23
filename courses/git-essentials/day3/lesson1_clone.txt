@@ -1,0 +1,35 @@
+# Lesson: git clone — Download an Existing Repository
+
+## [WHEN] You need this when:
+1. You joined a team and need to get the project code on your machine.
+2. You found an open source project you want to contribute to.
+3. You want to work on your project from a different computer.
+4. A tutorial says "clone this repo to follow along."
+
+## [INTENT] "Get a copy of an existing project onto my machine."
+
+## [CONTEXT]
+git clone downloads an entire repository — all files, all branches,
+all history — from a remote server (like GitHub) to your local machine.
+It creates a new directory with the project name and sets up the remote
+connection automatically. You only clone once per project.
+After cloning, you use push/pull to stay in sync.
+
+## [ACTION] git clone <url>
+Common patterns:
+  git clone https://github.com/user/repo.git     — clone via HTTPS
+  git clone git@github.com:user/repo.git          — clone via SSH (faster, no password)
+  git clone https://github.com/user/repo.git mydir — clone into specific directory
+  git clone --depth 1 https://...                  — shallow clone (latest only, faster)
+
+## [EXPECTED RESULT]
+"Cloning into 'repo'..." then a progress bar.
+A new directory appears with all project files and .git history.
+
+## Try it now:
+  git clone https://github.com/emkwambe/practicum-cli.git
+  cd practicum-cli
+  git log --oneline -5
+
+## Next:
+Learn about remotes — the connection between your local repo and GitHub.

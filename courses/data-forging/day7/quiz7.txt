@@ -1,0 +1,55 @@
+Q1: tail -f access.log | grep "ERROR" does:
+A) Continuously follows the log file and filters for ERROR lines in real time — a live monitoring pipeline
+B) Shows the last line with ERROR
+C) Edits the log file
+D) Counts errors
+Correct: A
+
+Q2: SCENARIO: You need to monitor nginx access logs and alert when more than 100 requests come from the same IP in 1 minute. The approach:
+A) Wait for the server to crash then check
+B) tail -f the log, pipe through awk to count per IP, and trigger an alert when the threshold is exceeded
+C) Block all IPs
+D) Read the entire log file every minute
+Correct: B
+
+Q3: Process substitution <(command) lets you:
+A) Create subshells
+B) Use command output as if it were a file — diff <(sort file1) <(sort file2) compares sorted versions without temp files
+C) Run commands in parallel
+D) Substitute text in commands
+Correct: B
+
+Q4: TRADEOFF: Polling (check every N seconds) vs event-driven (inotifywait for file changes). When is each appropriate?
+A) Polling is always better
+B) Event-driven is instant and efficient for file changes; polling is simpler and works for APIs/remote sources that don't support events
+C) They're the same
+D) Events are always better
+Correct: B
+
+Q5: DIAGNOSTIC: Your monitoring script with tail -f stops working after a logrotate. Why?
+A) tail doesn't support rotation
+B) logrotate deletes logs
+C) You need to restart the script
+D) tail -f follows the file descriptor, not the filename — when logrotate renames the file, tail still reads the old (now empty) file. Use tail -F to follow the filename.
+Correct: D
+
+Q6: awk in streaming mode (with tail -f) processes:
+A) Only the first line
+B) Nothing until the file is complete
+C) Each line as it arrives — making awk a real-time transformer in a pipeline
+D) The entire file at once
+Correct: C
+
+Q7: SCENARIO: You need to split an incoming data stream into multiple outputs — one for errors, one for warnings, one for the full log. Which tool?
+A) This isn't possible in bash
+B) awk (can't write to multiple files)
+C) grep three times (reads the stream three times)
+D) tee + process substitution — tee >(grep ERROR > errors.log) >(grep WARN > warnings.log) > full.log
+Correct: D
+
+Q8: A production monitoring pipeline should include:
+A) Only email alerts
+B) Data collection, filtering, aggregation, threshold alerting, and logging — with graceful handling of restarts and log rotation
+C) Only dashboards
+D) Only error counting
+Correct: B

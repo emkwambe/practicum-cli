@@ -1,0 +1,60 @@
+# Assessment 2: Advanced Linux Administration
+
+## [WHEN] You need this when:
+You have completed Days 6-8 and are ready to prove your advanced skills.
+This assessment tests permissions, networking, and service management
+— the skills that separate a beginner from a job-ready admin.
+
+## [INTENT] "Prove I can secure, connect, and maintain a Linux server."
+
+## [CONTEXT]
+Assessment 1 (Day 5) tested your foundation: files, text, scripts, processes.
+Now you must demonstrate that you can:
+  - Lock down a server with proper permissions
+  - Diagnose and fix network connectivity
+  - Manage services and schedule automated tasks
+  - Read logs to find and fix problems
+
+These are the skills hiring managers test in interviews.
+
+## [ACTION] Complete THREE tasks:
+
+### Task 1: Security Lockdown (secure.sh)
+Write a script that:
+  - Creates a group called "webteam"
+  - Creates a directory /tmp/practicum_web owned by webteam
+  - Sets permissions so only group members can write (chmod 775)
+  - Sets the setgid bit so new files inherit the group
+  - Prints a summary of what was created
+
+### Task 2: Network Diagnostic (diagnose.sh)
+Write a script that:
+  - Shows the server's IP address
+  - Checks if DNS is working (dig or nslookup google.com)
+  - Lists all listening TCP ports
+  - Tests HTTP connectivity (curl -s -o /dev/null -w "%{http_code}" http://google.com)
+  - Prints PASS or FAIL for each check
+
+### Task 3: Service Health Report (health.sh)
+Write a script that:
+  - Lists any failed systemd services
+  - Shows errors from journalctl since today
+  - Checks disk usage and warns if any partition > 80%
+  - Shows the top 3 CPU-consuming processes
+  - Outputs a timestamped report
+
+## [EXPECTED RESULT]
+Three working scripts that a senior admin would approve.
+Each script should be executable (chmod +x) and documented
+with comments explaining what each section does.
+
+## When ready:
+Run: practicum assess2
+(This will check all three scripts)
+
+## Grading:
+  - secure.sh creates group, directory, and correct permissions
+  - diagnose.sh runs all network checks and reports results
+  - health.sh produces a complete health report
+  - All scripts have comments explaining the code
+  - Pass: 2 of 3 scripts working correctly

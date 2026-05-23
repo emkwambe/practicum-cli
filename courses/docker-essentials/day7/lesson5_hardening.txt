@@ -1,0 +1,120 @@
+# Lesson: Runtime Hardening — The Production Container Profile
+
+## [WHEN] You need this when:
+1. You're putting containers into production for the first time.
+2. Security audit found issues with your container configurations.
+3. You need a "production-ready" template for your team.
+4. Compliance requires defense-in-depth.
+
+## [INTENT] "Apply ALL security best practices to one container."
+
+## [CONTEXT]
+The "secure container" combines: non-root user, dropped capabilities,
+read-only filesystem, no privileged mode, secrets via files (not env),
+resource limits, and logging.
+
+This lesson is the consolidated checklist.
+
+## [ACTION] The hardened container profile
+
+### Hardened docker run (full template):
+  docker run -d \
+    --name myapp \
+    --user 1000:1000 \                         # non-root
+    --cap-drop=ALL \                            # drop all capabilities
+    --cap-add=NET_BIND_SERVICE \                # add ONLY what's needed
+    --read-only \                               # read-only root filesystem
+    --tmpfs /tmp:rw,noexec,nosuid,size=64m \    # writable temp area
+    --security-opt=no-new-privileges:true \     # no setuid escalation
+    --memory=512m \                             # memory limit
+    --memory-swap=512m \                        # no swap (prevents OOM games)
+    --cpus=1 \                                  # CPU limit
+    --pids-limit=100 \                          # process limit
+    --restart=unless-stopped \                  # auto-recover
+    --health-cmd="curl -f http://localhost:8080/health" \
+    --health-interval=30s \
+    --log-driver=json-file \
+    --log-opt max-size=10m \
+    --log-opt max-file=3 \
+    -v secrets:/run/secrets:ro \                # read-only secrets
+    -p 8080:8080 \
+    myapp:1.0
+
+### Hardened compose service:
+  services:
+    api:
+      image: myapp:1.0
+      user: "1000:1000"
+      read_only: true
+      tmpfs:
+        - /tmp:rw,noexec,nosuid,size=64m
+      cap_drop: [ALL]
+      cap_add: [NET_BIND_SERVICE]
+      security_opt:
+        - no-new-privileges:true
+      mem_limit: 512m
+      cpus: 1.0
+      pids_limit: 100
+      restart: unless-stopped
+      healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+        interval: 30s
+        timeout: 5s
+        retries: 3
+      logging:
+        driver: json-file
+        options:
+          max-size: "10m"
+          max-file: "3"
+      ports:
+        - "8080:8080"
+
+### Bonus: AppArmor / SELinux profile:
+  --security-opt apparmor=docker-default       # default is fine for most
+  --security-opt label=type:container_t        # SELinux type
+
+## [EXPECTED RESULT]
+A container that:
+  - Runs as user 1000, not root
+  - Has only NET_BIND_SERVICE capability
+  - Cannot write to disk except /tmp (in-memory)
+  - Limited to 512 MB RAM, 1 CPU
+  - Can't fork-bomb (100 processes max)
+  - Auto-restarts on failure
+  - Reports health to Docker
+  - Rotates logs (no disk fill)
+
+## Try it now:
+  docker run --rm \
+    --user 1000:1000 \
+    --cap-drop=ALL \
+    --read-only \
+    --tmpfs /tmp \
+    --security-opt=no-new-privileges:true \
+    --memory=128m \
+    alpine sh -c 'whoami && id && ls / && touch /test 2>&1; touch /tmp/test && echo "/tmp writable: OK"'
+
+  # Notice: writes to / fail (read-only), writes to /tmp succeed (tmpfs)
+
+## Technician Tip — start hardened, loosen if needed:
+Don't start permissive and try to lock down. Start with the strictest
+profile and remove restrictions ONLY when the app proves it needs them.
+
+When the app fails:
+  Check logs for the specific error (often "Permission denied")
+  Loosen JUST that one restriction
+  Document WHY in a comment in your compose/Dockerfile
+
+## Common Pain Point:
+"Hardened container won't start; says 'Read-only file system'":
+  Apps often write to: /tmp, /var/log, /var/cache, /run
+  Add tmpfs or named volume mounts for those specific paths.
+
+  Example for nginx:
+  --tmpfs /var/cache/nginx --tmpfs /var/run
+
+## DCA Exam Note:
+Know all the security flags: --user, --cap-drop, --cap-add, --read-only,
+--tmpfs, --security-opt, --pids-limit, --memory, --cpus.
+Know that compose v3 supports these via "security_opt", "cap_drop", etc.
+Know that --privileged DEFEATS most of these (it grants everything).

@@ -1,0 +1,256 @@
+# Final Capstone: The Release Crisis
+
+## THIS IS NOT A HOMEWORK ASSIGNMENT.
+
+This is a simulated professional engagement. You are the team lead.
+There's no step-by-step guide. You own the outcome.
+
+────────────────────────────────────────────────────
+
+## PHASE 1 — Problem Context
+
+### The Scenario:
+
+CodeVault is a 6-person startup building a password manager. Their
+Git practices are a disaster:
+
+  - Everyone pushes directly to main (no branches, no PRs)
+  - Last week a developer pushed broken code at 5 PM Friday —
+    the app was down all weekend for 2,000 paying customers
+  - There are no tags, no releases, no changelog
+  - Commit messages include "fix", "stuff", "test", and "asdf"
+  - There's no .gitignore — node_modules (300MB) is committed
+  - There's no CONTRIBUTING.md — a new hire has no idea how to work
+  - There's no CI — nobody knows if tests pass before merging
+  - The CEO just emailed: "We lost 3 customers this month to downtime.
+    Fix the process or we hire someone who will."
+
+You were just promoted to team lead. You have one week to turn
+this repository into a professional operation.
+
+### What you know:
+  - Node.js app, 4 developers + 1 designer + you
+  - GitHub repository, no branch protection
+  - 847 commits on main, zero tags, zero releases
+  - Tests exist (npm test) but nobody runs them
+  - The team has never used feature branches or PRs
+
+### What you DON'T know (you must decide):
+  - Which branching strategy fits a 6-person team
+  - How strict to make branch protection (will the team resist?)
+  - Whether to rewrite history to clean up or accept the mess
+  - What the first release version number should be
+  - How to train the team without stopping development
+
+────────────────────────────────────────────────────
+
+## PHASE 2 — Requirements Discovery
+
+Before you touch the repository, write DISCOVERY.md:
+
+  1. What risks does CodeVault face with the current Git practices?
+     (List at least 5 specific business risks.)
+
+  2. What questions would you ask the development team before
+     making changes? (List at least 5.)
+
+  3. What resistance do you expect from the team?
+     (They've never used branches. They'll push back.)
+
+  4. What does "success" look like in one week?
+     Define 3 measurable criteria.
+
+────────────────────────────────────────────────────
+
+## PHASE 3 — Planning & Design
+
+Create GIT_STRATEGY.md:
+
+  1. Branching strategy recommendation
+     (GitHub Flow? GitFlow? Trunk-based? Justify for a 6-person team.)
+
+  2. Branch protection rules you'd enable
+     (Required reviewers? Required CI? Dismiss stale reviews?)
+
+  3. Release and tagging strategy
+     (Semantic versioning? When to tag? Who tags?)
+
+  4. Commit message convention
+     (Conventional commits? What format? How to enforce?)
+
+  5. Risk assessment
+     What could go wrong during the transition? List at least 3
+     risks and your mitigation for each.
+
+────────────────────────────────────────────────────
+
+## PHASE 4 — Execution
+
+Build the actual repository. Create "capstone-codevault/" and:
+
+### 4A. Repository Foundation
+  - README.md (What, Install, Usage — at least 3 sections)
+  - LICENSE (MIT or Apache-2.0)
+  - .gitignore (appropriate for Node.js — including node_modules/)
+  - CONTRIBUTING.md (branch naming, PR process, commit conventions)
+  - CHANGELOG.md (keepachangelog.com format)
+  - Meaningful commits for each file (not "add files")
+
+### 4B. Feature Development with Branches
+  Complete 3 feature branches:
+  - feature/add-main-logic — the "product" (a script or module)
+  - feature/add-tests — test file that validates the product
+  - feature/add-docs — usage documentation
+
+  For each branch:
+  - Branch off main
+  - At least 2 focused commits per branch
+  - Merge with --no-ff (preserves branch history)
+  - Delete the branch after merge
+
+### 4C. Release
+  - Update CHANGELOG.md: move Unreleased items to [1.0.0]
+  - Commit: "Prepare v1.0.0 release"
+  - Create annotated tag: git tag -a v1.0.0 -m "Initial release"
+  - Write RELEASE_NOTES.md
+
+### 4D. Automation
+  - .github/workflows/ci.yml (runs on push + PR, checks out code, runs tests)
+  - .git/hooks/pre-commit (executable, blocks empty messages or debug files)
+
+────────────────────────────────────────────────────
+
+## PHASE 5 — Failure Injection
+
+⚠️ SOMETHING GOES WRONG.
+
+After building the repo, simulate ONE of these:
+
+  A) A developer accidentally pushes a commit containing a
+     .env file with DATABASE_URL and API_SECRET to main.
+     It's already in history. How do you remove it from ALL
+     history, rotate the secrets, and prevent recurrence?
+
+  B) Two developers worked on the same file on different branches.
+     When merging the second branch, you get a 40-line merge
+     conflict. Resolve it, document your resolution strategy,
+     and explain how to prevent this in the future.
+
+  C) A junior developer runs git reset --hard on shared commits,
+     then force-pushes to main. Three other developers are now
+     broken. How do you recover the lost commits and prevent
+     this from happening again?
+
+Pick ONE. In INCIDENT.md document:
+  1. What happened (timeline)
+  2. Immediate action taken
+  3. Root cause
+  4. Permanent fix
+  5. Process change to prevent recurrence
+
+────────────────────────────────────────────────────
+
+## PHASE 6 — Communication
+
+Create CEO_UPDATE.md — a brief update for CodeVault's CEO
+(non-technical person who cares about uptime and customer retention):
+
+  - What was wrong with the old Git workflow (plain language)
+  - What you changed and why it prevents the Friday outage scenario
+  - What the team needs to do differently
+  - What you recommend for month 2
+
+Also create TEAM_ONBOARDING.md:
+  - Step-by-step: how a developer starts a new feature
+  - How to open a PR and request review
+  - How to handle a merge conflict
+  - Common mistakes and how to fix them
+  - The "cheat sheet" commands they'll use daily
+
+────────────────────────────────────────────────────
+
+## PHASE 7 — Reflection
+
+At the bottom of CEO_UPDATE.md, add:
+
+### Lessons Learned
+  - What was the hardest part of the transition?
+  - What would you do differently with more time?
+  - If CodeVault grows to 20 developers, what breaks first?
+  - What's the weakest part of your Git workflow?
+
+────────────────────────────────────────────────────
+
+## SCORING RUBRIC
+
+### Repository Quality (20%)
+  [ ] Clean commit history with meaningful messages
+  [ ] 3 feature branches properly merged with --no-ff
+  [ ] Branches deleted after merge
+  [ ] .gitignore prevents tracking of node_modules, .env, etc.
+  [ ] v1.0.0 annotated tag created
+
+### Documentation (15%)
+  [ ] README is complete and useful
+  [ ] CONTRIBUTING.md has clear workflow steps
+  [ ] CHANGELOG follows keepachangelog format
+  [ ] LICENSE present and appropriate
+
+### Workflow Design (15%)
+  [ ] Branching strategy justified for team size
+  [ ] Branch protection rules documented
+  [ ] Commit convention defined and enforced
+  [ ] Release process documented
+
+### Automation (15%)
+  [ ] CI workflow runs tests on push and PR
+  [ ] Pre-commit hook works and is executable
+  [ ] Quality gates prevent bad code from merging
+
+### Failure Response (15%)
+  [ ] Incident scenario completed
+  [ ] Root cause correctly identified
+  [ ] Recovery executed properly
+  [ ] Prevention measures documented
+
+### Communication (10%)
+  [ ] CEO update is clear, non-technical, business-focused
+  [ ] Team onboarding guide is actionable
+  [ ] Tone is professional and empathetic
+
+### Professional Judgment (10%)
+  [ ] Tradeoffs explained (why this strategy over alternatives)
+  [ ] Risks identified and mitigated
+  [ ] Reflection shows growth mindset
+  [ ] Scalability considered
+
+### Score Interpretation:
+  90-100%  Operational competence — ready to lead a team's Git workflow
+  75-89%   Strong foundation — ready with mentorship
+  60-74%   Developing — review weak dimensions and retry
+  Below 60% Review Days 1-8 before reattempting
+
+────────────────────────────────────────────────────
+
+## FINAL DELIVERABLES
+
+  capstone-codevault/ (Git repository with full history)
+  DISCOVERY.md
+  GIT_STRATEGY.md
+  INCIDENT.md
+  CEO_UPDATE.md (includes Lessons Learned)
+  TEAM_ONBOARDING.md
+  Inside the repo: README.md, LICENSE, .gitignore, CONTRIBUTING.md,
+  CHANGELOG.md, RELEASE_NOTES.md, .github/workflows/ci.yml,
+  .git/hooks/pre-commit
+
+────────────────────────────────────────────────────
+
+## THE STANDARD
+
+  "If I showed this repository and these documents in an interview,
+   would a hiring manager trust me to manage their team's Git workflow?"
+
+If yes — you've passed. Not just the capstone. The course.
+
+## 🎓 Generate your certificate: practicum certificate

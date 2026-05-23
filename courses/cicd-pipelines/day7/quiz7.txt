@@ -1,0 +1,55 @@
+Q1: The most important rule for secrets in CI/CD is:
+A) Use long passwords
+B) Rotate secrets monthly
+D) NEVER put secrets in code, Dockerfiles, or commit history — use encrypted secret stores
+C) Share secrets via Slack DM
+Correct: D
+
+Q2: SCENARIO: A developer accidentally committed an AWS API key to the repo. What should you do FIRST?
+C) Push a new commit that removes the file
+B) Run git filter-branch to clean history
+A) Revoke/rotate the AWS key immediately — assume it's compromised, then clean the Git history
+D) Delete the repository
+Correct: A
+
+Q3: Environment-specific secrets let you:
+A) Use the same credentials everywhere
+B) Have different database URLs for staging vs production using the same secret name per environment
+C) Skip authentication
+D) Share secrets between repos
+Correct: B
+
+Q4: DIAGNOSTIC: Your deploy step logs show DATABASE_URL is empty, but you set it as a GitHub secret. The secret name is "database_url". The workflow references secrets.DATABASE_URL. Why is it empty?
+A) GitHub secrets are disabled
+B) Secrets are case-sensitive — "database_url" and "DATABASE_URL" are different keys
+C) The deploy step can't read secrets
+D) You need to restart the workflow
+Correct: B
+
+Q5: OIDC authentication in CI/CD is better than stored credentials because:
+A) It's faster
+B) No long-lived credentials to steal — GitHub generates temporary tokens that the cloud provider trusts
+C) It's simpler to set up
+D) It works offline
+Correct: B
+
+Q6: A reusable workflow (workflow_call) helps teams because:
+A) It runs faster
+B) It defines a pipeline ONCE that any repo can call — changes propagate to all repos, no copy-paste
+C) It's required by GitHub
+D) It uses less memory
+Correct: B
+
+Q7: TRADEOFF: Your organization has 50 repos, each with copy-pasted CI/CD workflows. A teammate says "let's extract reusable workflows." When is this the RIGHT time?
+A) Immediately for all repos
+B) When at least 3+ repos share the same pattern — premature abstraction is worse than some copy-paste
+C) Never — copy-paste is fine
+D) Only when GitHub requires it
+Correct: B
+
+Q8: Composite actions differ from reusable workflows in that:
+A) Composite actions are reusable STEPS within a job; reusable workflows are entire JOBS with their own runners
+B) They are the same thing
+C) Composite actions can't use secrets
+D) Reusable workflows can't be shared across repos
+Correct: A

@@ -1,0 +1,75 @@
+# Lesson: The Unix Data Pipeline — Thinking in Streams
+
+## [WHEN] You need this when:
+1. You have a 5 GB log file and need answers in seconds.
+2. You need to chain 6 commands together without temp files.
+3. Your data lives in files, not databases, and you need to query it.
+4. Someone says "just use Excel" and you know it'll crash.
+
+## [INTENT] "Design a data pipeline using small tools and pipes."
+
+## [CONTEXT]
+The Unix Philosophy: each tool does ONE thing well.
+  grep   → filter lines
+  cut    → extract columns
+  sort   → order lines
+  uniq   → deduplicate
+  wc     → count
+  awk    → field processing + math
+  sed    → transform text
+  tee    → split output (screen + file)
+  head/tail → slice
+
+The pipe (|) connects stdout of one command to stdin of the next.
+No temp files. No loading into memory. Streams.
+
+Why this beats Excel:
+  - Excel loads the ENTIRE file into RAM (crashes at ~1M rows)
+  - Pipes stream line-by-line (handles 100M rows, constant memory)
+  - Excel is manual (click, drag, formula)
+  - Pipes are scriptable (save, schedule, rerun)
+
+## [ACTION] Pipeline design patterns
+
+### The diagnostic pipeline (most common):
+  cat access.log | grep "404" | cut -d' ' -f1 | sort | uniq -c | sort -rn | head -10
+  # "Top 10 IPs causing 404 errors"
+
+### Break it down:
+  cat access.log       → stream the file
+  | grep "404"         → keep only 404 lines
+  | cut -d' ' -f1      → extract first field (IP address)
+  | sort               → alphabetical sort (required for uniq)
+  | uniq -c            → count consecutive duplicates
+  | sort -rn           → sort by count, descending
+  | head -10           → top 10
+
+### The transform pipeline:
+  cat data.csv | tail -n +2 | awk -F, '{print $3, $5}' | sort -t' ' -k2 -rn | head -20
+  # "Top 20 entries by column 5, showing column 3"
+
+### The monitoring pipeline:
+  tail -f /var/log/syslog | grep --line-buffered "ERROR" | tee errors.log
+  # "Watch for errors in real time, save to file AND show on screen"
+
+### Key flag: --line-buffered
+Without it, grep buffers output in pipes. You won't see real-time results.
+  ❌ tail -f log | grep "ERROR"                    # may buffer, delayed
+  ✅ tail -f log | grep --line-buffered "ERROR"     # immediate output
+
+## [EXPECTED RESULT]
+You can answer data questions in one line, on files of any size,
+without opening an editor or spreadsheet.
+
+## Technician Tip — debugging long pipelines:
+Build pipelines ONE stage at a time:
+  cat file               # does the file load?
+  cat file | grep X       # does the filter work?
+  cat file | grep X | cut -d' ' -f3   # right column?
+  # ...add one pipe at a time
+
+If a stage produces wrong output, fix it before adding the next.
+
+## Common Pain Point:
+"uniq doesn't remove all duplicates" → input MUST be sorted first.
+uniq only removes CONSECUTIVE duplicates. Always: sort | uniq.

@@ -1,0 +1,55 @@
+Q1: What chmod number gives read+write to owner, read-only to group and others?
+C) 755
+B) 700
+A) 644
+D) 666
+Correct: A
+
+Q2: SCENARIO: You need to add user "alice" to the "developers" group WITHOUT removing her from her existing groups. Which command?
+A) usermod -G developers alice (replaces all groups!)
+B) groupadd alice developers
+C) usermod -aG developers alice (the -a flag appends)
+D) adduser alice -group developers
+Correct: C
+
+Q3: The sticky bit on a shared directory prevents:
+A) Files from being read by non-owners
+B) Users from deleting files they don't own — even if the directory is writable
+C) Root from accessing the directory
+D) New files from being created
+Correct: B
+
+Q4: Which command shows TCP ports that services are listening on, with process names?
+A) ping -t
+B) ip show ports
+C) curl --ports
+D) ss -tlnp
+Correct: D
+
+Q5: sudo apt update does what?
+A) Installs all available packages
+B) Refreshes the package list from repositories — doesn't install or upgrade anything
+C) Upgrades all installed software
+D) Removes outdated packages
+Correct: B
+
+Q6: DIAGNOSTIC: You ran apt install nginx but get "Unable to locate package nginx". What's the most likely cause?
+A) nginx doesn't exist for Linux
+B) Your package lists are stale — run sudo apt update first, then retry the install
+C) You need to use yum instead
+D) The server has no internet
+Correct: B
+
+Q7: systemctl enable nginx does what?
+A) Starts nginx right now
+B) Installs nginx
+C) Configures nginx to start automatically on every boot — doesn't start it now
+D) Reloads nginx configuration
+Correct: C
+
+Q8: The cron expression 0 0 * * * means:
+A) Every minute
+B) Every hour at minute 0
+D) Every day at midnight (hour 0, minute 0)
+C) Every month
+Correct: D

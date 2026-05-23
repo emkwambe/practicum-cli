@@ -1,0 +1,110 @@
+# Lesson: sqlite3 — A Full Database in a Single File
+
+## [WHEN] You need this when:
+1. Your CSV data needs JOINs across multiple tables.
+2. You want indexed queries on datasets too big for csvsql.
+3. You need a persistent local data store (survives reboots).
+4. You're building the "Load" stage of an ETL pipeline.
+
+## [INTENT] "Query and store data in a real database — no server needed."
+
+## [CONTEXT]
+sqlite3 is a full SQL database engine in a single file. No server,
+no configuration, no authentication. Just a file on disk.
+
+It supports: tables, indexes, joins, subqueries, views, triggers,
+transactions, and ACID properties. Used by: Firefox, Chrome, Android,
+iOS, Python, and millions of production applications.
+
+Install: sudo apt install sqlite3 (usually pre-installed)
+
+## [ACTION] sqlite3 essentials
+
+### Create and open a database:
+  sqlite3 analysis.db                      # create or open
+  # You're now in the sqlite3 shell
+
+### Import CSV directly:
+  sqlite3 analysis.db << 'EOF'
+  .mode csv
+  .import data.csv employees
+  .schema employees
+  SELECT COUNT(*) FROM employees;
+  EOF
+
+### Or from the interactive shell:
+  sqlite3 analysis.db
+  sqlite> .mode csv
+  sqlite> .headers on
+  sqlite> .import data.csv employees
+  sqlite> SELECT * FROM employees LIMIT 5;
+  sqlite> .quit
+
+### Query with output formatting:
+  sqlite3 -header -column analysis.db "SELECT * FROM employees LIMIT 10"
+  sqlite3 -csv analysis.db "SELECT name, salary FROM employees WHERE salary > 80000"
+  sqlite3 -json analysis.db "SELECT * FROM employees"   # JSON output!
+
+### One-liner (no interactive shell needed):
+  sqlite3 analysis.db "SELECT department, COUNT(*), AVG(salary) FROM employees GROUP BY department"
+
+### Create tables manually:
+  sqlite3 analysis.db << 'SQL'
+  CREATE TABLE IF NOT EXISTS logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      timestamp TEXT,
+      level TEXT,
+      message TEXT
+  );
+  SQL
+
+### Create indexes (massive speed boost):
+  sqlite3 analysis.db "CREATE INDEX idx_dept ON employees(department)"
+  sqlite3 analysis.db "CREATE INDEX idx_level ON logs(level)"
+  # Now WHERE department = 'X' is instant even on millions of rows
+
+### Useful dot-commands:
+  .tables                    — list all tables
+  .schema tablename          — show CREATE statement
+  .headers on                — show column headers in output
+  .mode csv|column|json|line — output format
+  .import file.csv table     — import CSV
+  .output file.csv           — redirect output to file
+  .dump                      — export entire database as SQL
+  .quit                      — exit
+
+## [EXPECTED RESULT]
+A persistent, queryable database created from your CSV files.
+Queries run on indexed data are orders of magnitude faster than
+scanning flat files.
+
+## Try it now:
+  cat > /tmp/sales.csv << 'EOF'
+  date,product,quantity,price
+  2026-04-01,Widget,10,9.99
+  2026-04-01,Gadget,5,24.99
+  2026-04-02,Widget,8,9.99
+  2026-04-02,Gadget,12,24.99
+  2026-04-03,Widget,15,9.99
+  EOF
+
+  sqlite3 /tmp/sales.db << 'SQL'
+  .mode csv
+  .import /tmp/sales.csv sales
+  .headers on
+  .mode column
+  SELECT product, SUM(quantity) as total_qty, SUM(quantity * price) as revenue
+  FROM sales GROUP BY product ORDER BY revenue DESC;
+  SQL
+
+## Technician Tip:
+sqlite3 + cron = automated reporting:
+  # /etc/cron.daily/sales-report
+  #!/bin/bash
+  sqlite3 -csv /opt/data/sales.db "SELECT ..." > /var/reports/daily.csv
+  mail -s "Daily Sales" admin@example.com < /var/reports/daily.csv
+
+## Common Pain Point:
+"CSV import creates all columns as TEXT" → sqlite3 doesn't infer types.
+Cast in queries: SELECT CAST(salary AS INTEGER) FROM employees
+Or create the table with types first, then .import into it.

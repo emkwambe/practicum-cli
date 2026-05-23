@@ -1,0 +1,106 @@
+# Lesson: grep -P and Lookaround — Surgical Extraction
+
+## [WHEN] You need this when:
+1. You need to extract a value AFTER a label (e.g., "user=" → the username).
+2. You need to match a pattern only IF it's followed/preceded by something.
+3. You need non-greedy matching (smallest match, not largest).
+4. Standard grep -E isn't precise enough.
+
+## [INTENT] "Extract exactly the data I need with zero noise."
+
+## [CONTEXT]
+grep -P enables Perl-Compatible Regular Expressions (PCRE).
+PCRE adds: lookahead, lookbehind, non-greedy quantifiers, \d, \w, \s.
+This is the same regex engine used by Python, JavaScript, and most languages.
+
+Note: grep -P is available on GNU/Linux. macOS needs: brew install grep.
+
+## [ACTION] PCRE features
+
+### Shorthand character classes:
+  \d    digit [0-9]              grep -oP "\d+"
+  \D    non-digit [^0-9]         grep -oP "\D+"
+  \w    word char [a-zA-Z0-9_]   grep -oP "\w+"
+  \W    non-word                  grep -oP "\W+"
+  \s    whitespace               grep -oP "\s+"
+  \S    non-whitespace           grep -oP "\S+"
+
+### Non-greedy quantifiers:
+  .*    greedy (match as much as possible)
+  .*?   non-greedy (match as little as possible)
+
+  # Greedy: matches the LONGEST string between quotes
+  echo '"hello" and "world"' | grep -oP '".*"'
+  # "hello" and "world"   ← entire string
+
+  # Non-greedy: matches each SHORTEST quoted string
+  echo '"hello" and "world"' | grep -oP '".*?"'
+  # "hello"
+  # "world"
+
+### Lookbehind — match AFTER a label (don't include the label):
+  (?<=pattern)    positive lookbehind
+
+  echo "user=admin level=5" | grep -oP '(?<=user=)\w+'
+  # admin   ← extracted the value, not "user=admin"
+
+  echo "price: $49.99" | grep -oP '(?<=\$)\d+\.\d+'
+  # 49.99
+
+  echo "host=10.0.0.1 port=8080" | grep -oP '(?<=port=)\d+'
+  # 8080
+
+### Lookahead — match BEFORE a label (don't include the label):
+  (?=pattern)     positive lookahead
+
+  echo "100px 200em 300px" | grep -oP '\d+(?=px)'
+  # 100
+  # 300   ← only the numbers followed by "px"
+
+### Negative lookbehind — match if NOT preceded by:
+  (?<!pattern)    negative lookbehind
+
+  echo "error: disk full" | grep -oP '(?<!no )error'
+  # error   ← matches, because "no " doesn't precede it
+
+### Negative lookahead — match if NOT followed by:
+  (?!pattern)     negative lookahead
+
+  echo "test testing tested" | grep -oP 'test(?!ing)'
+  # test    (from "test")
+  # test    (from "tested")   ← skips "testing"
+
+### Named capture groups:
+  grep -oP '(?P<ip>\d+\.\d+\.\d+\.\d+)' log.txt
+
+### Practical: extract JSON values without jq (quick and dirty):
+  grep -oP '"name"\s*:\s*"\K[^"]+' file.json
+  # \K resets the match start — only outputs what comes after
+
+  echo '{"name": "Eddy", "age": 30}' | grep -oP '"name"\s*:\s*"\K[^"]+'
+  # Eddy
+
+### Practical: extract key=value pairs:
+  echo "host=db1 port=5432 user=admin" | grep -oP '\w+=\K\S+'
+  # db1
+  # 5432
+  # admin
+
+### Practical: log timestamp extraction:
+  grep -oP '\K\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}' app.log
+
+## [EXPECTED RESULT]
+grep -P with lookaround lets you extract exactly the value you need
+without the surrounding context. No more piping through cut or awk
+to clean up grep output.
+
+## Technician Tip:
+\K is the "keep" operator — it resets the match start point.
+Everything before \K is required to match but NOT included in output.
+  grep -oP 'user=\K\w+'     is cleaner than
+  grep -oP '(?<=user=)\w+'  (same result, simpler syntax)
+
+## Common Pain Point:
+"grep: -P is not supported" → macOS uses BSD grep. Install GNU grep:
+  brew install grep    (then use ggrep -P)
+Or use perl directly: perl -ne 'print "$1\n" if /user=(\w+)/'

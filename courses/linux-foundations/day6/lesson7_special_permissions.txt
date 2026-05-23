@@ -1,0 +1,29 @@
+# Lesson: Special Permissions — setuid, setgid, sticky bit
+
+## [WHEN] You need this when:
+1. You wonder why non-root users can change their own password.
+2. You need files in a shared directory to inherit the group.
+3. You want to prevent users from deleting each other's files in /tmp.
+4. A security audit finds setuid binaries.
+
+## [INTENT] "Why can this work without root?" and "Protect shared dirs."
+
+## [CONTEXT]
+Beyond rwx, Linux has three special permission bits:
+  setuid (s on owner): Program runs as file owner, not as the user.
+  setgid (s on group): New files inherit the directory's group.
+  sticky bit (t on others): Only file owner can delete their files.
+
+## [ACTION] chmod u+s / chmod g+s / chmod +t
+  chmod u+s program                — set setuid
+  chmod g+s /shared/project        — set setgid on directory
+  chmod +t /shared/tmp             — set sticky bit
+  find / -perm -4000 2>/dev/null   — find all setuid binaries
+
+## [EXPECTED RESULT]
+ls -la shows 's' or 't':
+  -rwsr-xr-x = setuid, drwxrwxrwt = sticky bit
+
+## Try it now:
+  ls -la /usr/bin/passwd          — notice the 's'
+  ls -la /tmp                     — notice the 't'

@@ -1,0 +1,29 @@
+# Shell Scripting Mastery unlock chain
+# Day 1: shebang, variables, quoting, arguments, input, exit_codes
+shebang|variables
+variables|quoting
+quoting|arguments
+arguments|input
+input|exit_codes
+# Day 2: if_then, test_operators, case, arithmetic, strings, practical
+if_then|test_operators
+test_operators|case
+case|arithmetic
+arithmetic|strings
+strings|practical
+# Day 3: for_loops, while_until, arrays, loop_control
+for_loops|while_until
+while_until|arrays
+arrays|loop_control
+# Day 4: functions, scope, source, production
+functions|scope
+scope|source
+source|production
+# Day 6: awk, sed, regex, log_parser
+awk|sed
+sed|regex
+regex|log_parser
+# Day 7: traps, validation, debugging, practical
+traps|validation
+validation|debugging
+debugging|practical

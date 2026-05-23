@@ -1,0 +1,34 @@
+Q1: The correct order for saving changes in Git is:
+A) commit → add → push
+B) push → commit → add
+C) add → commit → push (stage → snapshot → share)
+D) init → push → pull
+Correct: C
+
+Q2: SCENARIO: You're on main and need a feature branch. Which command creates AND switches?
+A) git branch feature && git checkout feature
+B) git switch -c feature/add-search
+C) git new-branch feature
+D) git create feature
+Correct: B
+
+Q3: git commit -am "message" does what?
+A) Creates a new branch
+B) Stages ALL modified tracked files and commits in one step (doesn't add new untracked files)
+C) Pushes to the remote
+D) Amends the previous commit
+Correct: B
+
+Q4: How do you see which remote servers your repo is connected to?
+A) git status
+B) git log
+C) git remote -v
+D) git show remotes
+Correct: C
+
+Q5: DIAGNOSTIC: You accidentally committed a large file (500MB video) and pushed. Now the repo is huge. What's the proper fix?
+A) Delete the file and commit the deletion
+B) That only removes it from the current tree — the file is still in Git history. Use git filter-branch or BFG Repo-Cleaner to purge it from all history
+C) The file will be automatically cleaned up
+D) Push again with --force
+Correct: B

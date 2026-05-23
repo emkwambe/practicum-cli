@@ -1,0 +1,33 @@
+# Lesson: git merge — Combine Branches Together
+
+## [WHEN] You need this when:
+1. Your feature is complete and ready to join the main branch.
+2. You want to bring updates from main into your feature branch.
+3. A teammate finished their work and you need to combine it.
+
+## [INTENT] "Bring changes from one branch into another."
+
+## [CONTEXT]
+Merging takes the commits from one branch and applies them to another.
+You always merge INTO the branch you are currently on.
+Two types of merge:
+  Fast-forward — your branch is ahead, Git just moves the pointer
+  Three-way merge — both branches diverged, Git creates a merge commit
+Conflicts happen when both branches changed the same lines.
+
+## [ACTION] git merge <branch>
+Common patterns:
+  git switch main                   — first, go to the receiving branch
+  git merge feature-login           — merge feature into main
+  git merge --no-ff feature-login   — force a merge commit (better history)
+  git merge --abort                 — cancel a conflicted merge
+
+## [EXPECTED RESULT]
+Fast-forward: "Fast-forward" + updated files
+Merge commit: "Merge made by the 'ort' strategy"
+Conflict: "CONFLICT (content): Merge conflict in file.txt"
+
+## Try it now:
+  git switch main
+  git merge test-branch
+  git log --oneline --graph

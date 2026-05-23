@@ -1,0 +1,47 @@
+# Lesson: Kubernetes Mastery Review — Before the Capstone
+
+## [INTENT] "Review the complete K8s operations lifecycle."
+
+## The Kubernetes resource hierarchy:
+
+  Cluster
+  ├── Nodes (machines)
+  │   └── Pods (containers)
+  │       └── Containers (your apps)
+  │
+  ├── Deployments (manage pods, replicas, rolling updates)
+  ├── StatefulSets (manage stateful pods with stable identity)
+  │
+  ├── Services (stable networking)
+  │   ├── ClusterIP (internal)
+  │   ├── NodePort (node access)
+  │   └── LoadBalancer (external)
+  │
+  ├── Ingress (HTTP routing, TLS)
+  │
+  ├── ConfigMaps (non-sensitive config)
+  ├── Secrets (sensitive config)
+  │
+  ├── PersistentVolumeClaims (storage requests)
+  │
+  ├── HPA (auto-scaling)
+  ├── PDB (disruption budgets)
+  ├── NetworkPolicy (security)
+  │
+  └── Helm Charts (packaging)
+
+## Debugging order:
+  1. kubectl get pods — what's the status?
+  2. kubectl describe pod — what went wrong?
+  3. kubectl logs — what did the app say?
+  4. kubectl exec — get inside and look around
+  5. kubectl get events — cluster-level happenings
+
+## Operational readiness checklist:
+  Every pod: resource limits, health probes
+  Every service: correct selectors, verified endpoints
+  Every deployment: multiple replicas, rolling update strategy
+  Every secret: encrypted, access-controlled
+  The cluster: monitored, backed up, upgrade-planned
+
+## Now prove it in the capstone.

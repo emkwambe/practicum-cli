@@ -1,0 +1,36 @@
+Q1: SCENARIO: You deploy a 3-tier app (web, api, db). The web pods can't reach the api pods. First debugging step:
+A) Check the internet
+B) Restart everything
+C) Verify the API Service has endpoints: kubectl get endpoints api-service — if empty, selector labels don't match pod labels
+D) Redeploy the web pods
+Correct: C
+
+Q2: Namespaces in Kubernetes are for:
+A) Network encryption
+B) Logical separation of resources — different teams, environments, or apps can have their own namespace with separate RBAC and resource quotas
+C) Performance isolation
+D) Storage management
+Correct: B
+
+Q3: DIAGNOSTIC: kubectl apply -f deployment.yaml succeeds but kubectl get pods shows 0/3 Ready for 5 minutes. kubectl describe shows "Insufficient memory." What happened?
+A) The namespace is full
+B) The pod's memory request exceeds available node resources — the scheduler can't find a node with enough free memory
+C) The image is too large
+D) The YAML is wrong
+Correct: B
+
+Q4: To expose a pod for testing without creating a Service:
+A) It's impossible
+B) Use SSH
+C) Change the pod IP
+D) kubectl port-forward pod/web 8080:80 — creates a temporary tunnel from your local machine to the pod
+Correct: D
+
+
+
+Q5: TRADEOFF: Running everything in the default namespace vs using multiple namespaces:
+A) Multiple namespaces enable RBAC isolation, resource quotas per team, and prevent accidental cross-environment interactions — worth the overhead for any team beyond solo dev
+B) You can only have 3 namespaces
+C) Namespaces add latency
+D) Default is always fine
+Correct: A

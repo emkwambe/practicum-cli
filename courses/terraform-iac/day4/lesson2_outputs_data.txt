@@ -1,0 +1,94 @@
+# Lesson: Outputs & Data Sources — Getting Information Out
+
+## [WHEN] You need this when:
+1. You need to display the IP address of a server after creation.
+2. One Terraform config needs data from another.
+3. You need to reference existing infrastructure you didn't create.
+
+## [INTENT] "Extract values from infrastructure and reference existing resources."
+
+## [CONTEXT]
+Outputs export values FROM your infrastructure (like return values).
+Data sources import values ABOUT existing infrastructure (like lookups).
+
+## [ACTION] Outputs and data sources
+
+### Outputs (outputs.tf):
+  output "web_ip" {
+    description = "Public IP of the web server"
+    value       = aws_instance.web.public_ip
+  }
+
+  output "db_endpoint" {
+    description = "Database connection string"
+    value       = aws_db_instance.main.endpoint
+    sensitive   = true    # ← hidden from terminal output
+  }
+
+  # After apply:
+  $ terraform output
+  web_ip = "54.123.45.67"
+  db_endpoint = <sensitive>
+
+  $ terraform output web_ip
+  "54.123.45.67"
+
+  # Machine-readable:
+  $ terraform output -json
+  $ terraform output -raw web_ip    # no quotes, for scripting
+
+### Data sources (read existing infrastructure):
+  # Look up the latest Ubuntu AMI:
+  data "aws_ami" "ubuntu" {
+    most_recent = true
+    owners      = ["099720109477"]    # Canonical
+
+    filter {
+      name   = "name"
+      values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-*"]
+    }
+  }
+
+  resource "aws_instance" "web" {
+    ami           = data.aws_ami.ubuntu.id    # ← from data source
+    instance_type = var.instance_type
+  }
+
+### Common data sources:
+  # Look up existing VPC:
+  data "aws_vpc" "existing" {
+    id = "vpc-abc123"
+  }
+
+  # Look up current AWS account:
+  data "aws_caller_identity" "current" {}
+  # data.aws_caller_identity.current.account_id
+
+  # Look up availability zones:
+  data "aws_availability_zones" "available" {
+    state = "available"
+  }
+
+### Data source vs resource:
+  resource = Terraform MANAGES it (creates, updates, destroys)
+  data     = Terraform READS it (look up only, never modifies)
+
+  resource "aws_instance" "web" { ... }     # Terraform creates this
+  data "aws_vpc" "existing" { id = "..." }  # Terraform reads this
+
+### Outputs as module interface:
+  When building modules (Day 6), outputs are how modules
+  expose values to the caller. They're the module's API.
+
+## [EXPECTED RESULT]
+You can export values for display or scripting, and reference
+existing infrastructure that Terraform didn't create.
+
+## Technician Tip:
+Use terraform output -json | jq in scripts. It gives you
+machine-parseable infrastructure data.
+
+## Common Pain Point:
+"Data source returns no results" → your filter is too restrictive
+or the resource doesn't exist in the configured region/account.
+Check filters and provider configuration.

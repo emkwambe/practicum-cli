@@ -1,0 +1,79 @@
+# Lesson: CI/CD Pipeline Design Review — Before the Capstone
+
+## [INTENT] "Review the complete CI/CD lifecycle before building the capstone."
+
+## [CONTEXT]
+You've learned every piece. Now combine them into one pipeline.
+
+## The complete pipeline architecture:
+
+  Developer pushes code to feature branch
+        │
+        ▼
+  [TRIGGER] Pull Request opened
+        │
+        ▼
+  ┌──────────────────────┐
+  │ CI: LINT + TEST      │  (parallel, fast)
+  │  - shellcheck/eslint │
+  │  - npm test/pytest   │
+  │  - matrix: 3 versions│
+  └──────────┬───────────┘
+             │ pass?
+             ▼
+  PR merged to main
+        │
+        ▼
+  [TRIGGER] Push to main
+        │
+        ▼
+  ┌──────────────────────┐
+  │ BUILD                │
+  │  - docker build      │
+  │  - tag with SHA      │
+  │  - push to registry  │
+  │  - scan for vulns    │
+  └──────────┬───────────┘
+             │
+             ▼
+  ┌──────────────────────┐
+  │ DEPLOY STAGING       │  (automatic)
+  │  - pull new image    │
+  │  - deploy to staging │
+  │  - smoke tests       │
+  └──────────┬───────────┘
+             │ smoke pass?
+             ▼
+  ┌──────────────────────┐
+  │ APPROVE              │  (manual gate)
+  │  - human reviews     │
+  │  - clicks "approve"  │
+  └──────────┬───────────┘
+             │
+             ▼
+  ┌──────────────────────┐
+  │ DEPLOY PRODUCTION    │  (blue/green)
+  │  - deploy new version│
+  │  - health check      │
+  │  - switch traffic    │
+  └──────────┬───────────┘
+             │
+             ▼
+  ┌──────────────────────┐
+  │ VERIFY               │
+  │  - health endpoint   │
+  │  - version check     │
+  │  - monitor metrics   │
+  │  - rollback if needed│
+  └──────────────────────┘
+
+## Key principles:
+  1. FAIL FAST — lint before test, test before build
+  2. BUILD ONCE — same image for staging and production
+  3. GATE PRODUCTION — require human approval
+  4. HEALTH CHECK — verify after every deploy
+  5. ROLLBACK READY — always have a way back
+  6. SECRETS SAFE — never in code, environment-scoped
+  7. CACHE EVERYTHING — npm, Docker layers, artifacts
+
+## Now build it in the capstone.

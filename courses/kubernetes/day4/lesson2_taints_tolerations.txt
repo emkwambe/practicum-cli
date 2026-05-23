@@ -1,0 +1,129 @@
+# Lesson: Taints & Tolerations — Repelling Pods from Nodes
+
+## [WHEN] You need this when:
+1. Dedicated nodes for specific workloads (GPU, high-memory).
+2. Control plane nodes shouldn't run application pods.
+3. A node is being drained for maintenance.
+4. Certain nodes are reserved for specific teams.
+
+## [INTENT] "Use taints to repel pods and tolerations to allow exceptions."
+
+## [CONTEXT]
+Affinity ATTRACTS pods to nodes.
+Taints REPEL pods from nodes.
+Tolerations are the exception pass — "I can tolerate this taint."
+
+  Think of it as:
+  Taint = "No entry without a pass"
+  Toleration = "I have the pass"
+
+  By default, control plane nodes are tainted:
+    node-role.kubernetes.io/control-plane:NoSchedule
+  That's why your pods run on worker nodes, not the control plane.
+
+## [ACTION] Taints and tolerations
+
+### Taint a node:
+  kubectl taint nodes worker-3 dedicated=gpu:NoSchedule
+
+  # Format: key=value:effect
+  # Now ONLY pods with a matching toleration can schedule on worker-3.
+
+### Effects:
+  NoSchedule:       don't schedule new pods (existing pods stay)
+  PreferNoSchedule: TRY to avoid scheduling (soft version)
+  NoExecute:        don't schedule new AND evict existing pods
+
+### Toleration in a pod spec:
+  spec:
+    tolerations:
+      - key: "dedicated"
+        operator: "Equal"
+        value: "gpu"
+        effect: "NoSchedule"
+
+  This pod CAN schedule on worker-3 (it tolerates the taint).
+  Pods without this toleration CANNOT.
+
+### Operators:
+  Equal: key, value, and effect must all match
+  Exists: only key and effect must match (any value)
+
+  # Tolerate ALL taints on a node (use carefully):
+  tolerations:
+    - operator: "Exists"
+
+### Common use cases:
+
+  # 1. Dedicated GPU nodes:
+  kubectl taint nodes gpu-1 accelerator=nvidia:NoSchedule
+
+  # ML training pods get the toleration + nodeSelector:
+  spec:
+    nodeSelector:
+      accelerator: nvidia
+    tolerations:
+      - key: "accelerator"
+        operator: "Equal"
+        value: "nvidia"
+        effect: "NoSchedule"
+
+  # 2. Node maintenance — evict all pods:
+  kubectl taint nodes worker-2 maintenance=true:NoExecute
+
+  # All pods without a matching toleration are evicted immediately.
+  # Remove the taint when done:
+  kubectl taint nodes worker-2 maintenance=true:NoExecute-
+
+  # 3. Drain (better for maintenance):
+  kubectl drain worker-2 --ignore-daemonsets --delete-emptydir-data
+  # This cordons the node AND evicts pods safely.
+
+  kubectl uncordon worker-2  # allow scheduling again
+
+### Taint + Toleration + Affinity together:
+  Taints REPEL everything, tolerations ALLOW exceptions,
+  but tolerations don't ATTRACT. A toleration says "I'm allowed here"
+  not "I prefer here." Use nodeSelector or affinity to attract.
+
+  Full pattern for dedicated GPU nodes:
+    Node: taint + label
+    Pod: toleration + nodeSelector
+
+### Viewing taints:
+  kubectl describe node worker-3 | grep Taint
+  kubectl get nodes -o json | jq '.items[].spec.taints'
+
+### PriorityClasses (Pod admission):
+  apiVersion: scheduling.k8s.io/v1
+  kind: PriorityClass
+  metadata:
+    name: critical
+  value: 1000000
+  globalDefault: false
+  description: "Critical production workloads"
+
+  spec:
+    priorityClassName: critical
+
+  Higher-priority pods can PREEMPT lower-priority pods when
+  resources are scarce. The scheduler evicts low-priority pods
+  to make room for high-priority ones.
+
+  System classes:
+    system-cluster-critical:  2000000000
+    system-node-critical:     2000001000
+
+## [EXPECTED RESULT]
+You can taint nodes, add tolerations to pods, drain nodes for
+maintenance, and understand the taint + toleration + affinity pattern.
+
+## Technician Tip:
+kubectl drain is the production-safe way to remove a node.
+It cordons (marks unschedulable), evicts pods respecting PDBs,
+and waits for eviction to complete. Always use --ignore-daemonsets.
+
+## Common Pain Point:
+"kubectl drain hangs" → a PodDisruptionBudget is preventing eviction
+because removing this pod would violate minAvailable. Fix: scale up
+the deployment first, then drain.

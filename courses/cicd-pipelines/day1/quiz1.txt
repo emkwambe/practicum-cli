@@ -1,0 +1,55 @@
+Q1: A developer pushes code, tests run automatically, and a Docker image is built. This describes:
+A) Continuous Integration + Continuous Delivery pipeline
+B) A manual deployment process
+C) A container registry
+D) A Git branching strategy
+Correct: A
+
+Q2: Your team deploys manually once a month. Deployments take 4 hours and often fail. CI/CD would help because:
+A) It makes the code run faster
+B) It replaces the need for developers
+C) It automates testing and deployment so changes ship in minutes with fewer failures
+D) It eliminates the need for a staging environment
+Correct: C
+
+Q3: Continuous Delivery differs from Continuous Deployment in that:
+A) Delivery uses Docker, Deployment does not
+B) Delivery requires a manual approval gate before production; Deployment is fully automated
+C) There is no difference
+D) Deployment is slower
+Correct: B
+
+Q4: A workflow triggers on pull_request but NOT on push. What happens when a developer pushes directly to main?
+A) The workflow runs twice
+B) The workflow runs once on the push
+C) The workflow does NOT run — there's no pull_request event
+D) GitHub blocks the push
+Correct: C
+
+Q5: Your pipeline runs on every commit to every branch, burning through runner minutes. Which trigger change fixes this?
+A) Remove the on: section entirely
+B) Change to on: schedule
+C) Add branch filters: on: push: branches: [main] and on: pull_request: branches: [main]
+D) Switch to Jenkins
+Correct: C
+
+Q6: A CI/CD pipeline is typically defined in:
+A) A database table
+B) An email to the ops team
+C) A Word document attached to the ticket
+D) YAML files stored in the repository alongside the code
+Correct: D
+
+Q7: Your team uses GitHub for source control. Which CI/CD platform integrates most tightly and is free for public repos?
+A) Jenkins
+B) CircleCI
+C) Travis CI
+D) GitHub Actions
+Correct: D
+
+Q8: SCENARIO: Your pipeline has these stages: Build → Lint → Test → Deploy. A senior engineer reviews it and says the order is wrong. What should the correct order be and why?
+A) Deploy → Test → Lint → Build (deploy first to save time)
+B) Lint → Test → Build → Deploy (fail fast: catch cheap errors first)
+C) Build → Deploy → Test → Lint (test in production)
+D) The original order is fine
+Correct: B

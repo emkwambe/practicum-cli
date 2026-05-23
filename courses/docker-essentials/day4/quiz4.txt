@@ -1,0 +1,55 @@
+Q1: docker compose up -d starts:
+A) Only the first service
+B) All services defined in docker-compose.yml in detached mode
+C) A single container
+D) Only changed services
+Correct: B
+
+Q2: SCENARIO: Your compose file has web, db, and redis. Web depends on db. You run docker compose up. What starts first?
+A) web (alphabetical)
+B) All three simultaneously
+C) db starts first (depends_on), then web — though depends_on only waits for container start, not readiness
+D) redis
+Correct: C
+
+Q3: docker compose down does what compared to docker compose stop?
+A) Same thing
+B) down stops AND removes containers, networks, and anonymous volumes; stop just pauses them
+C) down only removes images
+D) down is faster
+Correct: B
+
+Q4: DIAGNOSTIC: Your compose stack starts but the web app can't connect to the database. Logs show "Connection refused to db:5432". What should you check?
+A) The internet connection
+B) Whether the database container is healthy and ready (not just started) — add a healthcheck and use depends_on with condition: service_healthy
+C) The Dockerfile
+D) Docker Hub
+Correct: B
+
+Q5: In a compose file, volumes: - dbdata:/var/lib/postgresql/data creates:
+A) A temporary directory
+B) A named volume that persists database data even after docker compose down
+C) A bind mount
+D) A network share
+Correct: B
+
+Q6: TRADEOFF: Your compose file has services: web, api, db, cache, worker. In development you only need web and db. How do you start just those?
+A) Edit the compose file to remove the others
+B) docker compose up web db — compose starts only named services plus their dependencies
+C) Create a separate compose file
+D) You can't — all services must start
+Correct: B
+
+Q7: environment: - DB_HOST=db in a compose service does what?
+A) Creates a database
+B) Sets an environment variable inside the container so the app knows the database hostname
+C) Installs a database driver
+D) Connects to an external database
+Correct: B
+
+Q8: SCENARIO: After docker compose up --build, your old code still runs. What's likely happening?
+A) Docker is caching the old image layers — the build context may have cached COPY steps. Check .dockerignore and layer ordering
+B) Compose is broken
+C) You need to restart Docker
+D) The code wasn't saved
+Correct: A

@@ -1,0 +1,55 @@
+Q1: The correct pipeline order is:
+A) Build → Lint → Test → Deploy
+B) Deploy → Test → Build → Lint
+C) Lint → Test → Build → Deploy staging → Approve → Deploy production
+D) Test → Deploy → Lint → Build
+Correct: C
+
+Q2: "Build once, deploy everywhere" means:
+A) Build a different image for each environment
+B) Build ONE image and deploy that exact artifact to staging and production — only config changes
+C) Build only in production
+D) Never rebuild
+Correct: B
+
+Q3: SCENARIO: Your rollback script pulls the old image, stops the current container, and starts the old version. What critical step is missing?
+C) Sending a Slack notification
+B) Deleting the failed image
+A) A health check after starting the old version — to confirm the rollback actually worked
+D) Notifying the database
+Correct: A
+
+Q4: TRADEOFF: Manual approval before production adds a 10-30 minute delay. Why do most teams keep it?
+A) GitHub requires it
+B) It's a legal obligation
+C) A human verifying staging catches issues automation misses — the delay prevents costly production outages
+D) Most teams actually skip approval
+Correct: C
+
+Q5: DIAGNOSTIC: Pipeline deploys successfully, health check passes, but users report old behavior. What should you investigate?
+A) The server hardware
+B) DNS propagation delays
+D) Whether the correct image version (commit SHA) was actually deployed — the health endpoint might not verify version
+C) The user's browser cache
+Correct: D
+
+Q6: The capstone pipeline integrates multiple Practicum courses because:
+A) It only uses CI/CD concepts
+B) It requires Kubernetes
+C) Git triggers the pipeline, Shell scripts run health checks, Docker builds the image, and CI/CD orchestrates the entire flow
+D) It only uses Docker
+Correct: C
+
+Q7: DIAGNOSTIC: CI passes, Docker builds, staging deploys fine, but the production deploy job never starts. The production environment has "required reviewers." What's happening?
+A) The workflow YAML has a syntax error
+B) GitHub Actions is experiencing an outage
+C) The production job is waiting for a human reviewer to approve — the environment protection rule is working correctly
+D) The Docker image is too large to deploy
+Correct: C
+
+Q8: A comprehensive post-deployment health check should verify:
+A) Only that the server responds to ping
+B) That all unit tests pass again in production
+C) That the CSS renders correctly
+D) That the health endpoint returns 200, the version matches the deployed SHA, and basic API calls succeed
+Correct: D

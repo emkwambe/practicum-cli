@@ -1,0 +1,147 @@
+# Lesson: Helm & Kustomize — Managing Kubernetes Manifests at Scale
+
+## [WHEN] You need this when:
+1. Managing 15+ YAML files per application is unmanageable.
+2. The same app needs different config per environment.
+3. You want to install third-party software easily.
+4. CKA 2025 added Helm AND Kustomize as expected competencies.
+
+## [INTENT] "Package with Helm, customize with Kustomize."
+
+## [CONTEXT]
+Two tools, two approaches:
+  Helm: templating — generate YAML from templates + values
+  Kustomize: patching — start with base YAML, overlay changes
+
+Both solve: "how do I manage the same app in dev, staging, prod?"
+  Helm: one chart, different values files
+  Kustomize: one base, different overlays
+
+## [ACTION] Helm and Kustomize
+
+### ─── HELM ───
+
+### Concepts:
+  Chart:   package of K8s templates
+  Release: deployed instance of a chart
+  Values:  configuration for the chart
+
+### Using a public chart:
+  helm repo add bitnami https://charts.bitnami.com/bitnami
+  helm repo update
+  helm search repo bitnami/postgresql
+
+  helm install my-db bitnami/postgresql \
+    --set auth.postgresPassword=secret \
+    --set primary.persistence.size=10Gi
+
+### Core helm commands:
+  helm list                        # show releases
+  helm status my-db                # release details
+  helm upgrade my-db bitnami/postgresql --set ...
+  helm rollback my-db 1            # rollback to revision 1
+  helm uninstall my-db             # delete everything
+  helm install --dry-run --debug   # preview without applying
+
+### Creating your own chart:
+  helm create myapp
+
+  myapp/
+  ├── Chart.yaml           # metadata (name, version, dependencies)
+  ├── values.yaml          # default config
+  └── templates/
+      ├── deployment.yaml  # {{ .Values.replicaCount }}
+      ├── service.yaml
+      ├── ingress.yaml
+      └── _helpers.tpl     # shared template functions
+
+### Values files per environment:
+  helm install web ./myapp -f values-prod.yaml
+  helm install web ./myapp -f values-dev.yaml
+
+### ─── KUSTOMIZE ───
+
+### Kustomize is built into kubectl:
+  kubectl apply -k ./overlays/prod/
+  kubectl kustomize ./overlays/prod/ | kubectl apply -f -
+
+### Directory structure:
+  app/
+  ├── base/
+  │   ├── kustomization.yaml
+  │   ├── deployment.yaml
+  │   └── service.yaml
+  └── overlays/
+      ├── dev/
+      │   ├── kustomization.yaml
+      │   └── replica-patch.yaml
+      └── prod/
+          ├── kustomization.yaml
+          ├── replica-patch.yaml
+          └── resource-patch.yaml
+
+### Base kustomization.yaml:
+  apiVersion: kustomize.config.k8s.io/v1beta1
+  kind: Kustomization
+  resources:
+    - deployment.yaml
+    - service.yaml
+
+### Overlay kustomization.yaml (prod):
+  apiVersion: kustomize.config.k8s.io/v1beta1
+  kind: Kustomization
+  resources:
+    - ../../base
+  namespace: production
+  namePrefix: prod-
+  commonLabels:
+    env: production
+  patches:
+    - path: replica-patch.yaml
+
+### Patch file (replica-patch.yaml):
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: web
+  spec:
+    replicas: 5          # override base (which might be 1)
+
+### Kustomize operations:
+  namespace:     add namespace to all resources
+  namePrefix:    add prefix to all resource names
+  commonLabels:  add labels to all resources
+  patches:       modify specific fields
+  configMapGenerator:  create ConfigMaps from files/literals
+  secretGenerator:     create Secrets from files/literals
+
+### ConfigMap from Kustomize:
+  configMapGenerator:
+    - name: app-config
+      literals:
+        - DB_HOST=postgres.prod.svc.cluster.local
+        - LOG_LEVEL=warn
+
+### Helm vs Kustomize decision:
+  Helm when:
+    - Installing third-party software (Prometheus, nginx-ingress)
+    - Complex templating with conditionals and loops
+    - Publishing reusable packages
+    - Managing release lifecycle (upgrade, rollback)
+
+  Kustomize when:
+    - Customizing existing YAML for different environments
+    - Simple overrides (replicas, namespace, labels)
+    - No templating needed — just patching
+    - Built into kubectl (no extra tool to install)
+
+  Many teams use BOTH: Helm for third-party, Kustomize for in-house.
+
+## [EXPECTED RESULT]
+You can install and manage Helm charts, create Kustomize bases
+and overlays, and choose the right tool for the situation.
+
+## Technician Tip:
+CKA exam: kubectl apply -k is the fastest Kustomize command.
+For Helm, memorize helm install/upgrade/rollback/uninstall.
+The exam provides documentation — know where to look.

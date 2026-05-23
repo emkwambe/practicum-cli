@@ -1,0 +1,41 @@
+Q1: How do you create a variable named "server" with value "prod-01"?
+A) $server = "prod-01"
+B) var server "prod-01"
+C) server="prod-01" (no spaces around the =)
+D) set server "prod-01"
+Correct: C
+
+Q2: SCENARIO: Your script needs to check if a config file exists before reading it. Which test?
+A) if [ -d "/etc/app.conf" ]
+B) if [ -f "/etc/app.conf" ]
+C) if [ -e "/etc/app.conf" ] (checks any type exists)
+D) if [ -r "/etc/app.conf" ] (checks if readable)
+Correct: B
+
+Q3: What does this loop output: for i in 1 2 3; do echo $i; done
+A) 1 2 3 on one line
+B) Nothing
+C) 123
+D) 1, 2, and 3 each on their own line
+Correct: D
+
+Q4: You need to process a file line by line. A for loop won't handle spaces in lines correctly. Which construct is safer?
+A) for line in $(cat file)
+B) while IFS= read -r line; do ... done < file
+C) cat file | for
+D) loop file line
+Correct: B
+
+Q5: A bash function returns exit code 0. What does this mean?
+A) The function returned nothing
+B) An error occurred
+C) Success — the function completed without errors
+D) The function timed out
+Correct: C
+
+Q6: DIAGNOSTIC: Your script runs fine when you type bash script.sh but fails with ./script.sh saying "Permission denied". What's wrong?
+A) The script has a syntax error
+B) bash is broken
+C) The file lacks execute permission — run chmod +x script.sh
+D) You need to use sudo
+Correct: C

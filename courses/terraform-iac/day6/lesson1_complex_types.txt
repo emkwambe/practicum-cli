@@ -1,0 +1,137 @@
+# Lesson: Complex Types — Lists, Maps, Objects & Sets
+
+## [WHEN] You need this when:
+1. A variable needs to hold multiple values (list of CIDR blocks).
+2. You need key-value pairs (map of environment tags).
+3. You need structured data (object with name, age, role).
+4. The exam tests complex types directly (Obj 4d).
+
+## [INTENT] "Use Terraform's type system for structured variable data."
+
+## [CONTEXT]
+Primitive types: string, number, bool — one value each.
+Complex types: list, map, set, object, tuple — collections of values.
+
+Without complex types, you'd need a separate variable for every
+subnet CIDR, every tag, every security group rule. Unmanageable.
+
+## [ACTION] Complex types
+
+### list (ordered, duplicates allowed):
+  variable "availability_zones" {
+    type    = list(string)
+    default = ["us-east-1a", "us-east-1b", "us-east-1c"]
+  }
+
+  # Access by index:
+  var.availability_zones[0]    # "us-east-1a"
+
+  # Iterate with count:
+  resource "aws_subnet" "web" {
+    count             = length(var.availability_zones)
+    availability_zone = var.availability_zones[count.index]
+    cidr_block        = cidrsubnet("10.0.0.0/16", 8, count.index)
+  }
+
+### map (key-value pairs):
+  variable "instance_types" {
+    type = map(string)
+    default = {
+      dev     = "t3.micro"
+      staging = "t3.small"
+      prod    = "t3.large"
+    }
+  }
+
+  # Access by key:
+  var.instance_types["prod"]    # "t3.large"
+  var.instance_types[var.environment]  # dynamic lookup
+
+### set (unordered, NO duplicates):
+  variable "allowed_ports" {
+    type    = set(number)
+    default = [80, 443, 8080]
+  }
+
+  # Sets auto-deduplicate. Can't access by index.
+  # Use for_each with sets:
+  resource "aws_security_group_rule" "allow" {
+    for_each  = var.allowed_ports
+    type      = "ingress"
+    from_port = each.value
+    to_port   = each.value
+    protocol  = "tcp"
+  }
+
+### object (structured, named fields):
+  variable "database" {
+    type = object({
+      engine         = string
+      version        = string
+      instance_class = string
+      multi_az       = bool
+      storage_gb     = number
+    })
+    default = {
+      engine         = "postgres"
+      version        = "16.1"
+      instance_class = "db.t3.medium"
+      multi_az       = true
+      storage_gb     = 100
+    }
+  }
+
+  # Access by field name:
+  var.database.engine         # "postgres"
+  var.database.multi_az       # true
+
+### tuple (ordered, mixed types):
+  variable "server_config" {
+    type    = tuple([string, number, bool])
+    default = ["web-server", 3, true]
+  }
+  # Rarely used — objects are almost always better.
+
+### Nested types:
+  # List of objects (most common complex pattern):
+  variable "subnets" {
+    type = list(object({
+      name = string
+      cidr = string
+      az   = string
+    }))
+    default = [
+      { name = "web",  cidr = "10.0.1.0/24", az = "us-east-1a" },
+      { name = "api",  cidr = "10.0.2.0/24", az = "us-east-1b" },
+      { name = "data", cidr = "10.0.3.0/24", az = "us-east-1c" },
+    ]
+  }
+
+  # Map of objects:
+  variable "environments" {
+    type = map(object({
+      instance_type = string
+      min_count     = number
+    }))
+  }
+
+### any type:
+  variable "flexible" {
+    type = any    # accepts anything — avoid in production
+  }
+
+### Type conversion:
+  tolist(set)     # set → list
+  toset(list)     # list → set (removes duplicates)
+  tomap(object)   # object → map
+  tonumber("42")  # string → number
+  tostring(42)    # number → string
+
+## [EXPECTED RESULT]
+You can declare variables with list, map, set, object types,
+use nested types, and access elements by index/key/field.
+
+## Technician Tip:
+Exam pattern: "Which type preserves insertion order?" → list.
+"Which type removes duplicates?" → set. "Which type has named
+fields with different types?" → object.

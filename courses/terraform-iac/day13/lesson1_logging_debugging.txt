@@ -1,0 +1,108 @@
+# Lesson: Terraform Logging & Debugging
+
+## [WHEN] You need this when:
+1. A terraform apply fails with a cryptic error.
+2. You need to see exactly what API calls Terraform is making.
+3. Provider behavior is unexpected and you need the raw details.
+4. The exam tests verbose logging (Obj 7c).
+
+## [INTENT] "Use TF_LOG to diagnose Terraform failures at every level."
+
+## [CONTEXT]
+When something breaks in Terraform, the default error message is
+often unhelpful: "Error creating resource: InvalidParameterValue."
+Verbose logging shows the full picture: HTTP requests, response
+bodies, provider internals, and graph execution order.
+
+## [ACTION] Terraform debugging
+
+### TF_LOG environment variable:
+  # Set log verbosity (most to least detail):
+  export TF_LOG=TRACE    # everything (HTTP requests, provider internals)
+  export TF_LOG=DEBUG    # detailed internal operations
+  export TF_LOG=INFO     # high-level operations
+  export TF_LOG=WARN     # warnings only
+  export TF_LOG=ERROR    # errors only
+
+  terraform plan          # now shows verbose output
+
+  # Disable:
+  unset TF_LOG
+
+### TF_LOG_PATH (save logs to file):
+  export TF_LOG=TRACE
+  export TF_LOG_PATH="./terraform-debug.log"
+  terraform apply
+
+  # Logs written to file instead of terminal.
+  # Useful for sharing with support or reviewing later.
+
+### Component-specific logging:
+  export TF_LOG_CORE=TRACE      # Terraform core only
+  export TF_LOG_PROVIDER=TRACE  # provider plugins only
+
+  # Most debugging needs TF_LOG_PROVIDER — it shows:
+  # - API requests and responses
+  # - Authentication details (redacted)
+  # - Resource CRUD operations
+  # - Rate limiting and retries
+
+### Common debugging scenarios:
+
+  # Scenario 1: "Error creating resource"
+  export TF_LOG=DEBUG
+  terraform apply
+  # Look for: HTTP response body with cloud provider error details
+
+  # Scenario 2: "Provider authentication failed"
+  export TF_LOG_PROVIDER=TRACE
+  terraform plan
+  # Look for: which credentials are being used, token expiry
+
+  # Scenario 3: "Timeout waiting for resource"
+  export TF_LOG=TRACE
+  terraform apply
+  # Look for: repeated polling requests, final timeout error
+
+  # Scenario 4: "Unexpected diff in plan"
+  terraform plan -refresh-only
+  # Shows what changed outside Terraform (drift detection)
+
+### Crash logs:
+  If Terraform crashes (panic), it creates:
+    crash.log
+  Contains: stack trace, Go runtime info, resource state at crash.
+  Report to: github.com/hashicorp/terraform/issues
+
+### Other debugging tools:
+  # Show dependency graph:
+  terraform graph | dot -Tpng > graph.png
+
+  # Show state details:
+  terraform show                   # full state in readable format
+  terraform show -json             # machine-readable
+
+  # Check provider schemas:
+  terraform providers schema -json # all resource schemas
+
+  # Plan in JSON (for programmatic analysis):
+  terraform plan -out=plan.bin
+  terraform show -json plan.bin > plan.json
+
+### Troubleshooting workflow:
+  1. Read the error message carefully (often has the answer)
+  2. Run terraform plan (refresh might fix stale state)
+  3. Enable TF_LOG=DEBUG and look for HTTP errors
+  4. Check provider documentation for the specific error
+  5. Search GitHub issues for the provider
+  6. If crash: submit crash.log to provider maintainers
+
+## [EXPECTED RESULT]
+You can enable verbose logging, direct output to files,
+use component-specific logging, and follow a debugging workflow.
+
+## Technician Tip:
+Exam pattern: "How do you enable detailed Terraform logging?"
+→ Set TF_LOG environment variable to TRACE or DEBUG. "How do you
+save logs to a file?" → Set TF_LOG_PATH. Both are environment
+variables, not CLI flags.

@@ -1,0 +1,68 @@
+# Lesson: The Problem Docker Can't Solve Alone
+
+## [WHEN] You need this when:
+1. You have 20 containers across 5 servers and one crashes at 3 AM.
+2. Your app needs to scale from 2 to 50 instances during peak traffic.
+3. A server dies and containers need to restart somewhere else.
+4. Deployments need zero-downtime rolling updates.
+
+## [INTENT] "Understand why container orchestration exists."
+
+## [CONTEXT]
+Docker solves: "how do I package and run one application?"
+Kubernetes solves: "how do I run hundreds of containers across
+dozens of servers and keep everything healthy automatically?"
+
+Docker Compose runs containers on ONE machine. That's fine for
+development. But production needs:
+
+  - What happens when a container crashes? (restart it)
+  - What happens when a SERVER crashes? (move containers elsewhere)
+  - How do you update without downtime? (rolling updates)
+  - How do you scale from 3 to 30 instances? (horizontal scaling)
+  - How do containers find each other? (service discovery)
+  - How do you manage secrets across 50 containers? (central config)
+
+Docker Swarm handles some of this. Kubernetes handles ALL of it,
+and has become the industry standard.
+
+## [ACTION] What Kubernetes provides
+
+### Self-healing:
+  Container crashes → K8s restarts it automatically.
+  Server dies → K8s reschedules containers to healthy servers.
+  Health check fails → K8s kills the unhealthy pod, starts a new one.
+
+### Declarative desired state:
+  You say: "I want 3 replicas of my web app, always."
+  Kubernetes ensures 3 are running. If one dies, K8s creates another.
+  If you have 5, K8s terminates 2. The cluster converges to your spec.
+
+### Rolling updates:
+  You push a new image version.
+  K8s replaces pods one at a time: old → new → old → new.
+  If the new version fails health checks, K8s stops the rollout.
+  Users never see downtime.
+
+### Service discovery & load balancing:
+  Containers don't need to know each other's IP addresses.
+  K8s Services provide a stable DNS name and load balance across pods.
+
+### Scaling:
+  kubectl scale deployment web --replicas=10
+  Or: Horizontal Pod Autoscaler watches CPU and scales automatically.
+
+## [EXPECTED RESULT]
+You understand why orchestration exists, what problems it solves
+that Docker alone cannot, and why Kubernetes became the standard.
+
+## Technician Tip:
+You don't need Kubernetes for everything. A single-server app
+with Docker Compose is fine. Kubernetes earns its complexity when
+you need multi-server reliability, scaling, and zero-downtime updates.
+
+## Common Pain Point:
+"Kubernetes seems overly complex" → it is complex, because the
+problems it solves are complex. The alternative is building
+self-healing, service discovery, rolling updates, and scaling
+yourself. That's harder.

@@ -1,0 +1,122 @@
+# Lesson: API Data Pipelines — curl + jq + sqlite3
+
+## [WHEN] You need this when:
+1. You need to collect data from an API daily and store it.
+2. You want to compare today's API data with yesterday's.
+3. You're building an automated data feed.
+4. You need to combine API data with local CSV data.
+
+## [INTENT] "Build a repeatable pipeline: API → transform → store → report."
+
+## [CONTEXT]
+The real power isn't one curl call — it's a PIPELINE that:
+  1. Extracts data from an API (curl)
+  2. Transforms the JSON (jq)
+  3. Loads into storage (sqlite3 or CSV)
+  4. Generates a report
+
+This is a real ETL pipeline, entirely from the command line.
+
+## [ACTION] Complete API pipeline examples
+
+### Example 1: GitHub repo analytics
+  #!/bin/bash
+  set -euo pipefail
+  USER="emkwambe"
+  DB="github_analytics.db"
+
+  # Extract
+  repos=$(curl -s "https://api.github.com/users/$USER/repos?per_page=100")
+
+  # Transform: JSON → CSV
+  echo "$repos" | jq -r '
+    .[] | [.name, .stargazers_count, .forks_count,
+           (.language // "none"), .updated_at, (.size // 0)]
+    | @csv
+  ' > /tmp/repos.csv
+
+  # Load into sqlite3
+  sqlite3 "$DB" << SQL
+  CREATE TABLE IF NOT EXISTS repos (
+      name TEXT, stars INTEGER, forks INTEGER,
+      language TEXT, updated TEXT, size_kb INTEGER
+  );
+  DELETE FROM repos;  -- refresh
+  .mode csv
+  .import /tmp/repos.csv repos
+  SQL
+
+  # Report
+  echo "=== GitHub Repo Summary ==="
+  sqlite3 -column -header "$DB" "
+    SELECT language, COUNT(*) as repos, SUM(stars) as total_stars
+    FROM repos GROUP BY language ORDER BY total_stars DESC
+  "
+
+### Example 2: Weather data collector
+  #!/bin/bash
+  set -euo pipefail
+  CITY="Charlotte"
+  # Using wttr.in (free, no API key):
+  curl -s "https://wttr.in/${CITY}?format=j1" | \
+    jq -r '{
+      city: .nearest_area[0].areaName[0].value,
+      temp_f: .current_condition[0].temp_F,
+      humidity: .current_condition[0].humidity,
+      wind_mph: .current_condition[0].windspeedMiles,
+      description: .current_condition[0].weatherDesc[0].value
+    }' | jq -r '[.city, .temp_f, .humidity, .wind_mph, .description] | @csv'
+
+### Example 3: Multi-source data merge
+  # Pull API data + combine with local CSV
+  curl -s "https://api.example.com/prices" | \
+    jq -r '.[] | [.symbol, .price] | @csv' > /tmp/prices.csv
+
+  sqlite3 portfolio.db << SQL
+  .mode csv
+  .import /tmp/prices.csv prices
+  .import holdings.csv holdings
+
+  SELECT h.symbol, h.shares, p.price,
+         (h.shares * p.price) as market_value
+  FROM holdings h
+  JOIN prices p ON h.symbol = p.symbol
+  ORDER BY market_value DESC;
+  SQL
+
+### Error handling pattern:
+  fetch_with_retry() {
+      local url="$1"
+      local max_retries=3
+      local attempt=0
+      while (( attempt < max_retries )); do
+          local status
+          status=$(curl -sS -o /tmp/response.json -w "%{http_code}" "$url")
+          if [ "$status" -eq 200 ]; then
+              cat /tmp/response.json
+              return 0
+          fi
+          attempt=$((attempt + 1))
+          echo "Attempt $attempt failed (HTTP $status), retrying..." >&2
+          sleep $((attempt * 2))
+      done
+      echo "ERROR: Failed after $max_retries attempts" >&2
+      return 1
+  }
+
+  data=$(fetch_with_retry "https://api.example.com/data")
+  echo "$data" | jq '...'
+
+## [EXPECTED RESULT]
+A complete, error-handled pipeline that runs on cron:
+  0 6 * * * /opt/scripts/daily_data_pull.sh >> /var/log/data.log 2>&1
+
+## Technician Tip:
+Store raw API responses before transforming. If your jq filter has
+a bug, you can fix it without re-fetching:
+  curl -s "$URL" > raw_$(date +%F).json
+  cat raw_$(date +%F).json | jq '...' > clean.csv
+
+## Next:
+Type menu to return. You have completed Day 6!
+You can now build automated API data pipelines entirely from the CLI.

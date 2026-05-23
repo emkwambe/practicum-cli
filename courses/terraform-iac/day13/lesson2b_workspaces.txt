@@ -1,0 +1,112 @@
+# Lesson: Workspaces & Multi-Environment Infrastructure
+
+## [WHEN] You need this when:
+1. You need dev, staging, and production environments.
+2. Each environment should use the same Terraform config.
+3. You need different variable values per environment.
+4. You need isolated state per environment.
+
+## [INTENT] "Manage multiple environments from a single Terraform configuration."
+
+## [CONTEXT]
+Every team needs multiple environments. The infrastructure should
+be identical in structure but different in scale and configuration.
+
+  Dev:     t3.micro, 1 instance, no backups
+  Staging: t3.small, 2 instances, daily backups
+  Prod:    t3.large, 4 instances, hourly backups + monitoring
+
+Same Terraform code. Different variable files.
+
+## [ACTION] Environment strategies
+
+### Strategy 1: Workspaces (simple):
+  terraform workspace new dev
+  terraform workspace new staging
+  terraform workspace new production
+
+  terraform workspace select staging
+  terraform apply -var-file="environments/staging.tfvars"
+
+  # Each workspace has its own state file.
+  # Same code, different state, different vars.
+
+  # In config, reference the workspace:
+  resource "aws_instance" "web" {
+    instance_type = var.instance_type
+    tags = {
+      Environment = terraform.workspace    # "dev", "staging", "production"
+    }
+  }
+
+### Strategy 2: Directory per environment (more isolation):
+  infra/
+  ├── modules/           # shared modules
+  │   ├── network/
+  │   └── compute/
+  ├── environments/
+  │   ├── dev/
+  │   │   ├── main.tf         # calls modules
+  │   │   ├── terraform.tfvars
+  │   │   └── backend.tf      # dev state bucket
+  │   ├── staging/
+  │   │   ├── main.tf
+  │   │   ├── terraform.tfvars
+  │   │   └── backend.tf      # staging state bucket
+  │   └── production/
+  │       ├── main.tf
+  │       ├── terraform.tfvars
+  │       └── backend.tf      # prod state bucket
+
+  # Each environment is a separate Terraform root module.
+  # Maximum isolation. Separate state. Separate backend.
+
+### Variable files per environment:
+  # environments/dev.tfvars:
+  environment    = "dev"
+  instance_type  = "t3.micro"
+  instance_count = 1
+  enable_backups = false
+
+  # environments/production.tfvars:
+  environment    = "production"
+  instance_type  = "t3.large"
+  instance_count = 4
+  enable_backups = true
+
+  terraform apply -var-file="environments/production.tfvars"
+
+### Conditional resources:
+  resource "aws_cloudwatch_metric_alarm" "cpu" {
+    count = var.enable_monitoring ? 1 : 0    # only in prod
+    # ...
+  }
+
+  resource "aws_backup_plan" "daily" {
+    count = var.enable_backups ? 1 : 0       # only when backups enabled
+    # ...
+  }
+
+### Workspace vs directory — when to use which:
+  Workspaces: small teams, similar environments, shared backend
+  Directories: larger teams, strict isolation, separate permissions
+
+  Most production teams end up with directories because:
+  - Prod backend access is restricted to CI/CD only
+  - Dev might use a different AWS account entirely
+  - Blast radius: a bad apply in dev can't touch prod state
+
+## [EXPECTED RESULT]
+You can manage multiple environments with either workspaces or
+directory structure, with appropriate isolation and variable management.
+
+## Technician Tip:
+Start with workspaces for learning and small teams. Move to
+directory-per-environment when you need separate AWS accounts
+or strict permission boundaries.
+
+## Common Pain Point:
+"I ran terraform apply in the wrong workspace" → check with
+terraform workspace show BEFORE every apply. Better yet:
+put the workspace name in the terminal prompt or use
+directory-based environments where cd IS the workspace switch.

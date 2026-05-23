@@ -1,0 +1,34 @@
+Q1: SCENARIO: Your monitoring script needs to check disk, CPU, memory, and services. The correct architecture:
+A) One giant if/else chain
+B) Four separate scripts
+C) Hard-code the values
+D) Separate functions for each check, called from a main function, with results collected in an array
+Correct: D
+
+Q2: getopts in bash handles:
+A) Setting Git options
+B) Environment variables
+C) Parsing command-line flags (-v, -o FILE, -h) in a standard way
+D) Getting options from the internet
+Correct: C
+
+Q3: DIAGNOSTIC: Your script's flag parsing works for -v and -h but -o FILE ignores the file argument. What's wrong?
+A) You need a different parser
+B) FILE must be quoted
+C) -o doesn't support arguments
+D) The getopts string needs a colon after o — "vo:h" means -o takes an argument, -v and -h don't
+Correct: D
+
+Q4: A monitoring script should exit 0 when:
+A) Only when no issues are found — exit 1 when warnings exist so callers and cron can detect problems
+B) Exit code doesn't matter for monitoring
+C) When there are errors
+D) Always
+Correct: A
+
+Q5: TRADEOFF: Your script works perfectly but a colleague can't understand it. The most valuable improvement:
+A) Make it shorter
+B) Add more features
+C) Rename variables to single letters for speed
+D) Add a usage() function, header comments explaining purpose/author/date, and inline comments on complex logic
+Correct: D

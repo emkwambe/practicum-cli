@@ -1,0 +1,152 @@
+# Lesson: HCP Terraform — Remote Operations & State Management
+
+## [WHEN] You need this when:
+1. Your team needs shared Terraform state without manual S3 setup.
+2. You want remote plan/apply with consistent execution environments.
+3. You're moving from individual CLI usage to team collaboration.
+4. Objective 8 is ENTIRELY NEW in the 004 exam.
+
+## [INTENT] "Use HCP Terraform for remote operations, state, and team collaboration."
+
+## [CONTEXT]
+HCP Terraform (formerly Terraform Cloud) is HashiCorp's managed
+platform. It replaces DIY backend setup with a hosted service:
+  Local CLI: state on your laptop, runs on your machine
+  S3 backend: state in S3, still runs on your machine
+  HCP Terraform: state AND execution on HashiCorp's platform
+
+Free tier: up to 500 managed resources. Paid tiers add governance,
+SSO, private agents, and cost estimation.
+
+## [ACTION] HCP Terraform basics
+
+### Connecting CLI to HCP Terraform:
+  # Step 1: Login
+  terraform login
+  # Opens browser → authenticate → token stored locally
+
+  # Step 2: Add cloud block to config:
+  terraform {
+    cloud {
+      organization = "my-company"
+      workspaces {
+        name = "app-prod"
+      }
+    }
+  }
+
+  # Step 3: Initialize:
+  terraform init
+  # State migrates to HCP Terraform.
+
+  # Step 4: Run normally:
+  terraform plan    # executes on HCP Terraform, streams output
+  terraform apply   # executes remotely, shows progress locally
+
+### HCP Terraform workflow:
+  CLI-driven:
+    Developer runs terraform plan/apply locally
+    Execution happens remotely on HCP Terraform
+    State stored remotely
+
+  VCS-driven:
+    Push to GitHub/GitLab → triggers plan automatically
+    PR creates speculative plan (preview without applying)
+    Merge triggers apply (optionally with manual approval)
+
+  API-driven:
+    CI/CD pipeline calls HCP Terraform API
+    Full programmatic control
+
+### Workspaces (HCP Terraform vs CLI):
+  ⚠️ HCP Terraform "workspaces" ≠ CLI "workspaces"
+
+  CLI workspaces: multiple state files in the same directory
+    terraform workspace new staging
+    terraform workspace select prod
+
+  HCP Terraform workspaces: separate configurations with:
+    - Own state file
+    - Own variables
+    - Own permissions
+    - Own VCS connection (optionally)
+    - Own run history
+
+  # Mapping a workspace:
+  terraform {
+    cloud {
+      organization = "my-company"
+      workspaces {
+        name = "app-prod"    # specific workspace
+      }
+    }
+  }
+
+  # Or use tags for workspace matching:
+  terraform {
+    cloud {
+      organization = "my-company"
+      workspaces {
+        tags = ["app", "networking"]
+      }
+    }
+  }
+
+### Projects:
+  Projects group workspaces for organization:
+    my-company/
+    ├── Networking (project)
+    │   ├── vpc-prod (workspace)
+    │   └── vpc-staging (workspace)
+    ├── Application (project)
+    │   ├── app-prod (workspace)
+    │   └── app-staging (workspace)
+    └── Security (project)
+        └── iam-global (workspace)
+
+### Remote state access:
+  # Read another workspace's outputs:
+  data "terraform_remote_state" "vpc" {
+    backend = "remote"
+    config = {
+      organization = "my-company"
+      workspaces = {
+        name = "vpc-prod"
+      }
+    }
+  }
+
+  # Use outputs from vpc workspace:
+  resource "aws_instance" "web" {
+    subnet_id = data.terraform_remote_state.vpc.outputs.subnet_id
+  }
+
+### Variables in HCP Terraform:
+  Terraform variables: set in workspace UI or API
+  Environment variables: AWS_ACCESS_KEY_ID, etc.
+  Variable sets: shared variables across multiple workspaces
+
+  # Sensitive variables are encrypted at rest and never shown in UI.
+  # No .tfvars files needed — all variables managed in the platform.
+
+### Run triggers:
+  # Workspace B depends on Workspace A:
+  # When A applies successfully, B automatically queues a run.
+  # Example: VPC workspace → Application workspace
+
+### State management in HCP Terraform:
+  - Automatic state locking (no DynamoDB needed)
+  - State versioning (roll back to any previous version)
+  - Encrypted at rest
+  - Access-controlled by workspace permissions
+  - State download available for debugging
+
+## [EXPECTED RESULT]
+You can connect CLI to HCP Terraform, understand workspace vs
+project organization, and configure remote operations.
+
+## Technician Tip:
+Exam key distinction: HCP Terraform workspaces are NOT the same
+as CLI workspaces. HCP workspaces are full environments with their
+own state, variables, and permissions. CLI workspaces are just
+separate state files in the same directory.

@@ -1,0 +1,109 @@
+# Lesson: Marketplace Actions & Caching — Don't Reinvent the Wheel
+
+## [WHEN] You need this when:
+1. You need to set up Node.js, Python, Go, or Java in CI.
+2. Your pipeline wastes 2 minutes installing the same dependencies every run.
+3. You want to add code coverage, security scanning, or notifications.
+4. You want to build your own reusable action.
+
+## [INTENT] "Use pre-built actions and caching to make pipelines fast."
+
+## [CONTEXT]
+GitHub Marketplace has 20,000+ actions — pre-built steps you can
+plug into any workflow. Caching stores dependencies between runs
+so npm install goes from 2 minutes to 5 seconds.
+
+## [ACTION] Essential marketplace actions
+
+### Setup actions (language runtimes):
+  - uses: actions/setup-node@v4
+    with:
+      node-version: '20'
+      cache: 'npm'               # ← built-in npm cache!
+
+  - uses: actions/setup-python@v5
+    with:
+      python-version: '3.12'
+      cache: 'pip'               # ← built-in pip cache!
+
+  - uses: actions/setup-go@v5
+    with:
+      go-version: '1.22'
+      cache: true
+
+### Caching (generic):
+  - uses: actions/cache@v4
+    with:
+      path: ~/.npm
+      key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+      restore-keys: |
+        ${{ runner.os }}-npm-
+
+  # How it works:
+  # 1. First run: no cache, installs everything (slow)
+  # 2. Saves ~/.npm to cache with a key based on lockfile hash
+  # 3. Next run: lockfile unchanged → cache hit → skip install (fast)
+  # 4. Lockfile changed → cache miss → fresh install → new cache
+
+### Popular utility actions:
+
+  # Upload test results:
+  - uses: actions/upload-artifact@v4
+    with:
+      name: test-results
+      path: coverage/
+
+  # Notify on Slack:
+  - uses: slackapi/slack-github-action@v1
+    with:
+      channel-id: 'C0123456789'
+      slack-message: 'Build ${{ job.status }}'
+
+  # Security scanning:
+  - uses: github/codeql-action/analyze@v3
+
+  # Docker build + push:
+  - uses: docker/build-push-action@v5
+    with:
+      push: true
+      tags: user/app:latest
+
+### Multi-line run commands:
+  - name: Build and test
+    run: |
+      npm ci
+      npm run build
+      npm test
+      echo "All done!"
+
+### Working directory:
+  - name: Test backend
+    run: npm test
+    working-directory: ./backend
+
+### Environment variables in steps:
+  - name: Deploy
+    run: ./deploy.sh
+    env:
+      NODE_ENV: production
+      API_URL: https://api.example.com
+
+### Timeout (prevent stuck jobs):
+  jobs:
+    test:
+      runs-on: ubuntu-latest
+      timeout-minutes: 15       # kill after 15 min
+
+## [EXPECTED RESULT]
+Your pipeline installs dependencies in seconds (cached), uses
+marketplace actions for common tasks, and runs in under 2 minutes
+instead of 10.
+
+## Technician Tip — cache strategy:
+  Cache key = hash of lockfile. When dependencies change, cache busts.
+  restore-keys provides fallback: partial cache hit is still faster.
+  Rule: cache anything that takes >30 seconds to install.
+
+## Common Pain Point:
+"Cache never hits" → your key changes every run. Use hashFiles()
+on your lockfile, not on random files that change frequently.

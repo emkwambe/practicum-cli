@@ -1,0 +1,110 @@
+# Lesson: Exit Codes — How Scripts Communicate Success or Failure
+
+## [WHEN] You need this when:
+1. You need to check if a previous command succeeded.
+2. Your CI/CD pipeline needs to know if a script failed.
+3. You want to chain commands: "do X only if Y succeeded."
+4. You're writing a script that other scripts call.
+
+## [INTENT] "Report whether my script succeeded or failed."
+
+## [CONTEXT]
+Every command returns an exit code (0-255):
+  0     = success
+  1-255 = failure (specific codes mean specific things)
+
+Common conventions:
+  0   success
+  1   general error
+  2   misuse of command (wrong args)
+  126 permission denied (can't execute)
+  127 command not found
+  128+N killed by signal N (e.g., 137 = 128+9 = SIGKILL)
+
+## [ACTION] Working with exit codes
+
+### Check the last exit code:
+  ls /nonexistent
+  echo $?               # 2 (no such file)
+
+  ls /tmp
+  echo $?               # 0 (success)
+
+### Set your own exit code:
+  #!/bin/bash
+  if [ ! -f "$1" ]; then
+      echo "Error: file not found: $1" >&2
+      exit 1
+  fi
+  echo "Processing $1..."
+  exit 0
+
+### Command chaining:
+  && (AND)  — run next ONLY if previous succeeded
+  || (OR)   — run next ONLY if previous failed
+  ;         — run next regardless
+
+  mkdir /tmp/test && echo "Created!"       # prints if mkdir works
+  mkdir /tmp/test || echo "Already exists"  # prints if mkdir fails
+  mkdir /tmp/test ; echo "Moving on"       # always prints
+
+### Practical patterns:
+  # Die on first error (common script header):
+  set -e
+
+  # Die on error + undefined variable + pipe failure:
+  set -euo pipefail
+
+  # Check if a command exists:
+  command -v docker >/dev/null 2>&1 || { echo "Docker not installed"; exit 1; }
+
+  # Run cleanup on exit (no matter what):
+  trap "rm -f /tmp/lockfile" EXIT
+
+### The "set -euo pipefail" header (PRODUCTION STANDARD):
+  #!/bin/bash
+  set -euo pipefail
+
+  # -e  exit on ANY error
+  # -u  error on undefined variables (catches typos)
+  # -o pipefail  catch errors in pipes (not just the last command)
+
+  This is the FIRST thing after the shebang in every production script.
+
+## [EXPECTED RESULT]
+Your scripts return 0 on success, non-zero on failure.
+Other scripts and CI/CD pipelines can check $? to decide what to do.
+
+## Try it now:
+  #!/bin/bash
+  set -euo pipefail
+
+  echo "Step 1: Check disk..."
+  df -h / >/dev/null
+
+  echo "Step 2: Check network..."
+  ping -c 1 -W 2 8.8.8.8 >/dev/null
+
+  echo "Step 3: All checks passed!"
+  exit 0
+
+## Technician Tip:
+The most dangerous bash habit: ignoring exit codes.
+
+  Bad:
+    rm -rf "$DIR"      # what if $DIR is empty? → rm -rf /
+
+  Good:
+    set -euo pipefail
+    : "${DIR:?DIR must be set}"
+    rm -rf "${DIR:?}"   # refuses to run if DIR is empty
+
+## Common Pain Point:
+"set -e makes my script exit for no reason" → some commands return
+non-zero intentionally (grep finds nothing = exit 1). Handle it:
+  grep "pattern" file || true        # allow grep to "fail"
+  if grep -q "pattern" file; then    # check in an if (doesn't trigger -e)
+
+## Next:
+Type menu to return. You have completed Day 1!
+You can now write structured, executable scripts with variables, quoting, arguments, and proper exit codes.

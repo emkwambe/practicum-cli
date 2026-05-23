@@ -1,0 +1,57 @@
+Q1: terraform validate checks:
+A) Whether resources exist in the cloud
+B) Provider authentication
+C) HCL syntax, required arguments, type correctness, and circular references — but NOT cloud state, credentials, or whether resources actually exist
+D) State file integrity
+Correct: C
+
+Q2: SCENARIO: Your CI pipeline needs to check Terraform formatting without modifying files. Which command?
+A) terraform fmt
+B) terraform fmt -check — returns exit code 0 if all files are formatted correctly, exit code 3 if any need reformatting, without changing any files
+C) terraform validate
+D) terraform lint
+Correct: B
+
+
+
+Q3: depends_on should be used when:
+A) A dependency exists but isn't expressed through attribute references — the resource doesn't reference another resource's attributes but still needs it to exist first
+B) Terraform automatically detects the dependency from references
+C) Every resource needs it
+D) Resources are in different modules
+Correct: A
+
+Q4: DIAGNOSTIC: After adding lifecycle { prevent_destroy = true }, terraform destroy fails. This is:
+A) A bug in Terraform
+B) A provider error
+C) A state corruption issue
+D) Working as intended — prevent_destroy blocks any plan that would destroy the resource. To actually destroy it, remove the lifecycle block from code first, then run destroy.
+Correct: D
+
+Q5: create_before_destroy = true changes the default replacement behavior from:
+A) No difference
+B) Nothing — it's deprecated
+C) It prevents all destruction
+D) Destroy-then-create (downtime) to create-then-destroy (zero downtime) — the new resource is verified before the old one is removed
+Correct: D
+
+Q6: The moved block in Terraform code does:
+A) Tells Terraform that a resource was renamed in code — it updates the state mapping without destroying and recreating the actual resource, and the whole team gets the change via version control
+B) Moves cloud resources between regions
+C) Moves state between backends
+D) Moves providers between registries
+Correct: A
+
+Q7: TRADEOFF: Using ignore_changes on a resource attribute:
+A) Best practice for everything
+B) Prevents Terraform from reverting manual changes to that attribute — useful for auto-tagged resources but risky because drift goes undetected and config diverges from reality
+C) Dangerous
+D) Only works on tags
+Correct: B
+
+Q8: The correct workflow order for Terraform is:
+A) apply → plan → init → validate
+B) validate → init → plan → apply
+C) fmt → init → validate → plan → apply — format first (no init needed), initialize providers, check syntax, preview changes, then apply
+D) init → fmt → plan → apply
+Correct: C

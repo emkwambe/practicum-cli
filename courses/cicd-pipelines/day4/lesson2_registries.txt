@@ -1,0 +1,93 @@
+# Lesson: Container Registries — Store, Version, and Deploy Images
+
+## [WHEN] You need this when:
+1. You need a place to store Docker images that CD can pull from.
+2. You want to manage image versions and clean up old ones.
+3. You need to choose between Docker Hub, GHCR, ECR, or self-hosted.
+4. Your registry is running out of space.
+
+## [INTENT] "Manage container images across the build-deploy lifecycle."
+
+## [CONTEXT]
+A container registry is a warehouse for Docker images. CI pushes
+images in. CD pulls images out. The registry stores every version
+so you can deploy any version and roll back to any previous one.
+
+## [ACTION] Registry operations
+
+### Docker Hub (most common):
+  # Login:
+  docker login -u username -p token
+
+  # Push:
+  docker tag myapp:latest username/myapp:v1.0
+  docker push username/myapp:v1.0
+
+  # Pull:
+  docker pull username/myapp:v1.0
+
+  # Free tier: 1 private repo, unlimited public repos
+
+### GitHub Container Registry (GHCR):
+  # Login (use GitHub token):
+  echo $GITHUB_TOKEN | docker login ghcr.io -u username --password-stdin
+
+  # Push:
+  docker tag myapp:latest ghcr.io/username/myapp:v1.0
+  docker push ghcr.io/username/myapp:v1.0
+
+  # Free for public repos. Tight GitHub integration.
+
+### AWS Elastic Container Registry (ECR):
+  # Login:
+  aws ecr get-login-password --region us-east-1 | \
+    docker login --username AWS --password-stdin 123456789.dkr.ecr.us-east-1.amazonaws.com
+
+  # Push:
+  docker tag myapp:latest 123456789.dkr.ecr.us-east-1.amazonaws.com/myapp:v1.0
+  docker push 123456789.dkr.ecr.us-east-1.amazonaws.com/myapp:v1.0
+
+### Image tagging strategy:
+  myapp:latest        ← mutable, DON'T use for deployments
+  myapp:v1.2.3        ← semver, for releases
+  myapp:abc1234       ← commit SHA, for traceability
+  myapp:main-20260418 ← branch + date, for staging
+
+  Best practice: tag with BOTH semver AND commit SHA
+    docker tag myapp ghcr.io/user/myapp:v1.2.3
+    docker tag myapp ghcr.io/user/myapp:$(git rev-parse --short HEAD)
+
+### Cleanup old images:
+  # List tags:
+  curl -s https://hub.docker.com/v2/repositories/user/myapp/tags | jq '.results[].name'
+
+  # GitHub: set retention policy in Settings → Packages
+
+  # AWS ECR lifecycle policy:
+  # Keep only last 10 images, delete untagged after 1 day
+
+### Scanning images for vulnerabilities:
+  # Docker Scout (built-in):
+  docker scout cves myapp:latest
+
+  # Trivy (open source, popular in CI):
+  - name: Scan image
+    uses: aquasecurity/trivy-action@master
+    with:
+      image-ref: myapp:latest
+      exit-code: 1             # fail the build on critical vulns
+
+## [EXPECTED RESULT]
+You can push images to any registry, tag them for traceability,
+scan for vulnerabilities, and manage cleanup policies.
+
+## Technician Tip:
+Use GHCR for open source and personal projects (free, GitHub-integrated).
+Use ECR for AWS deployments (IAM auth, lifecycle policies).
+Use Docker Hub for public images that need maximum discoverability.
+
+## Common Pain Point:
+"Denied: access forbidden" when pushing → you're not logged in,
+or the image name doesn't match the registry path.
+  GHCR: image MUST start with ghcr.io/YOUR_USERNAME/
+  ECR: image MUST start with YOUR_ACCOUNT_ID.dkr.ecr.REGION.amazonaws.com/

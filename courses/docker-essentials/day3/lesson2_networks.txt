@@ -1,0 +1,75 @@
+# Lesson: Container Networks — How Containers Talk
+
+## [WHEN] You need this when:
+1. Your web container can't reach your database container.
+2. You need to isolate one app's containers from another's.
+3. You want containers to find each other by name.
+4. A microservice setup needs internal-only communication.
+
+## [INTENT] "Connect my containers so they can talk to each other."
+
+## [CONTEXT]
+Every container gets a network. By default, Docker creates three networks:
+  bridge   — default, basic NAT-style (containers can talk via IP)
+  host     — share host's network stack (no isolation)
+  none     — no network at all (full isolation)
+
+The DEFAULT bridge is limited. Containers on it can talk by IP but
+NOT by name. For real apps, always create a USER-DEFINED bridge:
+
+  docker network create app-net
+  docker run --network app-net --name web nginx
+  docker run --network app-net --name db postgres
+  # Now "web" can reach "db" by hostname!
+
+User-defined bridges have automatic DNS — containers find each other
+by name. This is critical for multi-container apps.
+
+## [ACTION] Network operations
+Common patterns:
+  docker network ls                     — list networks
+  docker network create app-net         — create user-defined bridge
+  docker network create --driver overlay swarm-net  — for Swarm
+  docker network inspect app-net        — see attached containers
+  docker network connect app-net web    — attach existing container
+  docker network disconnect app-net web — detach
+  docker network rm app-net             — delete (must be empty)
+  docker network prune                  — remove unused networks
+
+## [EXPECTED RESULT]
+On a user-defined network, containers can reach each other by name:
+  docker network create demo
+  docker run -d --network demo --name db redis
+  docker run --rm --network demo alpine ping -c 2 db
+  # Successfully pings "db" by name
+
+## Try it now:
+  docker network create test-net
+  docker run -d --network test-net --name api alpine sleep 3600
+  docker run -d --network test-net --name web alpine sleep 3600
+  docker exec api ping -c 2 web
+  docker exec web ping -c 2 api
+  docker stop api web && docker rm api web
+  docker network rm test-net
+
+## Technician Tip:
+Quick check "can container A reach container B?":
+  docker exec <A> ping -c 1 <B>
+  docker exec <A> nc -zv <B> <port>
+  docker exec <A> wget -O- http://<B>:<port>
+
+If ping works but the app can't connect, it's a port/firewall issue.
+If ping fails, it's a network/DNS issue.
+
+## Common Pain Point:
+"Web container can't reach database" → most often:
+  1. Both NOT on the same user-defined network → fix: same --network
+  2. App connecting to "localhost" instead of container name
+     (localhost inside a container = THAT container, not the host)
+  3. Database not yet ready (add health check or retry logic)
+
+## DCA Exam Note:
+Know the 3 default networks (bridge, host, none).
+Know that USER-DEFINED bridges enable DNS by name.
+Know that "host" mode binds container directly to host network (no NAT).
+Know "overlay" is the network driver for multi-host (Swarm) communication.

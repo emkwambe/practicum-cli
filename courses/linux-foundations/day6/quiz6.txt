@@ -1,0 +1,55 @@
+Q1: chmod 600 file.txt gives:
+A) Read+write+execute to everyone
+B) Read+write to owner only — no access for group or others
+C) Read-only to everyone
+D) No permissions to anyone
+Correct: B
+
+Q2: SCENARIO: A contractor needs to read project files but must NOT be able to modify or delete them. What permissions do you set?
+A) chmod 777 (full access)
+B) chmod 644 (owner read+write, everyone else read-only)
+C) chmod 000 (no access)
+D) chmod 755 (owner full, others read+execute)
+Correct: B
+
+Q3: In the permission number 755, what does the 7 mean?
+A) Read + write + execute (4+2+1) for the owner
+B) Read + execute for group
+C) Full access for everyone
+D) Seven users can access it
+Correct: A
+
+Q4: SCENARIO: A new developer joins your team. You need to create their account with a home directory. Which command?
+A) adduser developer1 (interactive, creates home dir)
+B) passwd developer1
+C) mkdir /home/developer1
+D) login developer1
+Correct: A
+
+Q5: DIAGNOSTIC: User "bob" can't access /opt/teamfiles/ even though he's in the "devteam" group. The directory is owned by root:devteam with permissions 750. What should you check?
+A) Bob's password
+B) Whether bob's group membership is active — run groups bob and check; he may need to log out and back in
+C) Whether the directory exists
+D) Whether root is logged in
+Correct: B
+
+Q6: sudo lets you:
+A) Switch to any user permanently
+B) Run a single command with root privileges while staying logged in as yourself
+C) Create new users
+D) Change passwords
+Correct: B
+
+Q7: The sticky bit on /tmp prevents:
+A) Anyone from reading files
+B) Files from being modified
+C) Users from deleting OTHER users' files — you can only delete your own
+D) Root from accessing the directory
+Correct: C
+
+Q8: SCENARIO: You're auditing a server. You need to find all files with the SUID bit set (potential security risk). Which command?
+A) ls -la /
+B) find / -perm -4000 -type f
+C) chmod --list
+D) grep SUID /etc/passwd
+Correct: B

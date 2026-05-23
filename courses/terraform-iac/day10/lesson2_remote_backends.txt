@@ -1,0 +1,91 @@
+# Lesson: Remote Backends — Sharing State Safely
+
+## [WHEN] You need this when:
+1. Multiple engineers need to run Terraform against the same infra.
+2. You need state locking so two people don't apply simultaneously.
+3. You need encrypted, versioned state storage.
+4. You're moving from local development to team workflow.
+
+## [INTENT] "Store state remotely with locking, encryption, and versioning."
+
+## [CONTEXT]
+Local state (terraform.tfstate on your laptop) doesn't scale.
+Two engineers can't safely run Terraform against the same
+infrastructure if each has a different local state file.
+
+Remote backends solve: shared access, locking, encryption, versioning.
+
+## [ACTION] Remote backend configuration
+
+### S3 backend (most common for AWS):
+  terraform {
+    backend "s3" {
+      bucket         = "mycompany-terraform-state"
+      key            = "prod/network/terraform.tfstate"
+      region         = "us-east-1"
+      encrypt        = true
+      dynamodb_table = "terraform-locks"    # state locking
+    }
+  }
+
+  # S3 provides: storage, encryption, versioning
+  # DynamoDB provides: locking (prevents concurrent applies)
+
+### Terraform Cloud backend (free tier available):
+  terraform {
+    cloud {
+      organization = "mycompany"
+      workspaces {
+        name = "production"
+      }
+    }
+  }
+
+### State locking:
+  When engineer A runs terraform apply:
+  1. Terraform acquires a lock (DynamoDB or Cloud)
+  2. Nobody else can apply until A finishes
+  3. Lock released on completion
+
+  Without locking:
+  Engineer A: terraform apply (modifying instance)
+  Engineer B: terraform apply (modifying same instance)
+  Result: corrupted state, unpredictable infrastructure
+
+### Migrating from local to remote:
+  # 1. Add backend configuration to your config
+  # 2. Run:
+  terraform init -migrate-state
+  # Terraform copies local state to the remote backend
+  # 3. Delete local terraform.tfstate (it's in S3/Cloud now)
+
+### State file organization (key paths):
+  # By environment and component:
+  key = "prod/network/terraform.tfstate"
+  key = "prod/database/terraform.tfstate"
+  key = "staging/network/terraform.tfstate"
+
+  # Each component has its own state = smaller blast radius
+  # Changing network config can't accidentally affect the database
+
+### Backend best practices:
+  1. Enable versioning on the S3 bucket (recover from corruption)
+  2. Enable encryption (state contains secrets)
+  3. Enable DynamoDB locking (prevent concurrent applies)
+  4. Restrict bucket access (only the CI/CD role and senior engineers)
+  5. Separate state files per environment and component
+
+## [EXPECTED RESULT]
+You can configure remote state with S3, enable locking with DynamoDB,
+and migrate from local to remote backends safely.
+
+## Technician Tip:
+The S3 bucket for state should be created OUTSIDE of Terraform
+(manually or with a bootstrap script). You can't use Terraform
+to create the bucket that stores Terraform's own state — chicken-and-egg.
+
+## Common Pain Point:
+"Error acquiring state lock" → someone else is running Terraform,
+OR a previous run crashed without releasing the lock. Check
+DynamoDB for the lock entry. Force unlock with:
+  terraform force-unlock LOCK_ID

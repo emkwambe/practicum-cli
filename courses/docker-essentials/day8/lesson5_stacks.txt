@@ -1,0 +1,155 @@
+# Lesson: Stacks — Deploy Multi-Service Apps to Swarm
+
+## [WHEN] You need this when:
+1. You have a compose file and want to deploy it to a swarm.
+2. Your app has multiple services that need to be deployed together.
+3. You want declarative deployment (file in git, deploy via one command).
+4. You need to update a whole multi-service app atomically.
+
+## [INTENT] "Deploy my full multi-service application to the swarm in one command."
+
+## [CONTEXT]
+A stack is a group of services defined in a compose file (v3+) and
+deployed together. Stacks are the swarm equivalent of "docker compose up"
+— but for clusters.
+
+Same compose file can be used for:
+  Local dev:    docker compose up -d
+  Swarm prod:   docker stack deploy -c compose.yml mystack
+
+The compose file should use the v3+ syntax with "deploy:" sections for
+swarm-specific settings (replicas, placement, update config, restart).
+
+## [ACTION] Stack operations
+
+### Deploy a stack:
+  docker stack deploy -c compose.yml mystack
+  # Creates services prefixed with "mystack_"
+
+### List stacks and their services:
+  docker stack ls                       — all stacks
+  docker stack services mystack         — services in this stack
+  docker stack ps mystack               — task placement across nodes
+
+### Remove a stack:
+  docker stack rm mystack               — remove all services + networks (volumes persist)
+
+### Compose file with deploy section (v3+):
+  services:
+    web:
+      image: nginx:1.25
+      ports:
+        - "8080:80"
+      deploy:
+        replicas: 3
+        update_config:
+          parallelism: 1
+          delay: 10s
+          failure_action: rollback
+          monitor: 30s
+        restart_policy:
+          condition: on-failure
+          max_attempts: 3
+        resources:
+          limits:
+            cpus: "0.5"
+            memory: 256M
+          reservations:
+            cpus: "0.1"
+            memory: 64M
+        placement:
+          constraints:
+            - node.role == worker
+
+    db:
+      image: postgres:16
+      deploy:
+        replicas: 1                    # single instance for stateful service
+        placement:
+          constraints:
+            - node.labels.has_storage == true
+      secrets:
+        - db_password
+      environment:
+        POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+      volumes:
+        - dbdata:/var/lib/postgresql/data
+
+  secrets:
+    db_password:
+      external: true                   # created with: docker secret create
+
+  volumes:
+    dbdata:
+
+  networks:
+    default:
+      driver: overlay                  # required for cross-node networking
+
+## [EXPECTED RESULT]
+After deploy, you have:
+  - 3 web tasks distributed across worker nodes
+  - 1 db task on a node with storage
+  - An overlay network connecting all of them
+  - Secret mounted at /run/secrets/db_password in db tasks
+  - Volume for db data persistence
+
+## Try it now (single-node swarm):
+  docker swarm init
+
+  cat > stack.yml << 'EOF'
+  services:
+    web:
+      image: nginx:alpine
+      ports:
+        - "8080:80"
+      deploy:
+        replicas: 3
+        update_config:
+          parallelism: 1
+          delay: 5s
+    cache:
+      image: redis:alpine
+      deploy:
+        replicas: 1
+  EOF
+
+  docker stack deploy -c stack.yml demo
+  docker stack services demo
+  docker stack ps demo
+
+  # Update the stack (just edit + redeploy):
+  sed -i 's/nginx:alpine/nginx:1.25-alpine/' stack.yml
+  docker stack deploy -c stack.yml demo
+  docker stack ps demo                  # see rolling update happen
+
+  # Cleanup
+  docker stack rm demo
+  docker swarm leave --force
+
+## Technician Tip — overlay networks for multi-host:
+On multi-node swarm, you NEED overlay networks for cross-node communication.
+Compose v3 uses overlay automatically when deployed to a swarm.
+
+For services that should NOT be reachable from other stacks, use:
+  networks:
+    internal:
+      driver: overlay
+      attachable: false
+
+## Common Pain Point:
+"Stack deploys but ports aren't reachable" → on multi-node swarm,
+the routing mesh exposes ports on EVERY node. Hit any node's IP on the
+published port and it routes to a healthy task. If still failing,
+check firewall (port 7946 TCP/UDP, 4789 UDP for overlay).
+
+"docker compose up worked, docker stack deploy fails" → compose has more
+features than swarm supports (depends_on, build, container_name). Stacks
+ignore these and may produce different behavior.
+
+## DCA Exam Note:
+Know that "deploy:" section is ONLY used by stacks (ignored by docker compose).
+Know that docker stack deploy uses compose v3+ format.
+Know that "depends_on" and "build:" are ignored by stack deploy.
+Know that overlay networks enable cross-node container communication.
+Know that the routing mesh routes published ports across all nodes.

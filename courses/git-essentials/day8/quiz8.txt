@@ -1,0 +1,55 @@
+Q1: SCENARIO: A junior dev pushes directly to main, breaking the build. How do you prevent this in the future?
+A) Tell them not to
+B) Branch protection rules — require PR reviews and passing CI checks before merge
+C) Revoke their GitHub access
+D) Delete the main branch
+Correct: B
+
+Q2: A .gitignore with *.log ignores new log files. But old log files already tracked STILL show up in status. The fix is:
+A) Delete .gitignore and recreate it
+B) git rm --cached *.log — removes them from tracking without deleting the actual files
+C) Restart Git
+D) Ignore the problem
+Correct: B
+
+Q3: GitHub Projects (kanban boards) help teams by:
+A) Writing code automatically
+B) Replacing Git entirely
+C) Tracking tasks visually (To Do → In Progress → Done) linked to issues and PRs
+D) Hosting websites
+Correct: C
+
+Q4: Signed commits (GPG/SSH) prove:
+A) The code is bug-free
+B) The code was tested
+C) The commit was genuinely made by the person who claims to have made it — prevents impersonation
+D) The commit is encrypted
+Correct: C
+
+Q5: SCENARIO: You want a pre-commit hook that prevents committing files larger than 5MB. Where does this script live?
+A) .github/hooks/
+D) .git/hooks/pre-commit (must be executable)
+C) hooks/pre-commit at repo root
+B) package.json
+Correct: D
+
+Q6: A professional repository should include at minimum:
+B) Just the code
+A) README.md, LICENSE, .gitignore, and CONTRIBUTING.md
+C) Only a README
+D) A PowerPoint presentation
+Correct: A
+
+Q7: DIAGNOSTIC: Your teammate says "I pushed but my changes aren't on GitHub." You check and their branch exists locally but not on the remote. The most likely cause:
+A) GitHub is down
+B) They ran git commit but never git push — or pushed to a different remote
+C) Git lost the changes
+D) The repo is corrupted
+Correct: B
+
+Q8: TRADEOFF: Your team is choosing between GitFlow (many branches) and GitHub Flow (main + feature branches). For a 4-person startup shipping weekly, which is better and why?
+A) GitFlow — more branches means more organization
+B) GitHub Flow — simpler, less overhead, feature branches merge to main after PR review, fits small fast teams
+C) Trunk-based with no branches
+D) No branching strategy needed
+Correct: B

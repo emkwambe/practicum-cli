@@ -1,0 +1,30 @@
+# Lesson: ip — Check Network Configuration
+
+## [WHEN] You need this when:
+1. You just provisioned a new server and need to find its IP address.
+2. A service is unreachable and you suspect a network misconfiguration.
+3. You need to verify which network interfaces are active.
+4. You are configuring a firewall and need to know your subnet.
+
+## [INTENT] "What is this server's IP address and network setup?"
+
+## [CONTEXT]
+Every server connected to a network has at least one IP address.
+The ip command (replacing older ifconfig) shows and configures network
+interfaces. ip addr shows addresses, ip route shows the routing table.
+
+## [ACTION] ip addr / ip route
+Common patterns:
+  ip addr                           — show all interfaces and IPs
+  ip addr show eth0                 — show specific interface
+  ip route                          — show routing table (default gateway)
+  hostname -I                       — quick way to get just the IP
+  ifconfig                          — legacy command (still works)
+
+## [EXPECTED RESULT]
+A list of network interfaces with their IP addresses and states.
+
+## Try it now:
+  ip addr | grep inet
+  hostname -I
+  ip route | head -3

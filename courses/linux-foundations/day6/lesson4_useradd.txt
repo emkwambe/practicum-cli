@@ -1,0 +1,31 @@
+# Lesson: useradd & usermod — Manage User Accounts
+
+## [WHEN] You need this when:
+1. A new developer joins and needs a server account.
+2. A contractor needs temporary access that expires in 30 days.
+3. A user's default shell or home directory needs to change.
+4. An employee leaves and their account must be disabled.
+
+## [INTENT] "Create, modify, or remove a user account."
+
+## [CONTEXT]
+Every person who logs in needs a user account. Accounts are stored in
+/etc/passwd (info) and /etc/shadow (passwords). useradd creates them,
+usermod modifies them, userdel removes them.
+
+## [ACTION] useradd / usermod / userdel / passwd
+  sudo useradd -m -s /bin/bash alice    — create with home dir + bash
+  sudo passwd alice                     — set password
+  sudo usermod -aG developers alice     — add to a group
+  sudo usermod -L alice                 — lock account
+  sudo userdel -r alice                 — delete user + home dir
+  id alice                              — show UID, GID, groups
+  whoami                                — show current username
+
+## [EXPECTED RESULT]
+After useradd: user appears in /etc/passwd and can log in.
+
+## Try it now:
+  id
+  whoami
+  cat /etc/passwd | tail -3

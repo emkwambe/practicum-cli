@@ -1,0 +1,48 @@
+# Lesson: Branch Protection — Lock Main From Bad Commits
+
+## [WHEN] You need this when:
+1. Someone accidentally pushed directly to main and broke production.
+2. Your team needs to enforce code review on every change.
+3. You want CI to pass before merging.
+4. Compliance requires audit trails for all changes.
+
+## [INTENT] "Prevent direct pushes to main. Require PRs and passing tests."
+
+## [CONTEXT]
+Branch protection rules are GitHub settings that enforce workflow
+standards. You can require: PRs, code review approvals, passing
+CI checks, signed commits, linear history, and more.
+Without protection, anyone with write access can push broken code
+directly to main. With protection, the rules enforce quality.
+
+## [ACTION] Set up branch protection
+  1. GitHub → repo → Settings → Branches
+  2. Click "Add branch protection rule"
+  3. Branch name pattern: main
+  4. Enable (typical setup):
+     ☑ Require a pull request before merging
+        ☑ Require approvals (1 or more)
+        ☑ Dismiss stale approvals when new commits are pushed
+     ☑ Require status checks to pass before merging
+        (select your CI workflows from the list)
+     ☑ Require branches to be up to date before merging
+     ☑ Require conversation resolution before merging
+     ☑ Require linear history (forces rebase over merge commits)
+     ☑ Do not allow bypassing the above settings
+  5. Save
+
+## Advanced options:
+  ☑ Require signed commits             — GPG-signed commits only
+  ☑ Restrict who can push              — specific people/teams only
+  ☑ Require deployments to succeed     — must deploy to staging first
+
+## [EXPECTED RESULT]
+Direct pushes to main are rejected. Any change must go through
+a PR, receive approval, and pass CI before merging.
+Log message on rejected push:
+  "remote: Changes must be made through a pull request."
+
+## Try it now:
+  Set up branch protection on your test repo.
+  Try pushing directly to main — it should fail.
+  Create a PR instead.

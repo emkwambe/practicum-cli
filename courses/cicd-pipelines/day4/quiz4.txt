@@ -1,0 +1,55 @@
+Q1: The build stage in CI/CD bridges testing and deployment by:
+A) Running tests again
+B) Packaging tested code into a deployable artifact — usually a Docker image
+C) Sending an email to the ops team
+D) Deleting old code
+Correct: B
+
+Q2: SCENARIO: Your production image is tagged myapp:latest. A deployment goes wrong. Why can't you reliably roll back?
+A) :latest is too slow to pull
+B) :latest can't be used in production
+C) :latest is mutable — you don't know which commit it points to, so there's no specific version to revert to
+D) There's no problem, :latest always works
+Correct: C
+
+Q3: A multi-stage Dockerfile helps in CI because it:
+A) Runs tests automatically
+B) Requires fewer Docker commands
+C) Skips the build step
+D) Builds in one stage (with dev tools) and copies only the output to a minimal final stage, shrinking the image
+Correct: D
+
+Q4: DIAGNOSTIC: Your CI build fails with "denied: access forbidden" when pushing to ghcr.io. First thing to check:
+A) Whether Docker is installed
+B) Whether the Dockerfile exists
+C) Whether the image name starts with ghcr.io/YOUR_USERNAME/ and the login action has the correct token
+D) Whether the tests passed
+Correct: C
+
+Q5: Docker layer caching (cache-from: type=gha) speeds up builds by:
+A) Reusing unchanged layers from previous builds instead of rebuilding from scratch
+B) Compressing the final image
+C) Skipping the Dockerfile entirely
+D) Using a faster network
+Correct: A
+
+Q6: TRADEOFF: FROM node:20 (900MB) vs FROM node:20-alpine (150MB). What's the tradeoff?
+A) Alpine is always better with no downsides
+B) Alpine is slower
+C) Alpine is much smaller but may lack system libraries your app needs — test before switching
+D) Alpine doesn't support Node.js
+Correct: C
+
+Q7: Docker build should run in CI:
+A) On every commit to every branch
+B) Before tests to check the image
+C) After tests pass, typically only on merges to main — not on every PR
+D) Only manually on Fridays
+Correct: C
+
+Q8: SCENARIO: Trivy finds a critical vulnerability in your base image. The correct response is:
+A) Ignore it — the app works fine
+B) Update the base image, rebuild, run tests, and deploy the patched image through the normal pipeline
+C) Patch it directly in production
+D) Wait for the next scheduled release
+Correct: B

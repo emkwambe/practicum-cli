@@ -1,0 +1,55 @@
+Q1: Every bash script should start with:
+A) #!/bin/bash — tells the OS which interpreter to use
+B) # this is a script
+C) echo "start"
+D) set -e
+Correct: A
+
+Q2: DIAGNOSTIC: NAME = "Eddy" throws "command not found". Why?
+A) Bash doesn't support variables
+B) Spaces around = are not allowed in variable assignment — use NAME="Eddy"
+C) Quotes are wrong
+D) NAME is a reserved word
+Correct: B
+
+Q3: The difference between "$VAR" and '$VAR':
+A) Double quotes expand variables ($VAR becomes its value); single quotes are literal ($VAR stays as text)
+B) Single quotes are faster
+C) No difference
+D) Double quotes prevent word splitting only
+Correct: A
+
+Q4: $1, $2, $@ in a script refer to:
+A) File descriptors
+B) Environment variables
+C) Line numbers in the script
+D) Positional arguments passed on the command line ($1=first, $2=second, $@=all)
+Correct: D
+
+Q5: SCENARIO: Your script needs the user to type their name. Which command?
+A) read -p "Name: " name
+B) get name
+C) scan name
+D) input "Name: " name
+Correct: A
+
+Q6: A script should return exit code 0 on success and non-zero on failure because:
+A) Other scripts and tools check $? to decide what to do next — wrong exit codes break automation
+B) The OS requires it
+C) It's a convention only — doesn't matter
+D) 0 means error in some systems
+Correct: A
+
+Q7: TRADEOFF: set -euo pipefail at the top of every script. What does each flag do?
+A) They're only for debugging
+B) They slow down the script
+C) They enable logging
+D) -e exits on error, -u treats unset variables as errors, -o pipefail catches failures in pipes — strict mode
+Correct: D
+
+Q8: DIAGNOSTIC: Your script works when run with bash script.sh but ./script.sh says "bad interpreter: No such file or directory". Most likely cause:
+A) The script isn't executable
+B) The path is wrong
+C) The shebang line has a Windows carriage return (\r) — save the file with Unix line endings (LF not CRLF)
+D) bash isn't installed
+Correct: C

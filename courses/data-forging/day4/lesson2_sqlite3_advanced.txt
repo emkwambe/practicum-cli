@@ -1,0 +1,132 @@
+# Lesson: sqlite3 Advanced — Joins, Views, and ETL Staging
+
+## [WHEN] You need this when:
+1. You have data in multiple CSVs that need to be combined.
+2. You want to create reusable queries (views).
+3. You're building a staging area for data transformation.
+4. You need to clean and validate data before loading elsewhere.
+
+## [INTENT] "Use sqlite3 as a local data warehouse for transformation."
+
+## [CONTEXT]
+sqlite3 isn't just for storage — it's a TRANSFORMATION engine.
+Import messy CSVs, join them, clean the data with SQL, export clean results.
+This is the "T" (Transform) in ETL, done entirely on the CLI.
+
+## [ACTION] Advanced sqlite3
+
+### Import multiple CSVs and join:
+  sqlite3 warehouse.db << 'SQL'
+  .mode csv
+  .import users.csv users
+  .import orders.csv orders
+  .import products.csv products
+
+  -- Join: who bought what
+  SELECT u.name, p.product_name, o.quantity, o.order_date
+  FROM orders o
+  JOIN users u ON o.user_id = u.id
+  JOIN products p ON o.product_id = p.id
+  ORDER BY o.order_date DESC
+  LIMIT 20;
+  SQL
+
+### Create views for reusable queries:
+  sqlite3 warehouse.db << 'SQL'
+  CREATE VIEW IF NOT EXISTS monthly_revenue AS
+  SELECT
+      strftime('%Y-%m', order_date) as month,
+      SUM(quantity * price) as revenue,
+      COUNT(*) as order_count
+  FROM orders o
+  JOIN products p ON o.product_id = p.id
+  GROUP BY month
+  ORDER BY month;
+
+  SELECT * FROM monthly_revenue;
+  SQL
+
+### Data cleaning with SQL:
+  sqlite3 warehouse.db << 'SQL'
+  -- Remove duplicates
+  DELETE FROM users WHERE rowid NOT IN (
+      SELECT MIN(rowid) FROM users GROUP BY email
+  );
+
+  -- Standardize formats
+  UPDATE users SET email = LOWER(TRIM(email));
+  UPDATE users SET name = UPPER(SUBSTR(name,1,1)) || LOWER(SUBSTR(name,2));
+
+  -- Fill nulls
+  UPDATE users SET city = 'Unknown' WHERE city IS NULL OR city = '';
+
+  -- Validate: find bad data
+  SELECT * FROM users WHERE email NOT LIKE '%@%.%';
+  SQL
+
+### Export clean data:
+  sqlite3 -csv -header warehouse.db "SELECT * FROM users" > clean_users.csv
+  sqlite3 -json warehouse.db "SELECT * FROM monthly_revenue" > revenue.json
+  sqlite3 warehouse.db ".dump users" > users_backup.sql   # full SQL dump
+
+### ETL staging pattern:
+  # 1. Extract: import raw CSVs
+  # 2. Transform: SQL queries (join, clean, aggregate)
+  # 3. Load: export to clean CSV/JSON
+
+  sqlite3 staging.db << 'SQL'
+  -- Extract
+  .mode csv
+  .import raw_customers.csv raw_customers
+  .import raw_orders.csv raw_orders
+
+  -- Transform
+  CREATE TABLE clean_customers AS
+  SELECT DISTINCT
+      TRIM(name) as name,
+      LOWER(TRIM(email)) as email,
+      COALESCE(city, 'Unknown') as city
+  FROM raw_customers
+  WHERE email LIKE '%@%.%';
+
+  CREATE TABLE order_summary AS
+  SELECT
+      c.email,
+      COUNT(o.id) as total_orders,
+      SUM(o.amount) as total_spent
+  FROM clean_customers c
+  JOIN raw_orders o ON c.email = o.customer_email
+  GROUP BY c.email;
+
+  -- Load
+  .headers on
+  .mode csv
+  .output clean_customers.csv
+  SELECT * FROM clean_customers;
+  .output order_summary.csv
+  SELECT * FROM order_summary;
+  SQL
+
+## [EXPECTED RESULT]
+sqlite3 becomes your local data warehouse. Import messy data,
+clean it with SQL, join multiple sources, export clean results.
+All in a single file, no server, instant queries with indexes.
+
+## Technician Tip:
+For repeated ETL runs, make the script IDEMPOTENT:
+  DROP TABLE IF EXISTS clean_customers;
+  CREATE TABLE clean_customers AS SELECT ...
+
+This way the script can run multiple times without errors.
+Idempotency = the most important ETL principle.
+
+## Common Pain Point:
+"sqlite3 is slow on import" → use transactions:
+  BEGIN;
+  .import huge_file.csv table
+  COMMIT;
+Wrapping in a transaction makes import 10-50x faster.
+
+## Next:
+Type menu to return. You have completed Day 4!
+You can now use sqlite3 as a full data processing engine from the CLI.

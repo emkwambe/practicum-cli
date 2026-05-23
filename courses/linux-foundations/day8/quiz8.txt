@@ -1,0 +1,55 @@
+Q1: SCENARIO: A web app isn't responding. Your first diagnostic command for the service is:
+A) curl localhost
+B) ping localhost
+C) systemctl status nginx — shows whether it's running, and recent log entries
+D) reboot
+Correct: C
+
+Q2: You need to see only error-level log entries from the last hour. Which command?
+A) cat /var/log/syslog | grep error
+B) journalctl -p err --since "1 hour ago"
+C) tail -f /var/log/errors
+D) dmesg | head
+Correct: B
+
+Q3: You need a backup script to run every day at 2:00 AM. The cron entry is:
+A) 2 0 * * * /path/to/backup.sh
+B) * 2 * * * /path/to/backup.sh
+C) 0 2 * * * /path/to/backup.sh
+D) 0 0 2 * * /path/to/backup.sh
+Correct: C
+
+Q4: In vim, :wq does what?
+A) Quits without saving
+B) Writes (saves) the file and quits
+C) Finds and replaces text
+D) Opens a new file
+Correct: B
+
+Q5: DIAGNOSTIC: You set up a cron job but it never runs. What are the three most common causes?
+A) Cron doesn't work on modern Linux
+B) Wrong time format, script not executable (missing chmod +x), or script uses relative paths that don't resolve in cron's environment
+C) The server needs a restart after adding cron jobs
+D) Cron only runs on weekdays
+Correct: B
+
+Q6: awk '{print $1, $3}' access.log does what?
+A) Deletes columns 1 and 3
+B) Prints only the 1st and 3rd whitespace-separated fields from each line
+C) Counts fields
+D) Sorts by column 1 then 3
+Correct: B
+
+Q7: Most system log files on Ubuntu are stored in:
+A) /tmp/logs/
+B) /home/logs/
+C) /var/log/
+D) /etc/logs/
+Correct: C
+
+Q8: SCENARIO: You're handing off to the night shift. The uptime command shows "load average: 8.50, 7.20, 3.10" on a 4-core server. What does this tell you?
+A) The server is fine — load numbers are just counters
+B) The server is overloaded — load average (8.5) is more than double the core count (4), meaning processes are queuing
+C) The server has been up for 8.5 hours
+D) 8 users are logged in
+Correct: B

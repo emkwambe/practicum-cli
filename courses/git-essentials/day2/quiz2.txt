@@ -1,0 +1,55 @@
+Q1: git switch -c feature-login does what?
+A) Deletes the feature-login branch
+B) Merges feature-login into main
+C) Lists all branches
+D) Creates a new branch called feature-login and switches to it
+Correct: D
+
+Q2: SCENARIO: You're on main and run git merge feature-login. What happens?
+A) main is merged INTO feature-login
+B) feature-login's changes are brought INTO main
+C) Both branches are deleted
+D) A new branch is created
+Correct: B
+
+Q3: You open a file and see <<<<<<< HEAD and >>>>>>> markers. This means:
+A) The file is corrupted and should be deleted
+B) Git auto-formatted the file
+C) A merge conflict — two branches changed the same lines and YOU must choose which version to keep
+D) The file was moved
+Correct: C
+
+Q4: Which branch name follows professional conventions?
+A) my-stuff
+B) branch1
+C) feature/add-user-authentication
+D) test
+Correct: C
+
+Q5: TRADEOFF: Your team uses "merge" for all branches. A teammate suggests "rebase" instead. What's the key difference?
+A) Rebase is always better
+B) Merge preserves branch history (merge commits); rebase creates linear history but rewrites commits
+C) There's no difference
+D) Rebase is only for deleting branches
+Correct: B
+
+Q6: SCENARIO: You're mid-feature on a branch. Your boss says "drop everything, fix this bug on main." But your feature isn't ready to commit. What do you do?
+A) Commit the half-done work with message "WIP"
+B) Delete your changes
+C) git stash to save your work, switch to main, fix the bug, switch back, git stash pop
+D) Create a new clone of the repo
+Correct: C
+
+Q7: Before switching branches, you should:
+A) Delete all files
+B) Run git init again
+C) Create a new repository
+D) Commit or stash your changes — otherwise uncommitted work may carry over or be lost
+Correct: D
+
+Q8: DIAGNOSTIC: You created a branch called "feature/login" and made 3 commits. But git branch -a doesn't show it on the remote. Why?
+A) The branch was deleted
+B) git branch -a is broken
+C) You haven't pushed it — local branches don't appear on the remote until you git push -u origin feature/login
+D) You need to run git init again
+Correct: C

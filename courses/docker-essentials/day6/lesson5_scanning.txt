@@ -1,0 +1,98 @@
+# Lesson: Image Scanning — Find Vulnerabilities Before Production
+
+## [WHEN] You need this when:
+1. Security team asks "have you scanned that image?"
+2. Compliance requires CVE scanning before deployment.
+3. You inherited an old Dockerfile and want to audit it.
+4. A new CVE was announced and you need to check exposure.
+
+## [INTENT] "Find security vulnerabilities in my image before shipping it."
+
+## [CONTEXT]
+Every Docker image is built on a base (Ubuntu, Alpine, Python, etc.).
+Those bases include OS packages, libraries, language runtimes — all
+of which can have known vulnerabilities (CVEs).
+
+A scan checks installed packages against vulnerability databases
+(NVD, GitHub Advisory, vendor advisories) and reports findings by severity:
+  CRITICAL → fix immediately
+  HIGH → fix soon
+  MEDIUM → plan to fix
+  LOW → acknowledge, may not be exploitable
+
+Common scanning tools:
+  docker scout (built-in, modern)
+  trivy (open source, popular)
+  grype (open source)
+  snyk, twistlock (commercial)
+
+## [ACTION] Scan an image
+
+### docker scout (built into Docker Desktop)
+  docker scout cves nginx:1.20                — list all CVEs
+  docker scout cves nginx:1.20 --only-severity critical
+  docker scout quickview nginx:1.20            — summary
+  docker scout recommendations nginx:1.20      — suggested upgrades
+
+### Trivy (most popular OSS scanner)
+  # Install (Ubuntu):
+  sudo apt install trivy                       — or via brew, snap, etc.
+
+  # Scan an image:
+  trivy image nginx:1.20
+  trivy image --severity CRITICAL,HIGH nginx:1.20
+  trivy image --ignore-unfixed nginx:1.20      — only show CVEs with fixes
+  trivy image --format json nginx:1.20 > scan.json
+
+  # Scan a Dockerfile or filesystem:
+  trivy fs .
+  trivy config Dockerfile
+
+### Fail builds on critical CVEs (CI integration)
+  trivy image --exit-code 1 --severity CRITICAL myapp:1.0
+  # Returns non-zero exit if any CRITICAL CVEs found
+
+## [EXPECTED RESULT]
+A table or JSON report showing each vulnerable package, severity,
+the CVE number, and (if available) the version that fixes it.
+
+Example output:
+  Total: 23 (UNKNOWN: 0, LOW: 5, MEDIUM: 12, HIGH: 4, CRITICAL: 2)
+
+## Try it now:
+  # Use docker scout (Docker Desktop or recent CLI):
+  docker scout quickview nginx:1.20
+
+  # Or with trivy:
+  trivy image alpine:3.18
+  trivy image --severity HIGH,CRITICAL python:3.11
+
+## Technician Tip — fixing CVEs:
+The most common fix is upgrading the base image:
+  ❌ FROM python:3.10        (older, more CVEs)
+  ✅ FROM python:3.11-slim   (newer, fewer CVEs)
+
+Or removing unused packages:
+  RUN apt-get remove -y --purge unused-package && \
+      apt-get autoremove -y && \
+      rm -rf /var/lib/apt/lists/*
+
+For language deps, pin and update regularly:
+  pip list --outdated
+  npm audit fix
+  bundle update
+
+## Common Pain Point:
+"Image has 200 CVEs and we don't know where to start" → focus on:
+  1. CRITICAL severity first
+  2. CVEs with available fixes (--ignore-unfixed)
+  3. Packages your app actually uses (not preinstalled OS tools)
+
+A scratch or distroless base + multi-stage build often eliminates 80%+ of CVEs.
+
+## DCA Exam Note:
+Know that scanning happens at the IMAGE level (not container).
+Know that Docker Trusted Registry (DTR) and Docker Hub Pro
+include built-in scanning.
+Know that --severity flag filters output.
+Know docker scout is the modern built-in tool.

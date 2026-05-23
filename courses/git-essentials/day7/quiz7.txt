@@ -1,0 +1,55 @@
+Q1: An annotated tag (git tag -a v1.0 -m "Release") differs from a lightweight tag because:
+B) Annotated tags are faster
+A) Annotated tags store metadata (author, date, message) and are recommended for releases
+C) Lightweight tags are more secure
+D) There's no practical difference
+Correct: A
+
+Q2: SCENARIO: Your team ships v1.2.0. Two weeks later, a customer reports a critical bug in v1.2.0. How do you find the exact code that was released?
+A) Look at the main branch
+B) git checkout v1.2.0 — the tag points to the exact commit that was released
+C) Search commit messages for "1.2.0"
+D) Ask the developer who shipped it
+Correct: B
+
+Q3: A GitHub Actions workflow file must be placed in:
+A) .github/actions/
+B) workflows/ at root
+C) .github/workflows/*.yml
+D) .ci/
+Correct: C
+
+Q4: SCENARIO: You want a CI workflow that runs tests on every push and PR to main. The trigger section is:
+A) on: [all]
+B) on: push: main AND on: pull_request: main
+C) on: manual
+D) on: schedule
+Correct: B
+
+Q5: GitHub Pages lets you:
+A) Run server-side code
+D) Host a static website directly from a Git repository — free for public repos
+C) Deploy Docker containers
+B) Run databases
+Correct: D
+
+Q6: DIAGNOSTIC: Your GitHub Actions workflow runs but fails with "secret not found" for DEPLOY_KEY. What's wrong?
+A) GitHub doesn't support secrets
+B) Secrets are set in repo Settings → Secrets, not in the YAML file — the secret name must match exactly (case-sensitive)
+C) You need to commit the secret to the repo
+D) Secrets only work on private repos
+Correct: B
+
+Q7: TRADEOFF: Semantic versioning (v1.2.3) — what does incrementing each number signal?
+A) All three numbers mean the same thing
+B) Major (breaking changes), Minor (new features, backward compatible), Patch (bug fixes)
+C) Major = size, Minor = priority, Patch = date
+D) It's arbitrary
+Correct: B
+
+Q8: GitHub repository secrets are:
+A) Visible to anyone who forks the repo
+B) Encrypted, masked in logs, only available to workflows — never committed to code
+C) Stored in .env files
+D) Optional and rarely used
+Correct: B

@@ -1,0 +1,43 @@
+# Lesson: ps — View Running Processes
+
+## [WHEN] You need this when:
+1. A program is frozen and you need its Process ID (PID) to kill it.
+2. You want to see which processes are using the most CPU or memory.
+3. You need to check if a specific service (e.g., nginx, sshd) is running.
+4. You are debugging why a server is slow or unresponsive.
+5. You need to find zombie or orphan processes.
+
+## [INTENT] "Show me what is running on this machine."
+
+## [CONTEXT]
+Every program running on Linux is a "process" with a unique PID.
+ps (process status) takes a snapshot of current processes.
+Unlike top (which updates live), ps shows a single moment in time.
+The most common invocation is ps aux — it shows ALL processes with details.
+
+## [ACTION] ps [options]
+Common patterns:
+  ps aux                         — all processes, full detail
+  ps aux | grep python           — find Python processes
+  ps -ef                         — alternative format (POSIX standard)
+  ps -u $(whoami)                — only your own processes
+  ps aux --sort=-%mem | head -10 — top 10 by memory usage
+  ps aux --sort=-%cpu | head -5  — top 5 by CPU usage
+
+Key columns:
+  USER  — who owns the process
+  PID   — process ID (use this with kill)
+  %CPU  — CPU percentage
+  %MEM  — memory percentage
+  COMMAND — what program is running
+
+## [EXPECTED RESULT]
+A table of processes. Each row is one running program.
+Your shell (bash) and ps itself will always appear in the list.
+
+## Try it now:
+  ps aux | head -10
+  ps aux | grep bash
+
+## Next:
+Type menu to continue or try: ps aux --sort=-%cpu | head -5

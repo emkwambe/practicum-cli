@@ -1,0 +1,110 @@
+# Lesson: Terraform in CI/CD — GitOps for Infrastructure
+
+## [WHEN] You need this when:
+1. Infrastructure changes need the same review process as code.
+2. You need automated terraform plan on every PR.
+3. Only CI/CD should run terraform apply (not individual engineers).
+4. You need an audit trail: who changed what, when, and why.
+
+## [INTENT] "Automate infrastructure changes through the same CI/CD pipeline as application code."
+
+## [CONTEXT]
+GitOps for infrastructure: every change goes through Git.
+  Branch → PR → Plan → Review → Merge → Apply
+
+Nobody runs terraform apply from their laptop in production.
+The CI/CD pipeline does it — after tests pass and humans approve.
+
+## [ACTION] Terraform CI/CD pipeline
+
+### GitHub Actions workflow:
+  name: Terraform
+  on:
+    push:
+      branches: [main]
+    pull_request:
+      branches: [main]
+
+  jobs:
+    terraform:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+
+        - uses: hashicorp/setup-terraform@v3
+          with:
+            terraform_version: 1.8.0
+
+        - name: Terraform Init
+          run: terraform init
+
+        - name: Terraform Format Check
+          run: terraform fmt -check
+
+        - name: Terraform Validate
+          run: terraform validate
+
+        - name: Terraform Plan
+          run: terraform plan -no-color
+          # -no-color: clean output for PR comments
+
+        - name: Terraform Apply
+          if: github.ref == 'refs/heads/main'
+          run: terraform apply -auto-approve
+
+### On PRs: plan only (show what WOULD change):
+  Pull request → fmt check → validate → plan → post plan as PR comment
+
+  Engineers review the plan in the PR. If it looks right, merge.
+  Merge to main triggers apply.
+
+### Post plan as PR comment (advanced):
+  - uses: actions/github-script@v7
+    with:
+      script: |
+        const output = `#### Terraform Plan
+        \`\`\`
+        ${process.env.PLAN}
+        \`\`\``;
+        github.rest.issues.createComment({
+          issue_number: context.issue.number,
+          owner: context.repo.owner,
+          repo: context.repo.repo,
+          body: output
+        })
+
+### Security: OIDC (no stored credentials):
+  permissions:
+    id-token: write
+    contents: read
+
+  - uses: aws-actions/configure-aws-credentials@v4
+    with:
+      role-to-assume: arn:aws:iam::123456789:role/terraform-ci
+      aws-region: us-east-1
+
+  # No AWS access keys stored as secrets.
+  # GitHub generates temporary credentials.
+
+### Drift detection (scheduled):
+  on:
+    schedule:
+      - cron: '0 8 * * 1-5'    # weekdays at 8 AM
+
+  # Run terraform plan daily.
+  # If it shows changes → someone modified infra manually.
+  # Alert the team: drift detected.
+
+## [EXPECTED RESULT]
+Infrastructure changes go through PR review, automated plan,
+and CI/CD-controlled apply. Nobody runs apply from their laptop.
+
+## Technician Tip:
+The terraform plan output in a PR comment is the single most
+valuable thing in your Terraform CI pipeline. Engineers can
+review EXACTLY what will change before approving the merge.
+
+## Common Pain Point:
+"CI apply fails with state lock" → another process is running
+OR a previous CI run crashed. Check the lock table and
+terraform force-unlock if needed. Add timeout to CI jobs.

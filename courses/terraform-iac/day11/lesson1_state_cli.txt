@@ -1,0 +1,117 @@
+# Lesson: State CLI — Inspect, Move, Remove & Import
+
+## [WHEN] You need this when:
+1. You need to see what Terraform is managing (state list/show).
+2. You refactored code and need to update state without destroying.
+3. You need to bring existing infrastructure under Terraform management.
+4. The exam tests state CLI (Obj 7b) and import (Obj 7a).
+
+## [INTENT] "Manage Terraform state with CLI commands for refactoring and adoption."
+
+## [CONTEXT]
+The state file maps Terraform resources to real infrastructure.
+Sometimes you need to manipulate this mapping directly:
+  - You renamed a resource → state mv
+  - You want to stop managing something → state rm
+  - You built something manually → import
+  - You need to debug → state list/show
+
+## [ACTION] State CLI commands
+
+### terraform state list:
+  terraform state list
+  # Lists all resources Terraform is managing:
+  # aws_instance.web
+  # aws_security_group.web
+  # aws_subnet.web[0]
+  # aws_subnet.web[1]
+  # module.vpc.aws_vpc.this
+
+  # Filter with address prefix:
+  terraform state list aws_subnet
+  # aws_subnet.web[0]
+  # aws_subnet.web[1]
+
+### terraform state show:
+  terraform state show aws_instance.web
+  # Shows all attributes of one resource:
+  # id           = "i-0abc123def456"
+  # ami          = "ami-0c55b159cbfafe1f0"
+  # instance_type = "t3.micro"
+  # public_ip    = "54.123.45.67"
+  # ...
+
+### terraform state mv (rename/refactor):
+  # Renamed in code: aws_instance.web → aws_instance.frontend
+  terraform state mv aws_instance.web aws_instance.frontend
+
+  # Without this: Terraform would destroy "web" and create "frontend"
+  # With this: Terraform knows they're the same resource
+
+  # Move into a module:
+  terraform state mv aws_instance.web module.compute.aws_instance.web
+
+  # Move between modules:
+  terraform state mv module.old.aws_vpc.this module.new.aws_vpc.this
+
+### terraform state rm (stop managing):
+  terraform state rm aws_instance.legacy
+
+  # The resource STILL EXISTS in the cloud.
+  # Terraform just forgets about it (no destroy).
+  # Use when: handing off resources to another team/tool,
+  # or when a resource should no longer be Terraform-managed.
+
+### terraform import (adopt existing resources):
+  # Resource exists in cloud but not in Terraform code.
+
+  # Step 1: Write the resource block in code (empty or partial):
+  resource "aws_instance" "imported" {
+    ami           = "ami-0c55b159cbfafe1f0"
+    instance_type = "t3.micro"
+  }
+
+  # Step 2: Import:
+  terraform import aws_instance.imported i-0abc123def456
+
+  # Step 3: Run plan to see if code matches reality:
+  terraform plan
+  # Fix any differences in the code to match the imported resource.
+
+  # Import block (declarative, Terraform 1.5+):
+  import {
+    to = aws_instance.imported
+    id = "i-0abc123def456"
+  }
+  # Run terraform plan to generate the config automatically.
+
+### terraform state pull / push:
+  # Download state to local file:
+  terraform state pull > backup.tfstate
+
+  # Upload modified state (DANGEROUS):
+  terraform state push modified.tfstate
+  # Almost never needed. Use mv/rm instead.
+
+### terraform state replace-provider:
+  # When a provider changes its source address:
+  terraform state replace-provider \
+    hashicorp/aws \
+    registry.terraform.io/hashicorp/aws
+
+### Best practices:
+  1. Always run terraform plan after any state manipulation
+  2. Back up state before state mv/rm (terraform state pull)
+  3. Use moved blocks instead of state mv when possible (code-level)
+  4. Use removed blocks instead of state rm when possible
+  5. Import + plan + fix is a multi-step process — don't skip steps
+
+## [EXPECTED RESULT]
+You can list, show, move, remove, and import state entries,
+and understand when each operation is appropriate.
+
+## Technician Tip:
+Exam pattern: "You renamed a resource and Terraform wants to
+destroy and recreate. How do you prevent this?" → terraform state mv
+(or a moved block in code). Both update the mapping without
+touching the real resource.

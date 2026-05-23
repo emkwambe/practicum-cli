@@ -1,0 +1,43 @@
+# Lesson: git tag — Mark Important Commits (Releases)
+
+## [WHEN] You need this when:
+1. You are releasing version 1.0 and need to mark it permanently.
+2. You want a stable reference to a specific commit (not a branch that moves).
+3. Your CI/CD pipeline deploys on tag creation.
+4. You need semantic versioning for your project.
+
+## [INTENT] "Mark this commit as a permanent release point."
+
+## [CONTEXT]
+Tags are permanent labels on specific commits. Unlike branches
+(which move as you commit), tags are fixed — they always point
+to the same commit. Use tags for releases: v1.0.0, v1.1.0, v2.0.0.
+Two types of tags:
+  Lightweight — just a name pointing to a commit
+  Annotated   — full metadata: name, message, author, date (recommended)
+
+Semantic versioning: MAJOR.MINOR.PATCH
+  v1.0.0 → v1.0.1 = bug fix
+  v1.0.0 → v1.1.0 = new feature (backward compatible)
+  v1.0.0 → v2.0.0 = breaking change
+
+## [ACTION] git tag
+Common patterns:
+  git tag                                — list all tags
+  git tag v1.0.0                         — lightweight tag on HEAD
+  git tag -a v1.0.0 -m "First release"   — annotated tag (recommended)
+  git tag -a v1.0.0 abc1234              — tag a specific old commit
+  git push origin v1.0.0                 — push one tag
+  git push origin --tags                 — push all tags
+  git tag -d v1.0.0                      — delete local tag
+  git push origin :refs/tags/v1.0.0      — delete remote tag
+  git checkout v1.0.0                    — view code at that tag
+
+## [EXPECTED RESULT]
+git tag shows all tags. Tags are not pushed by default — you must
+explicitly push them.
+
+## Try it now:
+  git tag -a v0.1.0 -m "Initial practice release"
+  git tag
+  git show v0.1.0

@@ -1,0 +1,35 @@
+# Lesson: git init — Start Tracking a Project
+
+## [WHEN] You need this when:
+1. You just created a new project folder and want to track changes.
+2. You are starting a project from scratch and need version control.
+3. A colleague asks you to put your scripts under source control.
+4. You want to be able to undo mistakes and see the history of changes.
+
+## [INTENT] "Start tracking this project with Git."
+
+## [CONTEXT]
+Git is a version control system — it records every change you make
+to your files, who made it, and when. Think of it as an infinite
+undo button with a complete history of every save.
+git init creates a hidden .git folder inside your project. This
+folder IS the repository — it stores all history and metadata.
+You only run git init once per project.
+
+## [ACTION] git init
+Common patterns:
+  git init                          — initialize current directory
+  git init my-project               — create and initialize a new directory
+  ls -la .git                       — verify the repo was created
+
+## [EXPECTED RESULT]
+"Initialized empty Git repository in /path/to/project/.git/"
+A hidden .git directory appears. Your project is now tracked.
+
+## Try it now:
+  mkdir my-first-repo && cd my-first-repo
+  git init
+  ls -la
+
+## Next:
+Now add files and make your first commit.

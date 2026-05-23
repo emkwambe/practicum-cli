@@ -1,0 +1,126 @@
+# Lesson: Plan, Apply, Destroy — The Terraform Workflow
+
+## [WHEN] You need this when:
+1. You've written your config and need to provision infrastructure.
+2. You need to preview changes before applying them.
+3. You need to tear down infrastructure cleanly.
+
+## [INTENT] "Master the core Terraform workflow: plan → apply → destroy."
+
+## [CONTEXT]
+The Terraform workflow has three commands that you'll use daily:
+
+  terraform plan    → "what WILL change?" (preview, no action)
+  terraform apply   → "do it" (creates/updates infrastructure)
+  terraform destroy → "tear it all down" (removes everything)
+
+Always plan before apply. Always.
+
+## [ACTION] The workflow
+
+### terraform plan:
+  $ terraform plan
+
+  Terraform will perform the following actions:
+
+    # docker_image.nginx will be created
+    + resource "docker_image" "nginx" {
+        + id   = (known after apply)
+        + name = "nginx:latest"
+      }
+
+    # docker_container.web will be created
+    + resource "docker_container" "web" {
+        + name  = "practicum-web"
+        + image = (known after apply)
+        + ports {
+            + internal = 80
+            + external = 8080
+          }
+      }
+
+  Plan: 2 to add, 0 to change, 0 to destroy.
+
+  # + means create, ~ means modify, - means destroy
+
+### terraform apply:
+  $ terraform apply
+
+  # Shows the plan AGAIN, then asks:
+  Do you want to perform these actions?
+    Enter a value: yes
+
+  docker_image.nginx: Creating...
+  docker_image.nginx: Creation complete after 5s
+  docker_container.web: Creating...
+  docker_container.web: Creation complete after 1s
+
+  Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
+
+  # -auto-approve skips confirmation (for CI/CD only, never interactive):
+  $ terraform apply -auto-approve
+
+### Modifying infrastructure:
+  # Change the external port from 8080 to 9090:
+  ports {
+    internal = 80
+    external = 9090    # changed
+  }
+
+  $ terraform plan
+  ~ docker_container.web
+      ~ ports {
+          ~ external = 8080 → 9090
+        }
+  Plan: 0 to add, 1 to change, 0 to destroy.
+
+  # Terraform knows WHAT changed and only updates that resource.
+
+### terraform destroy:
+  $ terraform destroy
+
+  Plan: 0 to add, 0 to change, 2 to destroy.
+
+  Do you want to destroy all resources?
+    Enter a value: yes
+
+  docker_container.web: Destroying...
+  docker_container.web: Destruction complete after 1s
+  docker_image.nginx: Destroying...
+  docker_image.nginx: Destruction complete after 0s
+
+  Destroy complete! Resources: 2 destroyed.
+
+### terraform fmt:
+  Formats all .tf files to standard style (like gofmt or prettier):
+  $ terraform fmt
+
+### terraform validate:
+  Checks config for syntax errors without contacting any API:
+  $ terraform validate
+  Success! The configuration is valid.
+
+### Daily workflow:
+  1. Edit .tf files
+  2. terraform fmt (format)
+  3. terraform validate (syntax check)
+  4. terraform plan (preview)
+  5. Review the plan carefully
+  6. terraform apply (provision)
+  7. Verify the infrastructure works
+  8. Commit the .tf files to Git
+
+## [EXPECTED RESULT]
+You can plan, apply, modify, and destroy infrastructure with
+Terraform and understand the output of each command.
+
+## Technician Tip:
+NEVER apply without reading the plan. The plan shows you exactly
+what Terraform will create, modify, or destroy. A missed - (destroy)
+in the plan could delete your production database.
+
+## Common Pain Point:
+"I changed a resource name and Terraform wants to destroy + recreate
+it" → renaming a resource in the config looks like deleting the
+old one and creating a new one. Use terraform state mv to rename
+without destroying.

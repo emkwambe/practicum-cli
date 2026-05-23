@@ -1,0 +1,47 @@
+# Lesson: chmod — Control File Permissions
+
+## [WHEN] You need this when:
+1. A script fails with "Permission denied" when you try to run it.
+2. A web server cannot read uploaded files.
+3. A config file is readable by everyone and needs to be restricted.
+4. You just created a bash script and need to make it executable.
+5. A security audit flags files with overly open permissions.
+
+## [INTENT] "Change who can read, write, or execute this file."
+
+## [CONTEXT]
+Every file on Linux has three permission groups:
+  Owner (u) — the user who owns the file
+  Group (g) — users in the file's group
+  Others (o) — everyone else
+
+Each group can have three permissions:
+  r (read)    — view the file contents
+  w (write)   — modify or delete the file
+  x (execute) — run the file as a program
+
+You see permissions with ls -la:
+  -rwxr-xr-- means: owner=rwx, group=r-x, others=r--
+
+## [ACTION] chmod <permissions> <file>
+Common patterns:
+  chmod +x script.sh              — make executable for everyone
+  chmod u+x script.sh             — make executable for owner only
+  chmod 755 script.sh             — rwxr-xr-x (standard for scripts)
+  chmod 644 config.txt            — rw-r--r-- (standard for files)
+  chmod 600 secret.key            — rw------- (only owner can access)
+  chmod 700 private_dir/          — rwx------ (only owner enters)
+  chmod -R 755 project/           — apply recursively to all files
+
+Quick reference: r=4, w=2, x=1, add them per group.
+  755 = owner(7=rwx) group(5=r-x) others(5=r-x)
+
+## [EXPECTED RESULT]
+The file permissions change. Verify with ls -la.
+No output means success.
+
+## Try it now:
+  touch test.sh
+  ls -la test.sh
+  chmod +x test.sh
+  ls -la test.sh

@@ -1,0 +1,102 @@
+# Lesson: Real-Time Streams — Watch, Filter, Act
+
+## [WHEN] You need this when:
+1. You need to monitor a log file for errors as they happen.
+2. You want live alerts when specific patterns appear.
+3. You're debugging a running service in real time.
+4. You need to watch system metrics continuously.
+
+## [INTENT] "Monitor live data streams and react to patterns in real time."
+
+## [CONTEXT]
+Batch processing handles data after the fact. Stream processing
+handles data AS IT ARRIVES. For ops, debugging, and monitoring,
+real-time is everything.
+
+Key tools:
+  tail -f     — follow a file as it grows
+  watch       — re-run a command every N seconds
+  tee         — split output to screen AND file
+  stdbuf      — control buffering for real-time pipes
+
+## [ACTION] Stream processing patterns
+
+### Watch a log in real time:
+  tail -f /var/log/syslog
+  tail -f /var/log/syslog | grep --line-buffered "ERROR"
+  tail -F /var/log/syslog       # -F follows even if file is rotated
+
+### Multi-file monitoring:
+  tail -f /var/log/*.log
+  tail -f /var/log/nginx/access.log /var/log/nginx/error.log
+
+### Real-time filter + alert:
+  tail -f /var/log/auth.log | grep --line-buffered "Failed password" | \
+    while IFS= read -r line; do
+        echo "[ALERT $(date +%T)] $line" | tee -a /var/log/auth_alerts.log
+    done
+
+### Real-time counter (errors per minute):
+  tail -f /var/log/app.log | grep --line-buffered "ERROR" | \
+    awk '{count++; if (count % 10 == 0) print "[" strftime("%T") "] " count " errors so far"}'
+
+### watch — periodic command execution:
+  watch -n 5 'df -h | grep -v tmpfs'        # disk usage every 5 seconds
+  watch -n 2 'docker ps --format "table {{.Names}}\t{{.Status}}"'
+  watch -n 10 'curl -s localhost:8080/health'
+  watch -d -n 1 'free -h'                   # -d highlights changes
+
+### tee — split output:
+  tail -f /var/log/syslog | grep --line-buffered "ERROR" | tee errors.log
+  # Shows on screen AND saves to file simultaneously
+
+  # Tee in the middle of a pipeline:
+  curl -s "https://api.example.com/data" | tee raw.json | jq '.items | length'
+  # Saves raw response AND shows count
+
+### Solve buffering problems:
+  # Problem: grep buffers output in pipes (nothing appears)
+  # Fix 1: --line-buffered flag
+  tail -f log | grep --line-buffered "pattern"
+
+  # Fix 2: stdbuf (works with any command)
+  tail -f log | stdbuf -oL grep "pattern"
+
+  # Fix 3: unbuffer (from expect package)
+  tail -f log | unbuffer grep "pattern"
+
+### Live JSON log processing:
+  tail -f app.log | while IFS= read -r line; do
+      level=$(echo "$line" | jq -r '.level' 2>/dev/null)
+      if [ "$level" = "error" ]; then
+          msg=$(echo "$line" | jq -r '.message')
+          echo "[$(date +%T)] ERROR: $msg"
+      fi
+  done
+
+### System metrics stream:
+  while true; do
+      cpu=$(top -bn1 | grep "Cpu(s)" | awk '{print 100-$8}')
+      mem=$(free | awk '/Mem/ {printf "%.0f", $3/$2*100}')
+      disk=$(df / | awk 'NR==2 {print $5}')
+      echo "$(date +%T) | CPU: ${cpu}% | MEM: ${mem}% | DISK: ${disk}"
+      sleep 5
+  done | tee system_metrics.log
+
+## [EXPECTED RESULT]
+You can monitor any data source in real time, filter for important
+events, trigger alerts, and log everything — all from the terminal.
+
+## Technician Tip:
+For production monitoring, combine tail -F (capital F) with grep:
+  tail -F handles log rotation (when logrotate renames the file)
+  tail -f loses the file on rotation
+  tail -F reconnects to the new file automatically
+
+## Common Pain Point:
+"Nothing appears in my real-time pipeline" → buffering.
+Always use --line-buffered with grep in pipes, or stdbuf -oL.
+
+## Next:
+Type menu to return. You have completed Day 7!
+You can now monitor and process live data streams from the CLI.

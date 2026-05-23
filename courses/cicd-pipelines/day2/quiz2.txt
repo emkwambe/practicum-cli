@@ -1,0 +1,55 @@
+Q1: A GitHub Actions workflow file must be placed in:
+A) .github/workflow/ (no s)
+B) workflows/ at repo root
+C) .ci/config/
+D) .github/workflows/*.yml
+Correct: D
+
+Q2: SCENARIO: Your workflow has two jobs — "lint" and "test". Both take 3 minutes. If they run in parallel, total time is:
+A) 6 minutes (they always run sequentially)
+B) 3 minutes (jobs run in parallel by default)
+C) 9 minutes
+D) 1 minute
+Correct: B
+
+Q3: Job "deploy" needs the "test" job to finish first. The correct keyword is:
+A) depends_on: test
+B) after: test
+C) needs: test
+D) requires: test
+Correct: C
+
+Q4: A matrix strategy with os: [ubuntu, macos] and node: [18, 20, 22] creates how many parallel jobs?
+A) 3
+B) 5
+C) 6 (2 OS × 3 Node versions)
+D) 2
+Correct: C
+
+Q5: SCENARIO: Your CI pipeline takes 8 minutes. 5 minutes is spent on npm install every run, even when dependencies haven't changed. What should you add?
+A) A faster internet connection
+B) Dependency caching with actions/cache@v4 keyed on the lockfile hash
+C) Skip npm install entirely
+D) Run npm install in parallel
+Correct: B
+
+Q6: SCENARIO: Job "deploy" can't find the dist/ folder that job "build" created. Why?
+A) The build failed
+B) dist/ was deleted
+C) Each job runs on a separate machine — you need upload-artifact and download-artifact to pass files
+D) You need to add a sleep command
+Correct: C
+
+Q7: You see uses: actions/checkout@main in a workflow. A teammate says this is risky. Why?
+A) @main is slower than @v4
+B) @main pulls the latest version which could introduce breaking changes without warning
+C) @main doesn't exist
+D) No risk — @main is recommended
+Correct: B
+
+Q8: DIAGNOSTIC: A workflow runs on push but not on pull_request, even though both triggers are configured. The PR is from a forked repo. What's the likely cause?
+A) The YAML has a syntax error
+B) Forked repo PRs have restricted permissions — secrets aren't available and some workflows require approval
+C) Pull requests can't trigger workflows
+D) The branch name is wrong
+Correct: B

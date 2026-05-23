@@ -1,0 +1,36 @@
+Q1: SCENARIO: Your Docker Terraform config creates a network, volume, database, and web server. In what order does Terraform create them?
+A) The order they appear in the .tf file
+B) Random order
+C) Terraform builds a dependency graph from resource references and creates them in the correct order automatically
+D) Alphabetical by resource name
+Correct: C
+
+
+
+Q2: To make a variable required (no default), you:
+A) Omit the default value — Terraform will prompt for it or error if not provided via tfvars/CLI/env
+B) Set default = null
+C) Use a validation block
+D) Add required = true
+Correct: A
+
+Q3: DIAGNOSTIC: Your Docker container resource has ports { external = 8080 } but curl localhost:8080 returns "connection refused." What should you check?
+A) Your internet connection
+B) Whether the container is actually running (terraform state show), whether the internal port matches the app, and whether Docker networking is configured
+C) The Terraform version
+D) The Dockerfile
+Correct: B
+
+Q4: terraform validate checks:
+A) Whether the config syntax is correct — without contacting any API or provider
+B) Whether variables have values
+C) Whether state is current
+D) Whether infrastructure is running
+Correct: A
+
+Q5: TRADEOFF: Using the Docker provider for learning vs a cloud provider. Why start with Docker?
+A) Docker is always better than cloud
+B) Docker is simpler than Terraform
+C) Cloud providers don't support Terraform
+D) Docker is free, local, instant, and doesn't require a cloud account — learn Terraform concepts without cloud billing risk
+Correct: D

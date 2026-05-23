@@ -1,0 +1,97 @@
+# Lesson: terraform validate & terraform fmt — Config Quality
+
+## [WHEN] You need this when:
+1. You want to catch config errors before running plan.
+2. Your team's Terraform files have inconsistent formatting.
+3. The exam directly tests validate (Obj 3c) and fmt (Obj 3g).
+
+## [INTENT] "Validate configuration syntax and enforce consistent formatting."
+
+## [CONTEXT]
+terraform validate checks: "is this valid HCL?"
+terraform fmt checks: "is this consistently formatted?"
+
+Both run locally, no API calls, no state access. They're the
+first line of defense before plan and apply.
+
+## [ACTION] validate and fmt
+
+### terraform validate:
+  terraform validate
+
+  # What it checks:
+  #   ✅ HCL syntax errors (missing brackets, bad strings)
+  #   ✅ Invalid resource arguments
+  #   ✅ Missing required arguments
+  #   ✅ Type mismatches (string where number expected)
+  #   ✅ Circular references
+  #   ❌ Does NOT check if resources exist in the cloud
+  #   ❌ Does NOT check credentials or provider authentication
+  #   ❌ Does NOT check state consistency
+
+  # Requires terraform init first (needs provider schemas):
+  terraform init
+  terraform validate
+
+  # JSON output for CI pipelines:
+  terraform validate -json
+
+  # Example output:
+  # Success! The configuration is valid.
+  # OR:
+  # Error: Missing required argument
+  #   on main.tf line 5, in resource "aws_instance" "web":
+  #   5: resource "aws_instance" "web" {
+  # The argument "ami" is required, but no definition was found.
+
+### terraform fmt:
+  # Check formatting without changing files:
+  terraform fmt -check
+  # Exit code 0 = all formatted
+  # Exit code 3 = files need formatting
+
+  # Format files in place:
+  terraform fmt
+
+  # Recursive (all subdirectories):
+  terraform fmt -recursive
+
+  # Show diff of changes:
+  terraform fmt -diff
+
+  # What fmt standardizes:
+  #   - 2-space indentation
+  #   - Aligned = signs within blocks
+  #   - Consistent quoting
+  #   - Trailing newlines
+  #   - Block ordering
+
+### CI/CD integration:
+  # In a GitHub Actions pipeline:
+  - name: Terraform Format Check
+    run: terraform fmt -check -recursive
+  
+  - name: Terraform Validate
+    run: |
+      terraform init -backend=false
+      terraform validate
+
+  # -backend=false skips backend config (no credentials needed
+  # just for validation).
+
+### Workflow order:
+  terraform fmt -check    # formatting OK?
+  terraform init          # download providers
+  terraform validate      # syntax and schema OK?
+  terraform plan          # what will change?
+  terraform apply         # make the changes
+
+## [EXPECTED RESULT]
+You can validate configs, format files, and integrate both
+into CI/CD pipelines for automated quality checks.
+
+## Technician Tip:
+Exam question pattern: "Which command checks syntax without
+accessing the cloud?" → terraform validate. "Which command
+standardizes indentation?" → terraform fmt. Neither requires
+credentials or state access.

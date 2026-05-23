@@ -1,0 +1,83 @@
+# Lesson: while & until — Loop Until a Condition Changes
+
+## [WHEN] You need this when:
+1. You want to retry until something succeeds.
+2. You need to read a file line by line.
+3. You want to wait for a condition (service up, file created).
+4. You're building a polling/monitoring loop.
+
+## [INTENT] "Keep doing this until the condition changes."
+
+## [CONTEXT]
+  while — runs while condition is TRUE
+  until — runs while condition is FALSE (rare, same as while ! ...)
+
+## [ACTION] while/until patterns
+
+### Retry until success:
+  attempts=0
+  while ! ping -c 1 -W 2 8.8.8.8 >/dev/null 2>&1; do
+      ((attempts++))
+      echo "Attempt $attempts: waiting for network..."
+      sleep 5
+      if (( attempts >= 10 )); then
+          echo "Gave up after $attempts attempts"
+          exit 1
+      fi
+  done
+  echo "Network is up!"
+
+### Read file line by line:
+  while IFS= read -r line; do
+      echo "Line: $line"
+  done < /etc/hostname
+
+### Read CSV:
+  while IFS=, read -r name age city; do
+      echo "$name is $age, lives in $city"
+  done < data.csv
+
+### Countdown:
+  count=5
+  while (( count > 0 )); do
+      echo "$count..."
+      ((count--))
+      sleep 1
+  done
+  echo "Go!"
+
+### Infinite loop (with break):
+  while true; do
+      read -p "Enter 'quit' to exit: " input
+      [[ "$input" == "quit" ]] && break
+      echo "You said: $input"
+  done
+
+### Monitor a log file:
+  tail -f /var/log/syslog | while IFS= read -r line; do
+      if [[ "$line" == *"error"* ]]; then
+          echo "ALERT: $line"
+      fi
+  done
+
+## Try it now:
+  # Wait for a file to appear:
+  rm -f /tmp/signal
+  (sleep 3 && touch /tmp/signal) &
+  echo "Waiting for /tmp/signal..."
+  while [ ! -f /tmp/signal ]; do
+      echo -n "."
+      sleep 1
+  done
+  echo " Found it!"
+
+## Technician Tip:
+For reading files, ALWAYS use: while IFS= read -r line
+  IFS=     preserves leading whitespace
+  -r       prevents backslash interpretation
+Without these, lines get mangled.
+
+## Common Pain Point:
+"Variable set inside while loop is empty outside" → pipes create subshells:
+  ❌ cat file | while read line; do count=$((count+1)); done; echo $count
+  ✅ while read line; do count=$((count+1)); done < file; echo $count

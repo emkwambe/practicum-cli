@@ -1,0 +1,146 @@
+# Lesson: Expressions & Functions — Dynamic Configuration
+
+## [WHEN] You need this when:
+1. You need conditional logic (create this resource only in prod).
+2. You need to transform data (uppercase a name, merge maps).
+3. You need to iterate over collections (create N subnets from a list).
+4. The exam tests expressions and functions directly (Obj 4e).
+
+## [INTENT] "Write dynamic, DRY Terraform config with expressions and functions."
+
+## [CONTEXT]
+Terraform isn't just declarative YAML — HCL has a full expression
+language with conditionals, loops, and 100+ built-in functions.
+This turns static config into dynamic, reusable infrastructure code.
+
+## [ACTION] Expressions and functions
+
+### Conditional expressions:
+  # condition ? true_result : false_result
+  instance_type = var.environment == "prod" ? "t3.large" : "t3.micro"
+
+  # Conditional resource creation with count:
+  resource "aws_cloudwatch_metric_alarm" "cpu" {
+    count = var.environment == "prod" ? 1 : 0
+    # Creates the alarm only in prod
+  }
+
+### for expressions:
+  # Transform a list:
+  upper_names = [for name in var.names : upper(name)]
+  # ["alice", "bob"] → ["ALICE", "BOB"]
+
+  # Filter a list:
+  prod_servers = [for s in var.servers : s if s.env == "prod"]
+
+  # Transform to a map:
+  name_map = { for s in var.servers : s.name => s.ip }
+  # [{ name="web", ip="10.0.1.1" }] → { "web" = "10.0.1.1" }
+
+### for_each (resource iteration):
+  variable "subnets" {
+    type = map(string)
+    default = {
+      web  = "10.0.1.0/24"
+      api  = "10.0.2.0/24"
+      data = "10.0.3.0/24"
+    }
+  }
+
+  resource "aws_subnet" "this" {
+    for_each   = var.subnets
+    cidr_block = each.value
+    tags       = { Name = each.key }
+  }
+
+  # Creates: aws_subnet.this["web"], aws_subnet.this["api"], ...
+  # for_each with maps: each.key, each.value
+  # for_each with sets: each.key == each.value
+
+### count vs for_each:
+  count: creates resources by index [0], [1], [2]
+    - Removing item from middle re-indexes everything (destructive)
+  for_each: creates resources by key ["web"], ["api"], ["data"]
+    - Removing item only affects that key (safe)
+  Rule: use for_each for most things. count only for on/off (0 or 1).
+
+### String functions:
+  upper("hello")              # "HELLO"
+  lower("HELLO")              # "hello"
+  title("hello world")        # "Hello World"
+  trimspace("  hello  ")      # "hello"
+  replace("hello", "l", "r")  # "herro"
+  substr("hello", 0, 3)       # "hel"
+  join(", ", ["a", "b", "c"]) # "a, b, c"
+  split(",", "a,b,c")         # ["a", "b", "c"]
+  format("Hello, %s!", "world")  # "Hello, world!"
+
+### Numeric functions:
+  min(1, 2, 3)     # 1
+  max(1, 2, 3)     # 3
+  ceil(4.2)        # 5
+  floor(4.8)       # 4
+  abs(-5)          # 5
+
+### Collection functions:
+  length(["a", "b", "c"])              # 3
+  contains(["a", "b"], "a")            # true
+  concat(["a"], ["b"], ["c"])          # ["a", "b", "c"]
+  flatten([["a", "b"], ["c"]])         # ["a", "b", "c"]
+  distinct(["a", "a", "b"])            # ["a", "b"]
+  keys({ a = 1, b = 2 })              # ["a", "b"]
+  values({ a = 1, b = 2 })            # [1, 2]
+  merge({ a = 1 }, { b = 2 })         # { a = 1, b = 2 }
+  lookup({ a = 1 }, "b", "default")   # "default"
+  element(["a", "b", "c"], 1)         # "b"
+  zipmap(["a", "b"], [1, 2])          # { a = 1, b = 2 }
+
+### Filesystem functions:
+  file("scripts/init.sh")             # read file contents
+  filebase64("certs/cert.pem")        # read as base64
+  templatefile("tpl/config.tpl", {    # render template
+    db_host = var.db_host
+  })
+
+### IP network functions:
+  cidrsubnet("10.0.0.0/16", 8, 0)     # "10.0.0.0/24"
+  cidrsubnet("10.0.0.0/16", 8, 1)     # "10.0.1.0/24"
+  cidrhost("10.0.1.0/24", 5)          # "10.0.1.5"
+
+### Type conversion functions:
+  tostring(42)     # "42"
+  tonumber("42")   # 42
+  tobool("true")   # true
+  tolist(set)      # set → list
+  toset(list)      # list → set
+  try(var.x, "default")  # return var.x or "default" if error
+
+### Splat expressions:
+  # Shorthand for extracting one field from a list of resources:
+  output "instance_ips" {
+    value = aws_instance.web[*].public_ip
+    # Equivalent to: [for i in aws_instance.web : i.public_ip]
+  }
+
+### Dynamic blocks:
+  # Generate repeated nested blocks:
+  resource "aws_security_group" "web" {
+    dynamic "ingress" {
+      for_each = var.ingress_rules
+      content {
+        from_port   = ingress.value.port
+        to_port     = ingress.value.port
+        protocol    = ingress.value.protocol
+        cidr_blocks = ingress.value.cidrs
+      }
+    }
+  }
+
+## [EXPECTED RESULT]
+You can use conditionals, for_each, for expressions, and common
+functions to write dynamic, DRY Terraform configuration.
+
+## Technician Tip:
+The exam won't ask you to memorize all 100+ functions. Focus on:
+length, lookup, merge, join, split, format, cidrsubnet, file,
+templatefile, try, and coalesce. These cover 90% of real-world use.

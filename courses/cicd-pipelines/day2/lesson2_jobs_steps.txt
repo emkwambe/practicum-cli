@@ -1,0 +1,148 @@
+# Lesson: Jobs, Steps, and Runners — Pipeline Architecture
+
+## [WHEN] You need this when:
+1. You need tests and builds to run in parallel (save time).
+2. One job needs the output of another job.
+3. You need to test on multiple OS or language versions.
+4. Your pipeline is slow and you need to optimize it.
+
+## [INTENT] "Design multi-job pipelines with dependencies and parallelism."
+
+## [CONTEXT]
+Jobs run in PARALLEL by default. If job B needs job A's output,
+you declare a dependency. Steps within a job run SEQUENTIALLY.
+
+  Parallel:          Sequential:
+  ┌─── test ───┐     ┌─ build ─┐
+  │             │     │         │
+  ├─── lint ───┤     └─── ↓ ───┘
+  │             │     ┌─ deploy ┐
+  └─── scan ───┘     └─────────┘
+
+## [ACTION] Multi-job pipelines
+
+### Parallel jobs (default):
+
+  jobs:
+    lint:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - run: npm run lint
+
+    test:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - run: npm test
+
+    security:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - run: npm audit
+
+  # All three jobs run simultaneously
+
+### Sequential jobs (needs):
+
+  jobs:
+    build:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - run: npm ci && npm run build
+
+    deploy:
+      needs: build              # ← waits for build to finish
+      runs-on: ubuntu-latest
+      steps:
+        - run: echo "Deploying..."
+
+### Complex dependency chain:
+
+  jobs:
+    lint:      ...
+    test:      ...
+    build:
+      needs: [lint, test]       # ← waits for BOTH
+    deploy-staging:
+      needs: build
+    deploy-prod:
+      needs: deploy-staging
+
+  # Flow: lint + test (parallel) → build → staging → prod
+
+### Matrix strategy (test across versions):
+
+  jobs:
+    test:
+      runs-on: ubuntu-latest
+      strategy:
+        matrix:
+          node-version: [18, 20, 22]
+      steps:
+        - uses: actions/checkout@v4
+        - uses: actions/setup-node@v4
+          with:
+            node-version: ${{ matrix.node-version }}
+        - run: npm ci && npm test
+
+  # Creates 3 parallel jobs: node 18, 20, and 22
+
+### Matrix with multiple axes:
+
+  strategy:
+    matrix:
+      os: [ubuntu-latest, macos-latest]
+      python: ['3.10', '3.11', '3.12']
+  runs-on: ${{ matrix.os }}
+
+  # Creates 6 jobs (2 OS × 3 Python versions)
+
+### Conditional jobs:
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main'     # only deploy from main
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Deploying to production"
+
+### Sharing data between jobs (artifacts):
+
+  jobs:
+    build:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - run: npm run build
+        - uses: actions/upload-artifact@v4
+          with:
+            name: build-output
+            path: dist/
+
+    deploy:
+      needs: build
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/download-artifact@v4
+          with:
+            name: build-output
+            path: dist/
+        - run: ls dist/    # files from build job are here
+
+## [EXPECTED RESULT]
+You can design pipelines with parallel CI (lint + test + scan)
+feeding into sequential CD (build → staging → production).
+
+## Technician Tip:
+More parallel jobs = faster pipeline but more runner minutes.
+Optimize: combine fast checks into one job, split slow tests.
+  Fast job: checkout + lint + type-check (30 seconds)
+  Slow job: checkout + install + full test suite (5 minutes)
+
+## Common Pain Point:
+"Job B can't find files from Job A" → jobs run on SEPARATE machines.
+Use artifacts (upload-artifact/download-artifact) to pass files.
+Or combine the steps into one job if they need shared state.

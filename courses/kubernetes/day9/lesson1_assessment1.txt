@@ -1,0 +1,49 @@
+# Assessment 1: Deploy a Multi-Service Application
+
+## [INTENT] "Prove you can deploy a complete app stack on Kubernetes."
+
+## [ACTION] Complete these tasks on your kind cluster:
+
+### Scenario:
+Deploy a 3-tier application: web frontend, API backend, database.
+
+### Task 1: Create a namespace
+  Name: "assessment"
+  All resources in this namespace.
+
+### Task 2: Deploy PostgreSQL (database tier)
+  - Deployment: 1 replica, postgres:16-alpine
+  - ConfigMap: POSTGRES_DB=appdb
+  - Secret: POSTGRES_PASSWORD (your choice)
+  - Service: ClusterIP on port 5432
+  - Resource limits: 256Mi memory, 250m CPU
+
+### Task 3: Deploy the API (backend tier)
+  - Deployment: 2 replicas, nginx:alpine (simulating an API)
+  - ConfigMap: DB_HOST pointing to the database service name
+  - Service: ClusterIP on port 3000
+  - Readiness probe: httpGet /
+  - Resource limits: 128Mi memory, 100m CPU
+
+### Task 4: Deploy the web frontend
+  - Deployment: 3 replicas, nginx:alpine
+  - Service: NodePort on port 30080
+  - Liveness probe: httpGet /
+  - Readiness probe: httpGet /
+  - Resource limits: 64Mi memory, 100m CPU
+
+### Task 5: Verify everything works
+  - All pods running in the assessment namespace
+  - Services have endpoints
+  - curl localhost:30080 returns a response
+  - Scale web to 5 replicas, verify all come up healthy
+
+### Grading:
+  [ ] Namespace exists
+  [ ] All 3 deployments running (1 + 2 + 3 = 6 pods)
+  [ ] ConfigMaps and Secrets created and mounted
+  [ ] Services have correct endpoints
+  [ ] Probes configured on web and API
+  [ ] Resource limits set on all deployments
+  [ ] Scaling works (5 replicas come up)
+  [ ] kubectl get all -n assessment shows healthy state
