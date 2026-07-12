@@ -1,0 +1,29 @@
+COURSE: CLI Immersion
+CERTIFICATION_ALIGNMENT: None (foundational literacy)
+TAGLINE: "Before you run commands, understand what a command IS."
+TOTAL_DAYS: 4
+TOTAL_LESSONS: 16
+PREREQS: None
+CAPSTONE: linecount — Build a CLI Toolkit Script
+
+PHILOSOPHY:
+  Don't teach commands. Teach the GRAMMAR of commands.
+  A student who understands grammar can learn any command.
+  A student who memorizes commands is stuck when they see a new one.
+
+SKILLS:
+  shell_terminal_os, command_anatomy, subcommands,
+  flags_boolean, options_key_value, short_long_forms,
+  combined_flags, dash_dash_separator, positional_arguments,
+  man_pages, synopsis_notation, help_systems,
+  stdin, stdout, stderr, file_descriptors,
+  redirection, append, heredoc, dev_null,
+  pipes, pipeline_philosophy, tee,
+  exit_codes, conditional_chaining, and_or_operators,
+  filesystem_tree, absolute_relative_paths, tab_completion,
+  path_resolution, shebang, chmod_execute,
+  environment_variables, export, bashrc_profile,
+  permissions_rwx, sudo, least_privilege,
+  keyboard_shortcuts, ctrl_r_history, glob_wildcards,
+  brace_expansion, quoting_rules, command_substitution,
+  xargs, subshells, script_argument_parsing

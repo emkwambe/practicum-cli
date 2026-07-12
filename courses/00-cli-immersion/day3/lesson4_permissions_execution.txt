@@ -1,0 +1,92 @@
+# Lesson: Permissions & Execution — Who Can Run What
+
+## [WHEN] You need this when:
+1. You get "Permission denied" and don't know why.
+2. You need to understand what rwxr-xr-x means.
+3. You want to know when and why to use sudo.
+
+## [INTENT] "Read permission strings and understand access control basics."
+
+## [CONTEXT]
+Every file and directory in Linux has an owner, a group, and
+permissions that control who can read, write, or execute it.
+This is the security foundation of the entire operating system.
+
+## [ACTION] Understanding permissions
+
+### The permission string:
+  ls -la shows permissions:
+
+  -rwxr-xr-x 1 user staff 4096 Jan 1 12:00 script.sh
+  drwxr-xr-x 2 user staff 4096 Jan 1 12:00 documents/
+
+  Breaking down -rwxr-xr-x:
+    -          = file type (- = file, d = directory, l = link)
+    rwx        = owner permissions (read, write, execute)
+    r-x        = group permissions (read, execute, no write)
+    r-x        = others permissions (read, execute, no write)
+
+### The three permissions:
+  r (read):
+    File: can view contents (cat, less)
+    Directory: can list contents (ls)
+
+  w (write):
+    File: can modify contents (edit, overwrite)
+    Directory: can create/delete files inside it
+
+  x (execute):
+    File: can run it as a program
+    Directory: can enter it (cd into it)
+
+### The three user classes:
+  Owner  — the user who owns the file
+  Group  — users in the file's group
+  Others — everyone else
+
+  rwxr-xr-x means:
+    Owner: can do everything (rwx)
+    Group: can read and execute, not write (r-x)
+    Others: can read and execute, not write (r-x)
+
+### Common permission patterns:
+  rwxr-xr-x (755) — executable program (anyone can run it)
+  rw-r--r-- (644) — regular file (owner edits, others read)
+  rwx------ (700) — private executable (owner only)
+  rw------- (600) — private file (SSH keys use this)
+
+### chmod — changing permissions:
+  chmod +x script.sh      — add execute permission for everyone
+  chmod 755 script.sh     — set to rwxr-xr-x
+  chmod 600 secret.key    — set to rw------- (private)
+
+  The numbers are octal: r=4, w=2, x=1
+    7 = 4+2+1 = rwx
+    5 = 4+0+1 = r-x
+    0 = 0+0+0 = ---
+
+### sudo — running as root:
+  sudo command            — run one command as the superuser
+
+  When to use sudo:
+    - Installing system packages (apt install)
+    - Editing system config files (/etc/...)
+    - Managing system services (systemctl)
+
+  When NOT to use sudo:
+    - Regular file editing in your home directory
+    - Running your own scripts
+    - "It didn't work, let me try sudo" (BAD habit)
+
+  The principle of least privilege: use the minimum access needed.
+  Running everything as root is like giving every employee the
+  master key to every room. Eventually, someone opens the wrong door.
+
+## [EXPECTED RESULT]
+You can read permission strings, understand why "Permission denied"
+happens, use chmod to fix it, and know when sudo is appropriate.
+
+## Technician Tip:
+If your script works with "bash script.sh" but fails with
+"./script.sh" and "Permission denied" — it's missing the execute
+bit. chmod +x script.sh fixes it. This is exit code 126.

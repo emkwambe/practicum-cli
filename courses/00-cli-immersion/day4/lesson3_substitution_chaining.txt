@@ -1,0 +1,90 @@
+# Lesson: Command Substitution & Chaining — Composing Solutions
+
+## [WHEN] You need this when:
+1. You need to use the output of one command inside another.
+2. You want to find files and do something with each one.
+3. You need to build complex operations from simple pieces.
+
+## [INTENT] "Capture command output as data and compose multi-step operations."
+
+## [CONTEXT]
+Command substitution lets you use the output of one command as
+an argument or value in another. Combined with xargs and
+chaining, this turns the terminal into a programming environment.
+
+## [ACTION] Composition techniques
+
+### Command substitution — $(command):
+  $(command) runs the command and captures its stdout as text.
+
+  echo "Today is $(date)"
+  — runs date, inserts its output into the string
+
+  FILES=$(ls *.txt)
+  — stores the file listing in a variable
+
+  echo "There are $(wc -l < access.log) lines in the log"
+  — counts lines and inserts the number into the sentence
+
+  Backtick syntax (older, equivalent):
+    echo "Today is `date`"
+  Dollar-paren $(command) is preferred — it nests cleanly.
+
+### Nested substitution:
+  echo "Python scripts: $(find . -name '*.py' | wc -l)"
+  — find locates files, wc counts them, echo displays
+
+  tar -czf "backup-$(date +%Y%m%d).tar.gz" project/
+  — creates backup-20260522.tar.gz (date generates the name)
+
+### xargs — converting stdin to arguments:
+  Some commands don't read stdin. xargs converts stdin into
+  command-line arguments:
+
+  find . -name "*.tmp" | xargs rm
+  — find outputs filenames, xargs passes them as arguments to rm
+
+  echo "file1 file2 file3" | xargs touch
+  — creates three files
+
+  cat urls.txt | xargs -n 1 curl -O
+  — downloads each URL (one at a time with -n 1)
+
+### Command grouping:
+  { command1; command2; }
+  — runs both in the CURRENT shell
+
+  (command1; command2)
+  — runs both in a SUBSHELL (doesn't affect parent)
+
+  Subshell example:
+    (cd /tmp && tar -xzf archive.tar.gz)
+  Your working directory doesn't change — the cd only affected
+  the subshell.
+
+### tee — split output to file AND screen:
+  ls -la | tee listing.txt
+  — saves to file AND displays on screen simultaneously
+
+  ls -la | tee listing.txt | grep ".txt"
+  — saves full listing to file, filters screen output
+
+### Putting it all together:
+  Find all Python files larger than 1MB, count them, and log:
+
+  find /project -name "*.py" -size +1M \
+    | tee large_files.log \
+    | wc -l \
+    | xargs -I{} echo "{} large Python files found"
+
+  This pipeline: finds files, logs them, counts them, and
+  reports the count — all in one line.
+
+## [EXPECTED RESULT]
+You can use command substitution, xargs, subshells, and tee
+to compose complex operations from simple commands.
+
+## Technician Tip:
+When a pipeline gets longer than 3-4 stages, put it in a script.
+Future you will thank present you for not having to reconstruct
+a 200-character one-liner from memory at 2 AM.

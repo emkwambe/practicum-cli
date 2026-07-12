@@ -1,0 +1,59 @@
+Q1: When you see "command not found" in the terminal, which layer is reporting the error?
+A) The terminal emulator
+B) The shell — it searched every directory in PATH and could not find an executable with that name
+C) The operating system kernel
+D) The network stack
+Correct: B
+
+Q2: In the command "ls -la /home", identify the argument:
+A) ls
+B) -la
+C) /home — it's the target (noun) that the command acts upon, telling ls which directory to list
+D) -l and -a are arguments
+Correct: C
+
+Q3: SCENARIO: You see "docker run -d --name web -p 80:80 nginx". Which part is a flag (boolean switch)?
+A) --name web (it requires a value, making it an option)
+B) nginx (it's an argument)
+C) -p 80:80 (it requires a port mapping value)
+D) -d — short for --detach, its presence alone changes behavior to run in background, no value needed
+Correct: D
+
+Q4: The difference between -d (short flag) and --detach (long flag) is:
+A) Short flags are faster, long flags are more powerful
+B) They do different things
+C) Short flags are deprecated
+D) They do the same thing — short flags save typing, long flags improve readability in scripts and documentation
+Correct: D
+
+
+
+Q5: DIAGNOSTIC: A command fails with exit code 126. What does this tell you?
+A) The command was not found
+B) The shell found the file but the kernel denied execution — likely missing the execute permission bit (needs chmod +x)
+C) The network is down
+D) The command timed out
+Correct: B
+
+
+
+Q6: In man page SYNOPSIS notation, "ls [OPTION]... [FILE]..." — what do the brackets and ellipsis mean?
+A) OPTION and FILE are required
+B) The dots indicate the command is incomplete
+C) Brackets mean optional, ellipsis means repeatable — you can pass zero or more options and zero or more files
+D) Brackets indicate subcommands
+Correct: C
+
+Q7: TRADEOFF: "--output=file.txt" vs "--output file.txt":
+A) The equals form is unambiguous (the value is clearly attached to the option), while the space form can sometimes be misread by parsers — both work in most tools
+B) Only the space form works
+C) Only the equals form works
+D) They produce different results
+Correct: A
+
+Q8: What does the -- separator do in a command like "rm -- -file.txt"?
+A) Tells the shell that everything after -- is an argument, not a flag — so -file.txt is treated as a filename, not as the flags -f, -i, -l, -e
+B) Comments out the rest of the line
+C) Separates two commands
+D) Starts a subshell
+Correct: A

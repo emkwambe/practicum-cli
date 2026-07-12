@@ -1,0 +1,110 @@
+# Lesson: Flags, Options & Arguments — The Full Grammar
+
+## [WHEN] You need this when:
+1. You see -v, --verbose, -n 5, --output=file.txt and can't tell them apart.
+2. You want to combine short flags like tar -xvf.
+3. You need to handle filenames that start with a dash.
+
+## [INTENT] "Distinguish between flags, options, and arguments with precision."
+
+## [CONTEXT]
+People use "flags" and "options" interchangeably. To a CLI parser,
+they are different things:
+
+  Flag   = a boolean switch (on/off, no value needed)
+  Option = a key-value pair (needs an accompanying value)
+
+Both modify how the command behaves (adverbs), but flags are
+standalone while options need data.
+
+## [ACTION] The full grammar
+
+### Flags (Boolean Switches):
+  A flag is a simple on/off switch. Its mere presence changes
+  the program's behavior. No extra value needed.
+
+  Short flags (single dash, single letter):
+    ls -l          — long listing format
+    ls -a          — show hidden files (all)
+    rm -r          — recursive deletion
+    grep -i        — case-insensitive
+
+  Long flags (double dash, full word):
+    npm install --global     — install system-wide
+    ls --all                 — same as -a
+    grep --ignore-case       — same as -i
+
+  Short = speed when typing.
+  Long = readability in scripts and documentation.
+  Both do the same thing.
+
+### Combining short flags:
+  Short flags can be stacked behind a single dash:
+
+    ls -l -a    =    ls -la
+    tar -x -v -f archive.tar    =    tar -xvf archive.tar
+
+  This only works with SHORT flags (single letters).
+  You cannot combine long flags: --all--recursive does NOT work.
+
+### Options (Key-Value Pairs):
+  An option requires an accompanying value. It provides a
+  specific setting or parameter.
+
+  Short options:
+    head -n 5              — show first 5 lines (-n is the option, 5 is the value)
+    sort -t ","            — use comma as delimiter (-t is option, "," is value)
+
+  Long options:
+    curl --output file.txt — save to file.txt (--output is option, file.txt is value)
+    grep --context=3       — show 3 lines of context (= syntax)
+
+  Two syntax forms for long options:
+    --output file.txt      — space between option and value
+    --output=file.txt      — equals sign between option and value
+  Both work. The = form is unambiguous.
+
+### The -- separator:
+  Everything after -- is treated as arguments, never as flags.
+
+  Why this matters:
+    rm -file.txt           — the shell reads -f, -i, -l, -e as flags!
+    rm -- -file.txt        — correctly treats -file.txt as a filename
+
+  This is critical for filenames or arguments that start with -.
+
+### Positional arguments:
+  Arguments identified by their position in the command:
+
+    cp SOURCE DEST         — first arg is source, second is destination
+    mv OLDNAME NEWNAME     — first is current name, second is new name
+
+  Order matters. The command knows which is which by position.
+
+### Optional vs required arguments:
+  Some arguments are optional (command uses defaults):
+    ls                     — defaults to current directory
+    ls /home               — explicitly specify directory
+
+  Some are required (command fails without them):
+    cp                     — error: missing source and destination
+    mkdir                  — error: missing directory name
+
+### Complete example — Docker:
+  docker run -d --name web-server -p 80:80 nginx
+
+  docker              — main command (launches Docker)
+  run                 — subcommand (start a container)
+  -d                  — flag (short for --detach, run in background)
+  --name web-server   — option + value (set container name)
+  -p 80:80            — option + value (map port 80)
+  nginx               — argument (which image to run)
+
+## [EXPECTED RESULT]
+You can distinguish flags from options, combine short flags,
+use the -- separator, and parse any complex CLI command.
+
+## Technician Tip:
+When reading documentation, flags say "enable X" or "disable X"
+(no value needed). Options say "set X to Y" or "specify X"
+(value required). This distinction makes man pages much clearer.

@@ -1,0 +1,81 @@
+# Lesson: Redirection — Controlling Where Output Goes
+
+## [WHEN] You need this when:
+1. You want to save command output to a file.
+2. You need to discard error messages.
+3. You want to feed a file's contents into a command.
+
+## [INTENT] "Route stdin, stdout, and stderr to files, devices, or nowhere."
+
+## [CONTEXT]
+Redirection changes where streams go. Instead of output appearing
+on screen, you send it to a file. Instead of typing input, you
+feed it from a file. This is how you build data workflows.
+
+## [ACTION] Redirection operators
+
+### stdout redirection:
+  command > file.txt        — write stdout to file (OVERWRITE)
+  command >> file.txt       — write stdout to file (APPEND)
+
+  ls /home > listing.txt    — directory listing saved to file
+  echo "log entry" >> app.log  — add a line without erasing
+
+  WARNING: > overwrites silently. No confirmation. The old file
+  is gone. Use >> when you want to add, not replace.
+
+### stdin redirection:
+  command < file.txt        — read stdin from file
+
+  sort < names.txt          — sort reads from file, not keyboard
+  wc -l < access.log        — count lines in the log
+
+### stderr redirection:
+  command 2> file.txt       — write stderr to file
+  command 2>> file.txt      — append stderr to file
+
+  find / -name "*.conf" 2> /dev/null
+  — search the filesystem, discard "Permission denied" errors
+
+### Combining streams:
+  command > output.txt 2>&1   — merge stderr INTO stdout, both to file
+  command &> both.txt         — shorthand for the same thing (bash)
+
+  2>&1 means "send file descriptor 2 (stderr) to wherever
+  file descriptor 1 (stdout) is currently going."
+
+### /dev/null — the black hole:
+  /dev/null is a special file that discards everything written to it.
+
+  command > /dev/null         — discard stdout, show stderr
+  command 2> /dev/null        — discard stderr, show stdout
+  command > /dev/null 2>&1    — discard everything (silence)
+
+  Use case: you only care about the exit code, not the output.
+
+### Here documents (heredoc):
+  Feed multi-line text into a command:
+
+  cat << EOF
+  Hello, this is line 1.
+  This is line 2.
+  EOF
+
+  Everything between << EOF and EOF becomes stdin.
+  Used heavily in scripts for generating config files.
+
+### Here strings:
+  Feed a single string into a command:
+
+  grep "error" <<< "this is an error message"
+
+  Shorter than echo "..." | grep "error".
+
+## [EXPECTED RESULT]
+You can redirect any stream to any file, merge streams,
+discard unwanted output, and feed data into commands.
+
+## Technician Tip:
+Order matters with 2>&1. This works: command > file 2>&1
+(stdout to file, then stderr follows). This does NOT work the
+same way: command 2>&1 > file (stderr goes to screen first).

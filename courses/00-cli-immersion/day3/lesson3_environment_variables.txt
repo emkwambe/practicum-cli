@@ -1,0 +1,79 @@
+# Lesson: Environment Variables — Configuration Without Files
+
+## [WHEN] You need this when:
+1. You see $HOME, $USER, $SHELL and want to know what they mean.
+2. You need to set configuration for a program without editing files.
+3. You want to understand the difference between .bashrc and .profile.
+
+## [INTENT] "Use environment variables to configure your shell and programs."
+
+## [CONTEXT]
+Environment variables are key-value pairs that configure how
+programs behave. Instead of reading a config file, many programs
+read environment variables. This is how Linux configures itself.
+
+## [ACTION] Working with variables
+
+### Setting variables:
+  NAME=value              — set a variable (NO spaces around =)
+  NAME="value with spaces" — use quotes for values with spaces
+
+  Bad: NAME = value       — the shell treats this as a command
+  Bad: NAME =value        — same problem
+
+### Using variables:
+  echo $NAME              — prints the value
+  echo ${NAME}            — same thing, explicit (safer in strings)
+  echo "Hello, $NAME"     — variables expand inside double quotes
+  echo 'Hello, $NAME'     — variables do NOT expand in single quotes
+
+### export — making variables available:
+  Without export, a variable exists ONLY in the current shell.
+  Child processes (programs you launch) can't see it.
+
+  DB_HOST=localhost        — only this shell sees it
+  export DB_HOST=localhost — child processes inherit it
+
+  This is why programs sometimes "can't find" a variable you set.
+
+### Important built-in variables:
+  $HOME     — your home directory (/home/username)
+  $USER     — your username
+  $SHELL    — your default shell (/bin/bash)
+  $PWD      — current working directory
+  $PATH     — command search directories
+  $LANG     — language/locale setting
+  $EDITOR   — default text editor (vim, nano)
+  $?        — exit code of last command (Day 2)
+
+### Listing all variables:
+  env                     — shows all exported environment variables
+  printenv                — same thing
+  set                     — shows ALL variables (including non-exported)
+
+### Shell config files:
+  ~/.bashrc    — runs for every NEW interactive bash shell
+  ~/.profile   — runs at LOGIN (once, when you log in)
+  ~/.bash_profile — bash-specific login script
+
+  Where to put permanent variables:
+    export PATH="$PATH:/my/bin"    — add to ~/.bashrc
+    export EDITOR=vim              — add to ~/.bashrc
+
+  After editing, reload without logging out:
+    source ~/.bashrc               — re-read the file
+
+### Temporary variables (one command only):
+  LANG=C sort file.txt    — sets LANG only for this sort command
+  DEBUG=true ./app        — sets DEBUG only for this app execution
+
+  The variable exists only for the duration of that command.
+
+## [EXPECTED RESULT]
+You can set, export, and use environment variables, and you
+understand which config file to edit for permanent changes.
+
+## Technician Tip:
+When an application says "set the XYZ_API_KEY environment variable,"
+it means: export XYZ_API_KEY="your-key-here" in your terminal.
+For permanent use, add that line to ~/.bashrc.

@@ -1,0 +1,98 @@
+# Lesson: Getting Help — Reading the Manual
+
+## [WHEN] You need this when:
+1. You encounter a command you've never used.
+2. You need to find which flag does what you want.
+3. You want to search for a command by what it does, not its name.
+
+## [INTENT] "Read any man page or help output and extract what you need."
+
+## [CONTEXT]
+You don't need to memorize commands. You need to know how to
+look them up. The three levels of help:
+
+  --help     = the quick reference (30 seconds)
+  man        = the full manual (5 minutes)
+  man -k     = "I don't even know the command name"
+
+## [ACTION] Using built-in help
+
+### --help (the quick reference):
+  Almost every command supports --help:
+
+  ls --help
+  grep --help
+  docker run --help
+
+  Shows: brief usage, list of options, sometimes examples.
+  Read this first — it's usually enough.
+
+### man pages (the full manual):
+  man ls
+  man grep
+  man chmod
+
+  Sections of a man page:
+    NAME        — command name and one-line description
+    SYNOPSIS    — how to call it (the grammar)
+    DESCRIPTION — what it does in detail
+    OPTIONS     — every flag and option explained
+    EXAMPLES    — usage examples (not always present)
+    SEE ALSO    — related commands
+
+### Reading SYNOPSIS notation:
+  ls [OPTION]... [FILE]...
+
+  Decoding the symbols:
+    UPPERCASE   = placeholder (you supply the actual value)
+    [brackets]  = optional (you can omit it)
+    ...         = repeatable (you can specify multiple)
+    |           = OR (choose one)
+    {braces}    = required group
+
+  Examples:
+    cp [OPTION]... SOURCE DEST
+    — OPTIONS are optional, SOURCE and DEST are required
+
+    grep [OPTION]... PATTERN [FILE]...
+    — PATTERN is required, FILE is optional (defaults to stdin)
+
+    kill [-signal | -s signal] pid...
+    — specify signal with -9 or -s TERM, pid is required and repeatable
+
+### Searching by keyword:
+  Don't know the command name? Search by what it does:
+
+  man -k "copy file"        — find commands related to copying files
+  man -k "disk usage"       — find commands about disk space
+  apropos "compress"        — same as man -k (synonym)
+
+  This searches the NAME and DESCRIPTION of all man pages.
+
+### Finding where a command lives:
+  which ls           — /usr/bin/ls (shows the path)
+  type ls            — ls is aliased to 'ls --color=auto'
+  command -v ls      — /usr/bin/ls (POSIX-portable version)
+
+  "which" finds the executable. "type" shows if it's an alias,
+  function, or builtin. "command -v" is the most portable.
+
+### Other help sources:
+  info grep          — GNU info pages (more detailed than man)
+  tldr tar           — community-maintained cheat sheets (install: npm install -g tldr)
+  explainshell.com   — paste a command, see each part explained
+
+### The help philosophy:
+  Understand, don't memorize. Focus on learning how to find
+  answers, not on remembering every flag. The best engineers
+  read man pages constantly — not because they don't know things,
+  but because no one remembers everything.
+
+## [EXPECTED RESULT]
+You can use --help, man, and man -k to find and understand any
+command, and you can read SYNOPSIS notation fluently.
+
+## Technician Tip:
+In a man page, press / to search, n for next match, q to quit.
+Jump to OPTIONS section with /OPTIONS then Enter. This gets you
+to the flag list in under 3 seconds.

@@ -1,0 +1,98 @@
+# Lesson: The Shell vs The Terminal vs The OS
+
+## [WHEN] You need this when:
+1. You see "command not found" and don't know what that means.
+2. Someone says "open a terminal" and you don't know what you're opening.
+3. You want to understand what's actually happening when you type a command.
+
+## [INTENT] "Understand the three layers between you and the computer."
+
+## [CONTEXT]
+Three things work together every time you type a command:
+
+  Terminal = the window (what you see)
+  Shell    = the interpreter (what reads your input)
+  Kernel   = the OS core (what does the work)
+
+The flow, every single time:
+
+  You type a command
+       |
+  Terminal sends it to the Shell
+       |
+  Shell interprets it and asks the Kernel
+       |
+  Kernel executes the task
+       |
+  Output flows back through Shell to Terminal
+       |
+  You see the result
+
+## [ACTION] Understanding each layer
+
+### The Terminal:
+  The terminal is just a window. An application that accepts
+  keystrokes and displays text. It does not understand commands —
+  it passes them to the shell.
+
+  Modern terminals: Windows Terminal, iTerm2, GNOME Terminal,
+  Alacritty, the VS Code integrated terminal.
+
+  Historical context: terminals used to be physical machines —
+  teletypes (TTY) connected to mainframes by cable. Today's
+  "terminal emulators" simulate that connection on your screen.
+  That's why you see "tty" and "pty" in Linux — those names
+  are 60 years old.
+
+### The Shell:
+  The shell is a program that reads your input, interprets it,
+  and talks to the operating system. It's the INTERPRETER.
+
+  When you type "ls -la /home", the shell:
+    1. Parses the line into command + options + arguments
+    2. Searches PATH to find the "ls" executable
+    3. Launches it with your options and arguments
+    4. Captures the output and sends it to the terminal
+
+  Common shells:
+    bash       — Bourne-Again Shell. Default on most Linux.
+    zsh        — Z Shell. macOS default. Highly customizable.
+    fish       — Friendly Interactive Shell. Auto-suggestions built in.
+    sh         — Original Bourne Shell. Minimal, POSIX-compliant.
+    PowerShell — Microsoft's shell. Object-oriented. Cross-platform.
+
+  Each shell has its own syntax quirks, but they all do the same
+  job: interpret your commands and talk to the kernel.
+
+### The Kernel:
+  The kernel is the OS core. It manages hardware, memory, processes,
+  and filesystems. You never interact with it directly — the shell
+  talks to it on your behalf through system calls.
+
+### Why this matters:
+  "command not found" = the SHELL can't find the program.
+    The program might exist but isn't in your PATH.
+    This is NOT an OS error — it's a shell lookup failure.
+
+  "permission denied" = the KERNEL is blocking you.
+    The shell found the program, asked the kernel to run it,
+    and the kernel said "no" because of file permissions.
+
+  Understanding which layer is talking tells you where to fix.
+
+### GUI vs CLI — same destination, different route:
+  Double-clicking a folder icon sends the same system calls to
+  the kernel that "cd" does. Both routes end at the kernel.
+  CLI just skips the graphical layer.
+
+  Neither is superior. GUI for visual tasks and exploration.
+  CLI for automation, remote management, speed, and precision.
+
+## [EXPECTED RESULT]
+You can identify whether an error comes from the terminal, shell,
+or kernel, and you understand the flow from keystroke to output.
+
+## Technician Tip:
+"command not found" is the most common beginner error. It almost
+never means the software is missing — it usually means the shell
+can't find it. Day 3 teaches PATH, which is the fix.

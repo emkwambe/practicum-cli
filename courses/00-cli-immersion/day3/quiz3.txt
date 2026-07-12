@@ -1,0 +1,61 @@
+Q1: The difference between an absolute path and a relative path is:
+A) Absolute paths are longer
+B) Absolute paths start from / (root) and work from anywhere. Relative paths start from the current directory and depend on where you are — moving directories breaks them.
+C) Relative paths are faster
+D) Only absolute paths work in scripts
+Correct: B
+
+
+
+Q2: SCENARIO: You type "myapp" and get "command not found", but "which myapp" shows nothing. The most likely cause:
+A) The program doesn't exist on this computer
+B) The terminal is broken
+C) The program is installed but its directory is not in $PATH — the shell searched every PATH directory and didn't find an executable named "myapp"
+D) You need to use sudo
+Correct: C
+
+Q3: Why does "./script.sh" need the ./ prefix but "ls" doesn't?
+A) script.sh is a different language
+B) The current directory (.) is not in PATH by default — this is a security feature preventing malicious scripts from shadowing system commands. ls works because /usr/bin is in PATH.
+C) Scripts always need ./ 
+D) ls is a built-in command
+Correct: B
+
+
+
+Q4: "export DB_HOST=localhost" vs "DB_HOST=localhost" — the difference:
+A) They're identical
+B) export is deprecated
+C) Without export, the variable exists only in the current shell. With export, child processes (programs you launch) inherit the variable — critical for applications that read environment variables.
+D) export makes it permanent
+Correct: C
+
+
+
+Q5: DIAGNOSTIC: A file has permissions -rw-r--r--. A user who is not the owner tries "./script.sh" and gets "Permission denied". Why?
+A) The "others" permission is r-- (read only, no execute bit) — the user can cat the file but cannot run it as a program
+B) The file is corrupt
+C) The user needs sudo
+D) The script has a syntax error
+Correct: A
+
+Q6: The shebang line (#!/bin/bash) at the top of a script tells:
+A) The shell to ignore errors
+B) Git to track the file
+C) The terminal which font to use
+D) The operating system which interpreter program to use when executing the script — without it, the OS doesn't know whether to use bash, python, or something else
+Correct: D
+
+Q7: In ~/.bashrc, you add "export PATH=$PATH:/opt/tools/bin". To apply without logging out:
+A) Restart the computer
+B) Close and reopen the terminal
+C) Run "export ~/.bashrc"
+D) Run "source ~/.bashrc" — this re-reads the file in the current shell, applying changes immediately without starting a new session
+Correct: D
+
+Q8: TRADEOFF: Running "sudo" on every command vs using it minimally:
+A) The principle of least privilege — sudo gives root (superuser) access, which can modify or delete any file on the system. Using it minimally limits the blast radius of mistakes. Habitual sudo use is a security risk.
+B) sudo is always safe
+C) sudo is slower
+D) There's no difference
+Correct: A

@@ -1,0 +1,86 @@
+# Lesson: Standard Streams — stdin, stdout, stderr
+
+## [WHEN] You need this when:
+1. You see error messages mixed into your output and want to separate them.
+2. You want to save command output to a file.
+3. You need to understand how pipes work (next lesson).
+
+## [INTENT] "Understand the three data channels every command uses."
+
+## [CONTEXT]
+Every command — every single one — has three data channels:
+
+  stdin  (0) = standard input  (where data comes FROM)
+  stdout (1) = standard output (where results go)
+  stderr (2) = standard error  (where errors go)
+
+By default:
+  stdin  reads from your keyboard
+  stdout writes to your screen
+  stderr also writes to your screen
+
+But these are SEPARATE channels. You can redirect each one
+independently. This is the foundation of everything in Unix.
+
+## [ACTION] Understanding streams
+
+### stdin (standard input):
+  When a command needs data, it reads from stdin.
+
+  By default, stdin is your keyboard:
+    cat                — waits for you to type, echoes it back
+    sort               — waits for lines, sorts them when you press Ctrl+D
+    wc                 — waits for text, counts words/lines/chars
+
+  You can redirect stdin to come from a file instead:
+    sort < names.txt   — sort reads from the file, not your keyboard
+
+### stdout (standard output):
+  Normal output goes to stdout. By default, stdout is your screen.
+
+    ls /home           — directory listing appears on screen
+    echo "hello"       — "hello" appears on screen
+    cat file.txt       — file contents appear on screen
+
+  Programs don't "print to screen." They write to stdout, and
+  the terminal happens to display it. This distinction matters
+  because you can redirect stdout elsewhere.
+
+### stderr (standard error):
+  Errors and warnings go to stderr. Also appears on screen by
+  default, but it's a SEPARATE channel from stdout.
+
+    ls /nonexistent    — "No such file or directory" goes to stderr
+    gcc broken.c       — compiler errors go to stderr
+    curl bad-url       — connection errors go to stderr
+
+  Why separate channels? So errors don't contaminate your data.
+  If you redirect stdout to a file, errors still appear on screen
+  where you can see them.
+
+### Seeing the difference:
+  ls /home /nonexistent
+
+  This produces BOTH stdout (listing of /home) and stderr
+  (error about /nonexistent). They both appear on screen,
+  but they're traveling on different channels. Redirection
+  (next lesson) lets you route them separately.
+
+### File descriptors:
+  Each stream has a number:
+    0 = stdin
+    1 = stdout
+    2 = stderr
+
+  These numbers become important when you redirect streams.
+  You'll see "2>" and "2>&1" — those reference these numbers.
+
+## [EXPECTED RESULT]
+You understand that every command has three separate channels,
+and that "printing to screen" is actually writing to stdout/stderr.
+
+## Technician Tip:
+When a command produces output you didn't expect, ask: "Is this
+coming from stdout or stderr?" Redirect one to /dev/null to find
+out: command > /dev/null shows only stderr. command 2> /dev/null
+shows only stdout.

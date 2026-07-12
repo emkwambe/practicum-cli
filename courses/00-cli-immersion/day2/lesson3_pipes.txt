@@ -1,0 +1,97 @@
+# Lesson: Pipes — The Unix Superpower
+
+## [WHEN] You need this when:
+1. You need to chain commands together to process data.
+2. You want to filter, transform, or count output from another command.
+3. You need to build complex operations from simple tools.
+
+## [INTENT] "Chain commands together using pipes to build data pipelines."
+
+## [CONTEXT]
+The pipe operator | connects stdout of one command to stdin
+of the next. This is the core philosophy of Unix:
+
+  Small tools that do ONE thing well, chained together.
+
+Instead of one massive program that does everything, Unix gives
+you dozens of small programs and a way to connect them.
+
+## [ACTION] Using pipes
+
+### Basic pipe:
+  command1 | command2
+
+  stdout of command1 becomes stdin of command2.
+
+  ls /usr/bin | wc -l
+  — list all files in /usr/bin, count the lines (= count programs)
+
+  cat /var/log/syslog | grep "error"
+  — read the log, show only lines containing "error"
+
+### Multi-stage pipelines:
+  cat access.log | grep "404" | sort | uniq -c | sort -rn | head -10
+
+  Step by step:
+    cat access.log      — read the log file
+    | grep "404"        — keep only 404 error lines
+    | sort              — sort alphabetically (needed for uniq)
+    | uniq -c           — count consecutive duplicates
+    | sort -rn          — sort by count, descending
+    | head -10          — show top 10
+
+  This pipeline answers: "What are the 10 most common 404 URLs?"
+  Six simple tools, one powerful answer.
+
+### Building pipelines incrementally:
+  Don't write the whole pipeline at once. Build step by step:
+
+  1. cat access.log                    — see the raw data
+  2. cat access.log | grep "404"       — verify the filter works
+  3. ... | sort                        — verify sorting
+  4. ... | uniq -c                     — verify counting
+
+  At each step, verify the output is what you expect.
+  Then add the next stage. This is how professionals debug.
+
+### Pipes vs files:
+  Pipes pass data in memory — no temporary files created.
+  This is faster and cleaner than:
+
+    command1 > temp.txt
+    command2 < temp.txt
+    rm temp.txt
+
+  Pipes do this in one line with no temp files.
+
+### Common pipe patterns:
+  command | grep "pattern"        — filter lines
+  command | wc -l                 — count lines
+  command | sort                  — sort output
+  command | head -20              — first 20 lines
+  command | tail -20              — last 20 lines
+  command | less                  — scroll through output
+  command | tee file.txt          — save AND display
+
+### tee — split the stream:
+  ls -la | tee listing.txt
+
+  tee writes to BOTH the file AND stdout. Like a T-junction
+  in plumbing — the data flows two ways. Useful when you want
+  to save output AND see it on screen simultaneously.
+
+### When pipes break:
+  If a multi-stage pipeline gives wrong results, the error is
+  in ONE stage. Isolate it:
+
+  Run stages 1-2 and check. Then 1-3. Then 1-4. The stage
+  where output goes wrong is the bug.
+
+## [EXPECTED RESULT]
+You can chain commands with pipes, build multi-stage pipelines
+incrementally, and use tee to split output.
+
+## Technician Tip:
+Pipes only connect stdout to stdin. stderr passes through
+untouched — errors from any stage appear on screen. This is
+a feature: you see errors immediately, even in long pipelines.

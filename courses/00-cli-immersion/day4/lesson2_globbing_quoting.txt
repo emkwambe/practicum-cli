@@ -1,0 +1,90 @@
+# Lesson: Patterns & Globbing — Let the Shell Do the Work
+
+## [WHEN] You need this when:
+1. You want to operate on all .txt files at once.
+2. You need to handle filenames with spaces.
+3. You want to create multiple directories in one command.
+
+## [INTENT] "Use wildcards, brace expansion, and quoting to work efficiently."
+
+## [CONTEXT]
+The shell expands patterns BEFORE the command runs. When you type
+"ls *.txt", the shell replaces *.txt with every matching filename,
+THEN passes them to ls. The command never sees the asterisk.
+
+## [ACTION] Globbing and quoting
+
+### Wildcards (glob patterns):
+  *          — matches any characters (zero or more)
+  ?          — matches exactly ONE character
+  [abc]      — matches one of: a, b, or c
+  [0-9]      — matches one digit
+  [!abc]     — matches anything EXCEPT a, b, or c
+
+  ls *.txt            — all text files
+  ls file?.log        — file1.log, fileA.log, NOT file12.log
+  ls report[0-9].pdf  — report0.pdf through report9.pdf
+  rm *.tmp            — delete all .tmp files
+
+### Brace expansion:
+  Braces generate combinations — the shell expands them:
+
+  mkdir -p project/{src,test,docs}
+  — creates project/src, project/test, project/docs
+
+  echo {1..5}         — prints: 1 2 3 4 5
+  echo {a..z}         — prints: a b c ... z
+  echo file{1..3}.txt — prints: file1.txt file2.txt file3.txt
+
+  cp config.yml{,.backup}
+  — expands to: cp config.yml config.yml.backup
+
+### Tilde expansion:
+  ~         — expands to your home directory (/home/username)
+  ~/docs    — /home/username/docs
+  ~user     — /home/user (another user's home)
+
+### Quoting — controlling expansion:
+  This is where beginners get burned. Three types of quoting:
+
+  "double quotes" — variables and commands expand, spaces preserved
+    echo "Hello, $USER"       — prints: Hello, alice
+    echo "I am in $(pwd)"     — prints: I am in /home/alice
+
+  'single quotes' — NOTHING expands, everything is literal
+    echo 'Hello, $USER'       — prints: Hello, $USER
+    echo 'Cost: $5.00'        — prints: Cost: $5.00
+
+  \backslash — escape ONE character
+    echo "Price: \$5.00"      — prints: Price: $5.00
+    touch my\ file.txt        — creates "my file.txt" (escaping the space)
+
+### Filenames with spaces:
+  The #1 beginner problem: filenames with spaces.
+
+  Bad:  rm my file.txt         — tries to delete "my" AND "file.txt"
+  Good: rm "my file.txt"       — deletes the single file
+  Good: rm my\ file.txt        — same thing with backslash
+
+  Always quote paths that might contain spaces.
+
+### When expansion matters:
+  echo *.txt in a directory with file1.txt and file2.txt:
+    — the shell expands to: echo file1.txt file2.txt
+    — echo never sees *.txt
+
+  echo '*.txt':
+    — single quotes prevent expansion
+    — echo sees: *.txt
+
+  Understanding what the SHELL does vs what the COMMAND receives
+  is the key to debugging unexpected behavior.
+
+## [EXPECTED RESULT]
+You can use wildcards, brace expansion, and quoting to work with
+multiple files efficiently and handle filenames safely.
+
+## Technician Tip:
+When in doubt, use double quotes around variables: "$variable".
+This protects against filenames with spaces and empty variables.
+Bare $variable without quotes is one of the most common script bugs.

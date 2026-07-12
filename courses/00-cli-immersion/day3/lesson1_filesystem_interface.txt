@@ -1,0 +1,83 @@
+# Lesson: The Filesystem as an Interface
+
+## [WHEN] You need this when:
+1. You see /usr/bin/ls and don't know what the path means.
+2. You're confused by . and .. and ~ in commands.
+3. You want to understand absolute vs relative paths.
+
+## [INTENT] "Navigate the filesystem using paths fluently."
+
+## [CONTEXT]
+In Unix, everything is organized as a tree of files and directories
+starting from / (root). There is no C: drive. There is no D: drive.
+Everything branches from one root.
+
+Paths are the addresses of files. Understanding paths is like
+understanding street addresses — without them, you can't find
+anything.
+
+## [ACTION] Filesystem navigation
+
+### The tree structure:
+  /                          — root (the top)
+  /home/user/                — your home directory
+  /usr/bin/                  — system programs (ls, grep, etc.)
+  /etc/                      — configuration files
+  /var/log/                  — log files
+  /tmp/                      — temporary files
+
+### Absolute paths:
+  Start from root (/). Unambiguous — works from anywhere.
+
+  /home/user/documents/report.txt
+  /usr/bin/python3
+  /etc/nginx/nginx.conf
+
+  If a path starts with /, it's absolute.
+
+### Relative paths:
+  Start from your current directory. Shorter but context-dependent.
+
+  ./script.sh               — file in current directory
+  ../parent/file.txt         — file in parent's sibling directory
+  documents/report.txt       — file in subdirectory
+
+  If a path does NOT start with /, it's relative.
+
+### Special directory symbols:
+  .    = current directory
+  ..   = parent directory (one level up)
+  ~    = home directory (/home/username)
+  -    = previous directory (where you just were)
+
+  cd ..         — go up one level
+  cd ~          — go home
+  cd -          — go back to where you just were
+  cd ../..      — go up two levels
+
+### Tab completion:
+  Type a partial path, press Tab — the shell finishes it.
+
+  cd /ho[Tab]     — completes to /home/
+  ls Doc[Tab]     — completes to Documents/
+
+  If multiple matches exist, press Tab twice to see all options.
+  This saves typing AND prevents typos.
+
+### Why "command not found" is often a path problem:
+  When you install a program to /opt/myapp/bin/tool and type
+  "tool", the shell looks in PATH directories and doesn't find it.
+
+  Solutions:
+  1. Use the full path: /opt/myapp/bin/tool
+  2. Add the directory to PATH (Day 3, Lesson 2)
+  3. Create a symlink in a PATH directory
+
+## [EXPECTED RESULT]
+You can read any path, distinguish absolute from relative,
+use . .. ~ - navigation, and leverage Tab completion.
+
+## Technician Tip:
+When someone sends you a command with a path and it doesn't work,
+check: is the path absolute or relative? If relative, are you in
+the right directory? Run pwd to confirm your location.

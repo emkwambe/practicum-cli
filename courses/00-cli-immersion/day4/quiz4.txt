@@ -1,0 +1,57 @@
+Q1: Ctrl+R in the terminal does:
+A) Refreshes the screen
+B) Reverse-searches through command history — you type a few characters and the shell finds the most recent matching command, saving you from scrolling through hundreds of history entries
+C) Restarts the shell
+D) Runs the last command
+Correct: B
+
+
+
+Q2: SCENARIO: A directory contains file1.txt, file2.txt, file12.txt. Which glob pattern matches only file1.txt and file2.txt?
+A) file?.txt — the ? matches exactly ONE character, so it matches file1 and file2 but NOT file12 (two characters)
+B) file*.txt (matches all three including file12.txt)
+C) file[12].txt (this also works)
+D) file[1-2].txt (this also works)
+Correct: A
+
+Q3: The difference between 'single quotes' and "double quotes":
+A) Single quotes prevent ALL expansion (literal text). Double quotes allow variable and command substitution while preserving spaces — echo '$USER' prints $USER, echo "$USER" prints alice.
+B) No difference in behavior
+C) They're identical
+D) Single quotes are faster
+Correct: A
+
+Q4: "$(command)" does:
+A) Runs the command in the background
+B) Creates a subshell that persists
+C) Saves the command for later
+D) Captures the stdout of command and inserts it as text — echo "Today is $(date)" runs date and embeds its output into the string
+Correct: D
+
+Q5: DIAGNOSTIC: "find . -name '*.tmp' | rm" fails. Why, and what's the fix?
+A) find is broken
+B) The pipe is wrong
+C) rm doesn't read from stdin — it expects filenames as arguments. The fix is piping through xargs: "find . -name '*.tmp' | xargs rm" which converts stdin lines into command arguments.
+D) You need sudo
+Correct: C
+
+Q6: sudo !! does:
+A) Deletes the last command
+B) Runs the last command twice
+C) Shows command history
+D) Re-runs the entire previous command with sudo prepended — !! expands to the last command, so if "make install" failed with permission denied, "sudo !!" runs "sudo make install"
+Correct: D
+
+Q7: Brace expansion "mkdir -p project/{src,test,docs}" creates:
+A) One directory named "project/{src,test,docs}"
+B) A file with braces in its name
+C) Three directories: project/src, project/test, and project/docs — the shell expands the braces into three separate arguments before mkdir runs
+D) Three separate projects
+Correct: C
+
+Q8: TRADEOFF: Writing a long pipeline on one line vs putting it in a script:
+A) One-liners are always better
+B) Short pipelines (2-3 stages) work well as one-liners. Longer pipelines belong in scripts — they're easier to read, debug, version-control, and reuse. Future you at 2 AM will thank present you.
+C) Scripts are always better
+D) They compile differently
+Correct: B

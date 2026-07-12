@@ -1,0 +1,94 @@
+# Lesson: PATH — How the Shell Finds Commands
+
+## [WHEN] You need this when:
+1. You installed something but the shell can't find it.
+2. You want to understand why ./script.sh needs the ./ prefix.
+3. You need to make your own scripts runnable from anywhere.
+
+## [INTENT] "Understand PATH resolution and make any program findable."
+
+## [CONTEXT]
+When you type "ls", the shell doesn't magically know where the
+ls program lives. It searches a specific list of directories,
+in order, looking for a file named "ls". That list is $PATH.
+
+## [ACTION] PATH resolution
+
+### How PATH works:
+  echo $PATH
+
+  Output (example):
+  /usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
+
+  Colon-separated list of directories. The shell searches them
+  left to right. The FIRST match wins.
+
+  When you type "ls":
+    1. Shell checks /usr/local/bin/ls — not found
+    2. Shell checks /usr/bin/ls — FOUND! Run it.
+    3. Never checks /bin/ls (already found one)
+
+### Why ./script.sh needs ./ :
+  The current directory (.) is NOT in PATH by default.
+
+  This is a security feature. If . were in PATH, someone could
+  put a malicious "ls" in any directory and it would run when
+  you type "ls" while in that directory.
+
+  ./script.sh explicitly tells the shell: "look in the current
+  directory." Without ./, the shell only searches PATH.
+
+### Finding where a command lives:
+  which python3         — /usr/bin/python3
+  type python3          — python3 is /usr/bin/python3
+  command -v python3    — /usr/bin/python3
+
+  "which" shows the executable path.
+  "type" also reveals aliases and builtins.
+
+### Adding to PATH:
+  Temporary (current session only):
+    export PATH="$PATH:/opt/myapp/bin"
+
+  Permanent (add to shell config):
+    echo 'export PATH="$PATH:/opt/myapp/bin"' >> ~/.bashrc
+    source ~/.bashrc    — reload without restarting
+
+  Convention: add to the END of PATH ($PATH:/new/dir) so
+  system commands aren't shadowed by custom ones.
+
+### The shebang line:
+  The first line of a script tells the OS which interpreter to use:
+
+    #!/bin/bash         — run with bash
+    #!/usr/bin/env python3  — run with python3 (portable)
+    #!/bin/sh           — run with POSIX sh
+
+  Without a shebang, the OS doesn't know how to execute the file.
+
+### Making a script executable:
+  1. Add the shebang: #!/bin/bash
+  2. Set the execute permission: chmod +x script.sh
+  3. Run it: ./script.sh
+
+  Without chmod +x, the kernel returns "Permission denied" (exit
+  code 126 — it found the file but can't execute it).
+
+### Order of resolution:
+  When you type a command, the shell checks in this order:
+    1. Aliases (alias ll='ls -la')
+    2. Functions (defined in .bashrc)
+    3. Builtins (cd, echo, type — part of the shell itself)
+    4. PATH lookup (external programs)
+
+  This is why "type" is more informative than "which" — it tells
+  you WHAT the command is, not just where the file is.
+
+## [EXPECTED RESULT]
+You understand PATH resolution, can add directories to PATH,
+and can make any script executable and runnable from anywhere.
+
+## Technician Tip:
+If "which" and "type" give different answers, you probably have
+an alias shadowing a command. "type -a command" shows ALL matches
+(alias, function, builtin, and PATH) in resolution order.

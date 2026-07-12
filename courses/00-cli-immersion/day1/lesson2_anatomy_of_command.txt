@@ -1,0 +1,79 @@
+# Lesson: Anatomy of a Command — The Grammar of CLI
+
+## [WHEN] You need this when:
+1. You see a command and can't tell which parts do what.
+2. You want to construct commands instead of copying them blindly.
+3. You need to read documentation and understand SYNOPSIS notation.
+
+## [INTENT] "Parse any CLI command into its structural components."
+
+## [CONTEXT]
+Think of a CLI command like a spoken sentence:
+
+  Verb    = the command (what to do)
+  Adverbs = flags and options (how to do it)
+  Nouns   = arguments (what to do it to)
+
+Every command follows this grammar:
+
+  COMMAND [OPTIONS] [ARGUMENTS]
+
+This pattern is universal. Once you internalize it, you can read
+ANY command in ANY tool — ls, git, docker, kubectl, terraform —
+because they all follow the same structure.
+
+## [ACTION] Breaking down command structure
+
+### The Command (The Verb):
+  The command is the entry point. It tells the shell which
+  executable program to run.
+
+  ls          — the "ls" program
+  git         — the "git" program
+  docker      — the "docker" program
+
+### Subcommands:
+  Modern tools group features under one main program using
+  subcommands:
+
+  git checkout     — git is the command, checkout is the subcommand
+  docker run       — docker is the command, run is the subcommand
+  kubectl get      — kubectl is the command, get is the subcommand
+  terraform plan   — terraform is the command, plan is the subcommand
+
+  The subcommand narrows WHICH action within the tool.
+
+### Arguments (The Nouns):
+  An argument is the data or target the command acts upon.
+  They're called "positional" because the CLI tool knows what
+  they mean based on WHERE they appear in the line.
+
+  mkdir documents
+        ^^^^^^^^^
+        argument — the directory name to create
+
+  cp report.txt backup/
+     ^^^^^^^^^^  ^^^^^^^
+     argument 1  argument 2 (source and destination)
+
+  Order matters. cp SOURCE DEST is not the same as cp DEST SOURCE.
+
+### Complete dissection:
+  ls   -la    /home
+  |    |      |
+  |    |      +-- argument: which directory to list
+  |    +--------- options: long format (-l) + all files (-a)
+  +-------------- command: list directory contents
+
+  Whitespace is the delimiter — spaces separate each component.
+  Case matters — LS is not ls on Linux (case-sensitive filesystem).
+
+## [EXPECTED RESULT]
+You can look at any CLI command and identify the command,
+subcommand, options, and arguments by position and structure.
+
+## Technician Tip:
+When you encounter an unfamiliar command, read it left to right:
+command first, then subcommand (if any), then identify what has
+dashes (options) and what doesn't (arguments). You can parse any
+command this way, even ones you've never seen before.

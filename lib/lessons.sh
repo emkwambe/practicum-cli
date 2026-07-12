@@ -45,6 +45,7 @@ detect_course_dir() {
 get_course_name() {
     local slug="${1:-$(get_active_course)}"
     case "$slug" in
+        00-cli-immersion)  echo "CLI Immersion" ;;
         linux-foundations) echo "Linux Foundations" ;;
         git-essentials)    echo "Git & Version Control" ;;
         docker-essentials) echo "Docker & Containers" ;;

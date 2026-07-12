@@ -1,0 +1,119 @@
+# Lesson: Capstone — Build a CLI Toolkit Script
+
+## [WHEN] You need this when:
+1. You've completed Days 1-3 and want to prove your understanding.
+2. You want to write a real script that uses the grammar you learned.
+
+## [INTENT] "Build a functional CLI tool that demonstrates command grammar mastery."
+
+## [CONTEXT]
+This capstone tests everything from the course. You'll write
+a script that accepts flags and options, reads input, processes
+data through pipes, handles errors with exit codes, and produces
+output to stdout or a file.
+
+## [ACTION] The capstone challenge
+
+### Your mission: Write "linecount"
+  A tool that counts lines in files, with filtering and output options.
+
+  Usage: ./linecount [OPTIONS] [FILE...]
+
+  Behavior:
+    - Reads from files (arguments) or stdin (if no files given)
+    - Counts lines in each input
+    - Supports filtering and output formatting
+
+### Required features:
+
+  1. FLAGS (boolean switches):
+     -v, --verbose    Show filename with each count
+     -q, --quiet      Suppress all output, exit code only
+     -h, --help       Show usage and exit
+
+  2. OPTIONS (key-value):
+     -m, --min NUM    Only show files with >= NUM lines
+     -o, --output FILE  Write results to FILE instead of stdout
+
+  3. ARGUMENTS (positional):
+     [FILE...]        One or more files to count
+     If no files given, read from stdin
+
+  4. EXIT CODES:
+     0 = success
+     1 = no files matched the filter
+     2 = invalid arguments
+
+  5. ERROR HANDLING:
+     - File not found → error to stderr, continue with remaining files
+     - Invalid --min value → error to stderr, exit 2
+
+  6. STDIN SUPPORT:
+     echo "hello world" | ./linecount    — counts from stdin
+     cat access.log | ./linecount -m 10  — filters stdin
+
+### Script skeleton:
+
+  #!/bin/bash
+  # linecount — count lines with filtering
+
+  VERBOSE=false
+  QUIET=false
+  MIN_LINES=0
+  OUTPUT_FILE=""
+  FILES=()
+
+  # Parse arguments
+  while [[ $# -gt 0 ]]; do
+      case "$1" in
+          -v|--verbose) VERBOSE=true; shift ;;
+          -q|--quiet) QUIET=true; shift ;;
+          -h|--help) show_usage; exit 0 ;;
+          -m|--min) MIN_LINES="$2"; shift 2 ;;
+          -o|--output) OUTPUT_FILE="$2"; shift 2 ;;
+          --) shift; FILES+=("$@"); break ;;
+          -*) echo "Unknown option: $1" >&2; exit 2 ;;
+          *) FILES+=("$1"); shift ;;
+      esac
+  done
+
+  # Your implementation here...
+
+### Grading criteria:
+  1. Correctly parses -v, -q, -m NUM, -o FILE, and positional args
+  2. Reads from stdin when no files provided
+  3. Uses proper exit codes (0, 1, 2)
+  4. Sends errors to stderr, not stdout
+  5. Redirects output to file when -o is specified
+  6. Handles the -- separator correctly
+  7. Handles files with spaces in their names
+
+### Testing your solution:
+  # Basic usage
+  ./linecount file1.txt file2.txt
+
+  # With flags
+  ./linecount -v *.txt
+
+  # With options
+  ./linecount --min 100 -o report.txt /var/log/*.log
+
+  # From stdin
+  cat /etc/passwd | ./linecount
+
+  # Error handling
+  ./linecount nonexistent.txt  # should show error on stderr
+
+  # The -- separator
+  ./linecount -- -weirdname.txt
+
+## [EXPECTED RESULT]
+A working linecount script that demonstrates: flag parsing,
+option parsing, stdin/file input, exit codes, stderr for errors,
+stdout redirection, and the -- separator.
+
+## Technician Tip:
+The argument parsing loop (the while/case block) is the standard
+pattern in professional bash scripts. You'll see it in every
+well-written CLI tool. Master this pattern and you can write
+any command-line tool.

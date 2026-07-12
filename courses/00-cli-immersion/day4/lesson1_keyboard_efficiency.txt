@@ -1,0 +1,77 @@
+# Lesson: Keyboard Efficiency — Speed Without a Mouse
+
+## [WHEN] You need this when:
+1. You're typing the same long command repeatedly.
+2. You want to fix a typo without retyping the whole line.
+3. You want to work at the speed of thought, not the speed of typing.
+
+## [INTENT] "Navigate and edit the command line without touching the mouse."
+
+## [CONTEXT]
+Professional terminal users rarely retype commands. They recall,
+edit, search, and compose using keyboard shortcuts. These 15
+shortcuts will make you twice as fast in a week.
+
+## [ACTION] Essential keyboard shortcuts
+
+### Process control:
+  Ctrl+C     — kill the current command (sends SIGINT)
+  Ctrl+D     — end of input / exit the shell
+  Ctrl+Z     — suspend the current command (resume with fg or bg)
+
+  Ctrl+C is your emergency brake. If a command hangs, runs too
+  long, or you made a mistake — Ctrl+C stops it immediately.
+
+### Line navigation:
+  Ctrl+A     — jump to the START of the line
+  Ctrl+E     — jump to the END of the line
+  Ctrl+W     — delete one word backward
+  Ctrl+U     — delete from cursor to start of line
+  Ctrl+K     — delete from cursor to end of line
+  Alt+B      — move back one word
+  Alt+F      — move forward one word
+
+  These eliminate arrow-key crawling across long commands.
+
+### Screen control:
+  Ctrl+L     — clear the screen (same as "clear" command)
+
+### History:
+  Up/Down    — scroll through previous commands
+  Ctrl+R     — reverse search history (start typing to find)
+  !!         — re-run the last command
+  !$         — insert the last argument of the previous command
+  Alt+.      — same as !$ but interactive (press repeatedly to cycle)
+
+### The power combo — sudo !!:
+  make install
+  # "Permission denied"
+  sudo !!
+  # Runs: sudo make install
+
+  !! expands to the entire previous command. sudo !! means
+  "re-run the last command but as root." This saves retyping
+  long commands when you forgot sudo.
+
+### History search (Ctrl+R):
+  Press Ctrl+R, then start typing any part of a previous command.
+  The shell searches backward through history for a match.
+
+  (reverse-i-search)`dock': docker run -d --name web -p 80:80 nginx
+
+  Press Enter to run it, Ctrl+R again for the next match,
+  or Ctrl+G to cancel.
+
+### history command:
+  history             — show all previous commands with numbers
+  history | grep git  — find all git commands you've run
+  !42                 — re-run command number 42 from history
+
+## [EXPECTED RESULT]
+You can navigate, edit, and recall commands entirely from the
+keyboard, and you know Ctrl+C, Ctrl+R, and sudo !! by muscle memory.
+
+## Technician Tip:
+Ctrl+R is the single most valuable shortcut. Instead of scrolling
+through history with Up arrow 50 times, press Ctrl+R and type
+two or three letters of the command you want. Done in 2 seconds.

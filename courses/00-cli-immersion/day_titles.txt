@@ -1,0 +1,4 @@
+Day 1 — The Terminal: Commands, Flags & The Manual
+Day 2 — Input, Output & The Pipeline Philosophy
+Day 3 — The Environment: Paths, PATH & Permissions
+Day 4 — Working Like an Engineer

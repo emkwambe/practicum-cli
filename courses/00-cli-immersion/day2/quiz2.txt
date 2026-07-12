@@ -1,0 +1,59 @@
+Q1: Every command has three standard streams. stderr exists separately from stdout because:
+A) It's a historical accident
+B) Separating error output from normal output prevents errors from contaminating data — you can redirect each independently
+C) stderr is faster
+D) Some commands don't have stdout
+Correct: B
+
+
+
+Q2: SCENARIO: You run "find / -name '*.conf' 2> /dev/null". What does 2> /dev/null do?
+A) Redirects all output to the black hole
+B) Redirects stdin
+C) Deletes all .conf files
+D) Redirects only stderr (file descriptor 2) to /dev/null — discarding "Permission denied" errors while keeping the actual results visible on stdout
+Correct: D
+
+Q3: The pipe operator | connects:
+A) stderr of the first command to stdin of the second
+B) stdout of the first command to stdin of the next — allowing data to flow from one tool to the next in memory without temporary files
+C) Both stdout and stderr to the next command
+D) The filesystem of both commands
+Correct: B
+
+
+
+Q4: DIAGNOSTIC: "command > file.txt 2>&1" vs "command 2>&1 > file.txt" — are these equivalent?
+A) The first works correctly (stdout to file, then stderr follows stdout). The second sends stderr to the screen first, then redirects stdout to the file — order matters because 2>&1 sends stderr wherever stdout is pointing AT THAT MOMENT.
+B) Yes, they're identical
+C) Neither works
+D) The second is the correct form
+Correct: A
+
+Q5: In a pipeline "cat log | grep error | wc -l", if grep finds no matches:
+A) wc receives the original log
+B) The pipeline crashes
+C) wc receives nothing and outputs 0 — the pipeline completes normally because each stage handles empty input gracefully
+D) cat stops reading
+Correct: C
+
+Q6: The exit code convention in Unix is:
+A) 0 means failure, 1 means success
+B) Higher numbers mean better performance
+C) Exit codes are optional
+D) 0 means success, any non-zero value means failure — this is the universal contract that scripts and CI/CD pipelines depend on
+Correct: D
+
+Q7: "mkdir project && cd project" — the && operator means:
+A) Run both commands simultaneously
+B) Run both regardless
+C) Run cd project ONLY IF mkdir project succeeded (exit code 0) — if mkdir fails, cd never runs, preventing you from entering a nonexistent directory
+D) Pipe the output
+Correct: C
+
+Q8: TRADEOFF: Using "tee" vs simple redirection (>):
+A) Redirection (>) sends output to a file but you lose screen visibility. tee splits the stream — writing to the file AND displaying on screen simultaneously — useful for logging while monitoring.
+B) tee is slower and never useful
+C) They're identical
+D) tee only works with pipes
+Correct: A

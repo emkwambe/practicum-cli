@@ -1,0 +1,94 @@
+# Lesson: Exit Codes — How Commands Report Success or Failure
+
+## [WHEN] You need this when:
+1. You want to run a command only if the previous one succeeded.
+2. You're writing scripts and need to handle errors.
+3. You want to understand what && and || actually do.
+
+## [INTENT] "Use exit codes to chain commands conditionally."
+
+## [CONTEXT]
+Every command, when it finishes, returns a number to the shell:
+
+  0 = success (everything worked)
+  non-zero = failure (something went wrong)
+
+This is the contract between commands and the shell. Scripts,
+CI/CD pipelines, and automation all depend on this contract.
+
+## [ACTION] Exit codes and chaining
+
+### Checking the exit code:
+  $? holds the exit code of the last command:
+
+  ls /home
+  echo $?          — prints 0 (success)
+
+  ls /nonexistent
+  echo $?          — prints 2 (failure: no such directory)
+
+### Common exit codes:
+  0   = success
+  1   = general error
+  2   = misuse of command (wrong arguments)
+  126 = command found but not executable (permission issue)
+  127 = command not found (not in PATH)
+  128 = invalid exit code
+  130 = terminated by Ctrl+C (128 + signal 2)
+  137 = killed by SIGKILL (128 + signal 9)
+
+### Conditional execution with &&:
+  && means "run the next command ONLY IF the previous succeeded."
+
+  mkdir project && cd project && echo "Ready"
+  — creates directory, enters it, prints "Ready"
+  — if mkdir fails, cd never runs, echo never runs
+
+  This is like saying "do A, and if that worked, do B."
+
+### Conditional execution with ||:
+  || means "run the next command ONLY IF the previous FAILED."
+
+  cd project || echo "Directory not found"
+  — tries to enter directory
+  — if it fails, shows the error message
+  — if it succeeds, skips the echo
+
+  This is like a fallback: "try A, or if that fails, do B."
+
+### Sequential execution with ;:
+  ; means "run the next command REGARDLESS of what happened."
+
+  echo "Starting"; sleep 2; echo "Done"
+  — runs all three no matter what
+
+### Combining them:
+  mkdir project && cd project || echo "Failed to set up project"
+
+  If mkdir succeeds AND cd succeeds → nothing extra.
+  If either fails → prints the error message.
+
+### Why exit codes matter:
+  Every CI/CD pipeline checks exit codes:
+    - Test suite returns 0 → deploy proceeds
+    - Test suite returns 1 → deploy stops
+    - Build fails → pipeline halts
+
+  Every script should check them:
+    make build
+    if [ $? -ne 0 ]; then
+        echo "Build failed!" >&2
+        exit 1
+    fi
+
+  Writing a good CLI tool means setting the right exit code.
+
+## [EXPECTED RESULT]
+You understand exit codes, can check them with $?, and can use
+&&, ||, and ; to chain commands conditionally.
+
+## Technician Tip:
+Exit code 127 ("command not found") and 126 ("permission denied")
+are the two you'll see most as a beginner. 127 means the shell
+can't find the program (check PATH). 126 means it found the
+program but can't execute it (check chmod +x).
