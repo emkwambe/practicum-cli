@@ -61,6 +61,9 @@ _license_fetch() {
 # _license_write <server-json>  — cache a validated response
 _license_write() {
     local body="$1"
+    local role
+    role=$(_json_str "$body" role)
+    role="${role:-learner}"   # default for records that predate the field
     cat > "$LICENSE_FILE" << LJSON
 {
     "key": "$(_json_str "$body" key)",
@@ -68,7 +71,7 @@ _license_write() {
     "product_id": "$(_json_str "$body" product_id)",
     "entitlements": "$(_json_arr "$body" entitlements)",
     "seats": "$(_json_num "$body" seats)",
-    "role": "$(_json_str "$body" role)",
+    "role": "${role}",
     "activated_at": "$(_json_str "$body" activated_at)",
     "expires_at": "$(_json_str "$body" expires_at)",
     "expires_epoch": "$(_json_num "$body" expires_epoch)",
@@ -163,7 +166,10 @@ license_status() {
         echo -e "  ${C_GREEN}License: ACTIVE${C_RESET}"
         echo -e "  ${C_DIM}  Key:     ${key:0:9}...${key: -4}${C_RESET}"
         echo -e "  ${C_DIM}  Email:   $(_license_field email)${C_RESET}"
-        echo -e "  ${C_DIM}  Expires: $(_license_expiry_date)${C_RESET}"
+        local role
+        role=$(_license_field role)
+        echo -e "  ${C_DIM}  Role:    ${role:-learner}${C_RESET}"
+        echo -e "  ${C_DIM}  Expires: $(_license_expiry_date) (annual license, no autorenewal)${C_RESET}"
         echo -e "  ${C_DIM}  Courses:${C_RESET}"
         local c
         for c in $(_license_field entitlements); do
