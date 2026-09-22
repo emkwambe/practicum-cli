@@ -1,0 +1,354 @@
+// Sprint 7A — Classroom foundation: magic-link auth, sessions, classroom summary.
+//
+// Instructors authenticate by email, never by license key: keys get pasted into
+// terminals and screenshares, and this dashboard shows student PII.
+//   POST /v1/auth/magic-link  → single-use token in SESSIONS (15 min), emailed
+//   GET  /v1/auth/verify      → exchanges it for a session cookie, 302 /dashboard
+//   POST /v1/auth/logout      → drops the session
+//   GET  /v1/classroom        → summary for the session's classroom
+//   GET  /v1/content/manifest → public, cached
+//
+// Every instructor route is scoped to the classroom on the session. A classroom
+// id from the client is never trusted.
+
+import manifest from "../../../content/manifest.json";
+
+export interface ClassroomEnv {
+  CLASSROOM_DB: D1Database;
+  SESSIONS: KVNamespace;
+  RESEND_API_KEY?: string;
+  DASHBOARD_ORIGIN?: string;
+}
+
+const ORIGIN = "https://practicum-cli.dev";
+const MAGIC_TTL_SEC = 15 * 60;
+const SESSION_TTL_SEC = 7 * 24 * 60 * 60;
+const COOKIE = "practicum_session";
+// Smoke classrooms (is_test = 1) send nowhere real.
+const TEST_EMAIL_SINK = "delivered@resend.dev";
+
+// --- helpers ---------------------------------------------------------------
+
+export function corsHeaders(request: Request): Record<string, string> {
+  const origin = request.headers.get("Origin");
+  const local = !!origin && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+  const allowed = origin === ORIGIN || local ? (origin as string) : ORIGIN;
+  return {
+    "Access-Control-Allow-Origin": allowed,
+    "Access-Control-Allow-Credentials": "true",
+    "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, X-License-Key",
+    Vary: "Origin",
+  };
+}
+
+const json = (request: Request, data: unknown, status = 200, extra: Record<string, string> = {}) =>
+  Response.json(data, { status, headers: { ...corsHeaders(request), ...extra } });
+
+// Sortable, collision-resistant id: <prefix>_<base36 time><random>.
+export function newId(prefix: string): string {
+  const t = Date.now().toString(36).padStart(9, "0");
+  const r = Array.from(crypto.getRandomValues(new Uint8Array(10)))
+    .map((b) => (b % 32).toString(32))
+    .join("");
+  return `${prefix}_${t}${r}`;
+}
+
+function randomToken(): string {
+  return Array.from(crypto.getRandomValues(new Uint8Array(32)))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+export async function sha256Hex(value: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+const normaliseEmail = (raw: string) => raw.trim().toLowerCase();
+// Deliberately permissive: real validation is whether the link is received.
+const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+
+// Accepts form-encoded or JSON so the CLI never has to build JSON.
+export async function readBody(request: Request): Promise<Record<string, string>> {
+  const type = request.headers.get("Content-Type") ?? "";
+  try {
+    if (type.includes("application/json")) {
+      const parsed = await request.json();
+      const out: Record<string, string> = {};
+      for (const [k, v] of Object.entries(parsed as Record<string, unknown>)) {
+        if (v !== null && v !== undefined) out[k] = String(v);
+      }
+      return out;
+    }
+    const form = await request.formData();
+    const out: Record<string, string> = {};
+    for (const [k, v] of form.entries()) out[k] = String(v);
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+// --- sessions --------------------------------------------------------------
+
+export interface Session {
+  member_id: string;
+  classroom_id: string;
+  email: string;
+  role: string;
+}
+
+function cookieValue(header: string | null, name: string): string | null {
+  if (!header) return null;
+  for (const part of header.split(";")) {
+    const [k, ...rest] = part.trim().split("=");
+    if (k === name) return rest.join("=");
+  }
+  return null;
+}
+
+export async function getSession(request: Request, env: ClassroomEnv): Promise<Session | null> {
+  const sid = cookieValue(request.headers.get("Cookie"), COOKIE);
+  if (!sid) return null;
+  return env.SESSIONS.get<Session>(`sess:${sid}`, "json");
+}
+
+// Domain and Secure are set only on the real host: a Domain attribute for
+// practicum-cli.dev is rejected outright when the worker is reached on
+// localhost, which would make the whole dashboard untestable locally.
+function sessionCookie(request: Request, sid: string, maxAge: number): string {
+  // `wrangler dev` rewrites request.url to the configured custom domain, so the
+  // hostname is the same locally and in production — the scheme is what differs,
+  // and a Secure cookie is meaningless over http in any case.
+  const url = new URL(request.url);
+  const production = url.protocol === "https:" && url.hostname.endsWith("practicum-cli.dev");
+  const parts = [`${COOKIE}=${sid}`, "HttpOnly", "SameSite=Lax", "Path=/", `Max-Age=${maxAge}`];
+  if (production) parts.push("Secure", "Domain=.practicum-cli.dev");
+  return parts.join("; ");
+}
+
+// --- email -----------------------------------------------------------------
+
+async function sendMagicLinkEmail(
+  env: ClassroomEnv,
+  to: string,
+  link: string,
+  classroomName: string,
+  isTest: boolean,
+): Promise<void> {
+  const recipient = isTest ? TEST_EMAIL_SINK : to;
+  if (!env.RESEND_API_KEY) {
+    console.error(`RESEND_API_KEY not set — magic link for ${recipient} NOT emailed`);
+    return;
+  }
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: "Practicum CLI <practicum@mpingo.ai>",
+      to: recipient,
+      subject: "Your Practicum dashboard sign-in link",
+      text:
+        `Sign in to the ${classroomName} dashboard:\n\n${link}\n\n` +
+        `The link works once and expires in 15 minutes.\n` +
+        `If you did not request it you can ignore this email.\n\n` +
+        `Practicum CLI\nhttps://practicum-cli.dev`,
+    }),
+  });
+  if (!res.ok) console.error(`Resend failed (${res.status}) for ${recipient}: ${await res.text()}`);
+}
+
+// --- routes ----------------------------------------------------------------
+
+// POST /v1/auth/magic-link — always 200, never reveals whether an account exists.
+async function handleMagicLink(request: Request, env: ClassroomEnv): Promise<Response> {
+  const body = await readBody(request);
+  const email = normaliseEmail(body.email ?? "");
+  const ok = { ok: true, message: "If that address can access a classroom, a sign-in link is on its way." };
+
+  if (!isEmail(email)) return json(request, ok);
+
+  const row = await env.CLASSROOM_DB.prepare(
+    `SELECT m.id AS member_id, m.classroom_id, m.email, m.role,
+            c.name AS classroom_name, c.is_test, c.status
+       FROM members m
+       JOIN classrooms c ON c.id = m.classroom_id
+      WHERE m.email = ? AND m.role = 'instructor' AND m.status = 'active'
+        AND c.status IN ('active','grace')
+        AND c.expires_at > datetime('now')
+      LIMIT 1`,
+  )
+    .bind(email)
+    .first<{
+      member_id: string;
+      classroom_id: string;
+      email: string;
+      role: string;
+      classroom_name: string;
+      is_test: number;
+    }>();
+
+  // Unknown address, learner address, expired classroom: identical response.
+  if (!row) return json(request, ok);
+
+  const token = randomToken();
+  await env.SESSIONS.put(
+    `magic:${await sha256Hex(token)}`,
+    JSON.stringify({ member_id: row.member_id, classroom_id: row.classroom_id, email: row.email, role: row.role }),
+    { expirationTtl: MAGIC_TTL_SEC },
+  );
+
+  const base = env.DASHBOARD_ORIGIN ?? ORIGIN;
+  await sendMagicLinkEmail(
+    env,
+    email,
+    `${base.replace(/\/$/, "")}/v1/auth/verify?token=${token}`,
+    row.classroom_name,
+    row.is_test === 1,
+  );
+
+  await env.CLASSROOM_DB.prepare(
+    `INSERT INTO audit_log (classroom_id, actor, action, detail) VALUES (?, ?, 'auth.magic_link_sent', ?)`,
+  )
+    .bind(row.classroom_id, row.member_id, email)
+    .run();
+
+  // Test classrooms hand the token back so smoke tests need no mailbox.
+  if (row.is_test === 1) return json(request, { ...ok, test_token: token });
+  return json(request, ok);
+}
+
+// GET /v1/auth/verify?token=... — single use; consumed whether or not it works.
+async function handleVerify(request: Request, env: ClassroomEnv): Promise<Response> {
+  const token = new URL(request.url).searchParams.get("token") ?? "";
+  const retry = (msg: string) =>
+    new Response(retryPage(msg), { status: 400, headers: { "Content-Type": "text/html; charset=utf-8" } });
+
+  if (!token) return retry("That sign-in link is missing its token.");
+
+  const key = `magic:${await sha256Hex(token)}`;
+  const payload = await env.SESSIONS.get<Session>(key, "json");
+  if (!payload) return retry("That sign-in link has expired or has already been used.");
+  await env.SESSIONS.delete(key);
+
+  // Re-check standing at redemption: a seat revoked since the send must not open.
+  const still = await env.CLASSROOM_DB.prepare(
+    `SELECT 1 FROM members m JOIN classrooms c ON c.id = m.classroom_id
+      WHERE m.id = ? AND m.status = 'active' AND m.role = 'instructor'
+        AND c.status IN ('active','grace') AND c.expires_at > datetime('now')`,
+  )
+    .bind(payload.member_id)
+    .first();
+  if (!still) return retry("That account no longer has dashboard access.");
+
+  const sid = randomToken();
+  await env.SESSIONS.put(`sess:${sid}`, JSON.stringify(payload), { expirationTtl: SESSION_TTL_SEC });
+
+  return new Response(null, {
+    status: 302,
+    headers: { Location: "/dashboard/", "Set-Cookie": sessionCookie(request, sid, SESSION_TTL_SEC) },
+  });
+}
+
+async function handleLogout(request: Request, env: ClassroomEnv): Promise<Response> {
+  const sid = cookieValue(request.headers.get("Cookie"), COOKIE);
+  if (sid) await env.SESSIONS.delete(`sess:${sid}`);
+  return json(request, { ok: true }, 200, { "Set-Cookie": sessionCookie(request, "", 0) });
+}
+
+// GET /v1/classroom — summary for the session's classroom only.
+async function handleClassroomSummary(request: Request, env: ClassroomEnv, session: Session): Promise<Response> {
+  const room = await env.CLASSROOM_DB.prepare(
+    `SELECT id, name, status, learner_limit, instructor_limit, expires_at, grace_until,
+            telegram_invite_url, is_test
+       FROM classrooms WHERE id = ?`,
+  )
+    .bind(session.classroom_id)
+    .first<{
+      id: string;
+      name: string;
+      status: string;
+      learner_limit: number;
+      instructor_limit: number;
+      expires_at: string;
+      grace_until: string | null;
+      telegram_invite_url: string | null;
+      is_test: number;
+    }>();
+  if (!room) return json(request, { error: "Classroom not found" }, 404);
+
+  const seats = await env.CLASSROOM_DB.prepare(
+    `SELECT role, COUNT(*) AS n FROM members
+      WHERE classroom_id = ? AND status IN ('invited','active') GROUP BY role`,
+  )
+    .bind(session.classroom_id)
+    .all<{ role: string; n: number }>();
+
+  const used = { learner: 0, instructor: 0 };
+  for (const r of seats.results ?? []) {
+    if (r.role === "learner") used.learner = r.n;
+    if (r.role === "instructor") used.instructor = r.n;
+  }
+
+  return json(request, {
+    classroom: {
+      id: room.id,
+      name: room.name,
+      status: room.status,
+      expires_at: room.expires_at,
+      grace_until: room.grace_until,
+      telegram_invite_url: room.telegram_invite_url,
+      is_test: room.is_test === 1,
+    },
+    seats: {
+      learners: { used: used.learner, limit: room.learner_limit },
+      instructors: { used: used.instructor, limit: room.instructor_limit },
+    },
+    signed_in_as: { email: session.email, role: session.role },
+  });
+}
+
+function retryPage(message: string): string {
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sign-in link problem</title><style>
+:root{color-scheme:dark;--bg:#1a1b2e;--bg2:#232438;--g:#2ecc71;--w:#fff;--t:#94a3b8;--br:#2d2e42}
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg);color:var(--t);
+font-family:system-ui,-apple-system,sans-serif;padding:16px}
+.card{background:var(--bg2);border:1px solid var(--br);border-radius:8px;padding:2rem;max-width:26rem}
+h1{font-family:'JetBrains Mono',ui-monospace,monospace;color:var(--w);font-size:1.1rem;margin:0 0 .75rem}
+p{line-height:1.7;margin:0 0 1.25rem}
+a{display:inline-block;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:.9rem;font-weight:600;
+padding:.85rem 2rem;background:var(--g);color:var(--bg);border-radius:6px;text-decoration:none}
+</style></head><body><div class="card"><h1>Sign-in link problem</h1>
+<p>${message}</p><a href="/dashboard/">Request a new link</a></div></body></html>`;
+}
+
+// --- router ----------------------------------------------------------------
+
+export async function routeClassroom(request: Request, env: ClassroomEnv): Promise<Response | null> {
+  const url = new URL(request.url);
+  const path = url.pathname.replace(/\/$/, "") || "/";
+  const method = request.method;
+
+  if (path === "/v1/content/manifest" && method === "GET") {
+    return Response.json(manifest, {
+      headers: { ...corsHeaders(request), "Cache-Control": "public, max-age=3600" },
+    });
+  }
+
+  if (path === "/v1/auth/magic-link" && method === "POST") return handleMagicLink(request, env);
+  if (path === "/v1/auth/verify" && method === "GET") return handleVerify(request, env);
+  if (path === "/v1/auth/logout" && method === "POST") return handleLogout(request, env);
+
+  if (path === "/v1/classroom" && method === "GET") {
+    const session = await getSession(request, env);
+    if (!session) return json(request, { error: "Not signed in" }, 401);
+    return handleClassroomSummary(request, env, session);
+  }
+
+  return null; // not a classroom route
+}

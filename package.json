@@ -1,0 +1,13 @@
+{
+  "name": "practicum-cli",
+  "version": "3.1.0",
+  "private": true,
+  "description": "Practicum CLI — site, license API, and classroom tooling",
+  "type": "module",
+  "scripts": {
+    "manifest": "node scripts/generate-manifest.mjs",
+    "seed:test-classroom": "node scripts/seed-test-classroom.mjs",
+    "smoke": "bash tests/smoke.sh",
+    "smoke:classroom": "bash tests/smoke_classroom.sh"
+  }
+}

@@ -16,6 +16,18 @@ id = "e6fce9aaf8d34bc38f75e3c08fdd4172"
 binding = "ORDERS"
 id = "d353205faac4454a956187e0f66c4876"
 
+# Magic-link tokens (15 min) and dashboard sessions (7 days).
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "aff232a1f12c4cf78404a6458c4456f0"
+
+# Classroom relational store: rosters, assignments, progress, audit.
+[[d1_databases]]
+binding = "CLASSROOM_DB"
+database_name = "practicum-classroom"
+database_id = "99a21783-8de5-4906-bf33-2a2636a472f9"
+migrations_dir = "migrations"
+
 [vars]
 ENVIRONMENT = "production"
 

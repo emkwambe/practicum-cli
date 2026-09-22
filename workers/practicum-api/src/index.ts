@@ -6,7 +6,9 @@
 //
 // Secrets (wrangler secret put): DODO_WEBHOOK_SECRET, HMAC_SECRET, RESEND_API_KEY
 
-export interface Env {
+import { routeClassroom, corsHeaders, type ClassroomEnv } from "./classroom";
+
+export interface Env extends ClassroomEnv {
   LICENSES: KVNamespace;
   ORDERS: KVNamespace;
   ENVIRONMENT: string;
@@ -324,6 +326,11 @@ export default {
     const { method } = request;
 
     if (method === "OPTIONS") {
+      // Classroom routes are credentialed, so they need the origin echoed back;
+      // the license routes stay wildcard-open.
+      if (url.pathname.startsWith("/v1/")) {
+        return new Response(null, { headers: corsHeaders(request) });
+      }
       return new Response(null, {
         headers: {
           "Access-Control-Allow-Origin": "*",
@@ -331,6 +338,11 @@ export default {
           "Access-Control-Allow-Headers": "Content-Type",
         },
       });
+    }
+
+    if (url.pathname.startsWith("/v1/")) {
+      const handled = await routeClassroom(request, env);
+      if (handled) return handled;
     }
 
     if (method === "GET" && url.pathname === "/health") {
