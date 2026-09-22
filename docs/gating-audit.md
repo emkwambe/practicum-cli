@@ -28,6 +28,7 @@ menu. Same behaviour for both the hardcoded Linux Foundations menu and the gener
 | Full Catalog v3 | $199 | all 8 courses | all 8 |
 | Team 5 Seats | $899 | full catalog × 5 learners | all 8; `seats: 5` recorded, **not enforced** |
 | Team 10 Seats | $1,599 | full catalog × 10 learners | all 8; `seats: 10` recorded, **not enforced** |
+| Classroom | $3,499/yr (recurring yearly) | 30 learner + 2 instructor seats | all 8 (`FULL_CATALOG`); `seats: 30`, `role: instructor-admin` recorded, **not enforced**. **WIRED** as of `838c5b1` — product `pdt_0No8Kgf2Z4FOleEA96DEW`, tile live on practicum-cli.dev (site deploy `3ca26917`) |
 
 Entitlements are decided server-side: `workers/practicum-api/src/index.ts`
 `PRODUCT_ENTITLEMENTS` maps each Dodo `product_id` to course slugs (matching
