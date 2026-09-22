@@ -33,6 +33,14 @@ const CSV_MAX_ROWS = 100;
 // email per day however many sessions an instructor opens.
 const RATE_LIMIT = { invite: 60, import: 5 };            // per session, per hour
 const CLASSROOM_DAILY = { invite: 200, import: 20 };     // per classroom, per day
+
+// Test classrooms get a higher import ceiling, not an exemption: the runaway
+// guard stays in place, it just sits where a test fixture cannot reach it in
+// normal use. On 2026-09-22 the smoke suite — two imports per run — exhausted
+// the real 20/day ceiling after ten runs, and the resulting 429 surfaced as
+// five unrelated-looking assertion failures. Invites are unchanged: the real
+// limit has never been close to binding.
+const TEST_CLASSROOM_DAILY = { invite: 200, import: 200 };
 const TEST_EMAIL_SINK = "delivered@resend.dev";
 const CLASSROOM_PRODUCT = "pdt_0No8Kgf2Z4FOleEA96DEW";
 
@@ -61,30 +69,70 @@ function sessionId(request: Request): string {
   return "anon";
 }
 
+interface RateVerdict {
+  limited: boolean;
+  scope: "session" | "classroom";
+  limit: number;
+  used: number;
+  retry_after_seconds: number;
+}
+
+// A refused request never increments either counter — being rejected must not
+// push the caller further from recovery. The smoke suite asserts this by
+// checking that `used` in the 429 body stays put across repeated refusals.
 async function rateLimited(
   request: Request,
   env: RosterEnv,
   session: Session,
   bucket: keyof typeof RATE_LIMIT,
-): Promise<boolean> {
+  isTest: boolean,
+): Promise<RateVerdict> {
   const sid = (await sha256Hex(sessionId(request))).slice(0, 24);
-  const hour = Math.floor(Date.now() / 3_600_000);
-  const day = Math.floor(Date.now() / 86_400_000);
+  const now = Date.now();
+  const hour = Math.floor(now / 3_600_000);
+  const day = Math.floor(now / 86_400_000);
   const sessionKey = `rl:${bucket}:${sid}:${hour}`;
   const roomKey = `rlc:${bucket}:${session.classroom_id}:${day}`;
+  const dailyLimit = (isTest ? TEST_CLASSROOM_DAILY : CLASSROOM_DAILY)[bucket];
 
   const [sessionUsed, roomUsed] = await Promise.all([
     env.SESSIONS.get(sessionKey).then((v) => Number(v ?? "0")),
     env.SESSIONS.get(roomKey).then((v) => Number(v ?? "0")),
   ]);
 
-  if (sessionUsed >= RATE_LIMIT[bucket] || roomUsed >= CLASSROOM_DAILY[bucket]) return true;
+  // Seconds until the window the caller is blocked on rolls over.
+  const untilNextHour = Math.ceil(((hour + 1) * 3_600_000 - now) / 1000);
+  const untilNextDay = Math.ceil(((day + 1) * 86_400_000 - now) / 1000);
+
+  if (sessionUsed >= RATE_LIMIT[bucket]) {
+    return { limited: true, scope: "session", limit: RATE_LIMIT[bucket], used: sessionUsed, retry_after_seconds: untilNextHour };
+  }
+  if (roomUsed >= dailyLimit) {
+    return { limited: true, scope: "classroom", limit: dailyLimit, used: roomUsed, retry_after_seconds: untilNextDay };
+  }
 
   await Promise.all([
     env.SESSIONS.put(sessionKey, String(sessionUsed + 1), { expirationTtl: 3600 }),
     env.SESSIONS.put(roomKey, String(roomUsed + 1), { expirationTtl: 86_400 }),
   ]);
-  return false;
+  return { limited: false, scope: "session", limit: RATE_LIMIT[bucket], used: sessionUsed + 1, retry_after_seconds: 0 };
+}
+
+// One documented shape for every rate-limit refusal, so a caller (and the smoke
+// suite) can tell a limit from any other 4xx without parsing prose.
+function rateLimitResponse(request: Request, verdict: RateVerdict, what: string): Response {
+  const when = verdict.scope === "session" ? "this hour" : "today";
+  return Response.json(
+    {
+      error: `Too many ${what} ${when}. Try again in ${Math.ceil(verdict.retry_after_seconds / 60)} minutes.`,
+      code: "rate_limited",
+      scope: verdict.scope,
+      limit: verdict.limit,
+      used: verdict.used,
+      retry_after_seconds: verdict.retry_after_seconds,
+    },
+    { status: 429, headers: { ...corsHeaders(request), "Retry-After": String(verdict.retry_after_seconds) } },
+  );
 }
 
 interface ClassroomRow {
@@ -294,11 +342,11 @@ async function listMembers(request: Request, env: RosterEnv, session: Session): 
 }
 
 async function createMember(request: Request, env: RosterEnv, session: Session): Promise<Response> {
-  if (await rateLimited(request, env, session, "invite")) {
-    return json(request, { error: "Too many invites this hour. Try again shortly." }, 429);
-  }
   const room = await loadClassroom(env, session.classroom_id);
   if (!room) return json(request, { error: "Classroom not found" }, 404);
+
+  const rl = await rateLimited(request, env, session, "invite", room.is_test === 1);
+  if (rl.limited) return rateLimitResponse(request, rl, "invites");
 
   const body = await readBody(request);
   const role: LicenseRole = body.role === "instructor" || body.role === "instructor-admin" ? "instructor-admin" : "learner";
@@ -340,11 +388,11 @@ function parseCsv(text: string): { rows: Array<{ email: string; name: string | n
 }
 
 async function importMembers(request: Request, env: RosterEnv, session: Session): Promise<Response> {
-  if (await rateLimited(request, env, session, "import")) {
-    return json(request, { error: "Too many imports this hour. Try again shortly." }, 429);
-  }
   const room = await loadClassroom(env, session.classroom_id);
   if (!room) return json(request, { error: "Classroom not found" }, 404);
+
+  const rl = await rateLimited(request, env, session, "import", room.is_test === 1);
+  if (rl.limited) return rateLimitResponse(request, rl, "imports");
 
   const text = await request.text();
   if (new TextEncoder().encode(text).length > CSV_MAX_BYTES) {
@@ -388,11 +436,11 @@ async function importMembers(request: Request, env: RosterEnv, session: Session)
 }
 
 async function resendMember(request: Request, env: RosterEnv, session: Session, memberId: string): Promise<Response> {
-  if (await rateLimited(request, env, session, "invite")) {
-    return json(request, { error: "Too many invites this hour. Try again shortly." }, 429);
-  }
   const room = await loadClassroom(env, session.classroom_id);
   if (!room || !env.HMAC_SECRET) return json(request, { error: "Classroom not found" }, 404);
+
+  const rl = await rateLimited(request, env, session, "invite", room.is_test === 1);
+  if (rl.limited) return rateLimitResponse(request, rl, "invites");
 
   const member = await env.CLASSROOM_DB.prepare(
     `SELECT id, email, role, status, rotations, license_key_prefix FROM members

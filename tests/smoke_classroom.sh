@@ -80,6 +80,16 @@ check() { if [ "$2" = "$3" ]; then ok "$1"; else bad "$1 (got '$2', want '$3')";
 # field <json> <key> → first string value for that key
 field() { printf '%s' "$1" | sed -n "s/.*\"$2\":\"\([^\"]*\)\".*/\1/p" | head -1; }
 
+# http_ok <label> <status> <body> — an error response is a fact about the
+# request, never data to parse. Report it once, with the status and the start of
+# the body, so one refusal cannot masquerade as a handful of content failures.
+http_ok() {
+    case "$2" in
+        2*) ok "$1 → HTTP $2"; return 0 ;;
+        *)  bad "$1 → HTTP $2: $(printf '%s' "$3" | tr -d '\n' | cut -c1-90)"; return 1 ;;
+    esac
+}
+
 # magic_link_body <email> [secret-override] → raw response body
 magic_link_body() {
     if [ "$#" -ge 2 ]; then
@@ -123,30 +133,40 @@ tok=$(magic_token "learner-not-instructor@example.com")
 # tested from every angle. Bodies are compared byte-for-byte against what an
 # unknown address receives: anything else is an oracle.
 echo "== test_token is gated by X-Smoke-Secret"
+# "no token present" is only meaningful once the body is known to be the real
+# success response — an error body also lacks a token and would pass silently.
+no_token() {  # $1 = label, $2 = body
+    if ! printf '%s' "$2" | grep -q '"ok":true'; then
+        bad "$1 (not a success body: $(printf '%s' "$2" | cut -c1-70))"
+    elif printf '%s' "$2" | grep -q 'test_token'; then
+        bad "$1 — token leaked"
+    else
+        ok "$1"
+    fi
+}
+
 BASELINE=$(magic_link_body "nobody-baseline-$(date +%s)@example.com")
-printf '%s' "$BASELINE" | grep -q 'test_token' && bad "baseline body leaks a token" || ok "baseline has no token"
+no_token "baseline has no token" "$BASELINE"
 
 no_header=$(magic_link_body "$EMAIL")
-printf '%s' "$no_header" | grep -q 'test_token' && bad "no header → token leaked" || ok "no header → no token"
+no_token "no header → no token" "$no_header"
 check "no header → body identical to unknown address" "$no_header" "$BASELINE"
 
 wrong=$(magic_link_body "$EMAIL" "not-the-secret-$(date +%s)")
-printf '%s' "$wrong" | grep -q 'test_token' && bad "wrong secret → token leaked" || ok "wrong secret → no token"
+no_token "wrong secret → no token" "$wrong"
 check "wrong secret → body identical to unknown address" "$wrong" "$BASELINE"
 
 # A valid secret must still not mint a token for a classroom that is not is_test.
 NON_TEST_EMAIL="${SMOKE_NON_TEST_EMAIL:-}"
 if [ -n "$NON_TEST_EMAIL" ]; then
     real=$(magic_link_body "$NON_TEST_EMAIL" "$SMOKE_TOKEN_SECRET")
-    printf '%s' "$real" | grep -q 'test_token' && bad "valid secret leaked a token for a real classroom" \
-        || ok "valid secret + non-test classroom → no token"
+    no_token "valid secret + non-test classroom → no token" "$real"
     check "non-test classroom → body identical to unknown address" "$real" "$BASELINE"
 else
     # No real classroom exists yet; assert the rule with an address that has no
     # classroom at all, which is the same branch of the check.
     real=$(magic_link_body "definitely-not-a-classroom-$(date +%s)@example.com" "$SMOKE_TOKEN_SECRET")
-    printf '%s' "$real" | grep -q 'test_token' && bad "valid secret leaked a token for a non-test address" \
-        || ok "valid secret + non-test address → no token"
+    no_token "valid secret + non-test address → no token" "$real"
     check "non-test address → body identical to unknown address" "$real" "$BASELINE"
 fi
 
@@ -345,8 +365,12 @@ else
         sleep 2
         row=$(member_row "$LC_MEM")
         printf '%s' "$row" | grep -q '"status":"active"' && ok "after activation: active" || bad "status did not flip to active"
-        printf '%s' "$row" | grep -q '"activated_at":null' && bad "activated_at not stamped" || ok "activated_at stamped"
-        printf '%s' "$row" | grep -q '"last_seen_at":null' && bad "last_seen_at not stamped" || ok "last_seen_at stamped"
+        # Assert the timestamp is really there. "not null" would also be
+        # satisfied by an empty row from a failed roster call.
+        printf '%s' "$row" | grep -qE '"activated_at":"[0-9]{4}-[0-9]{2}-[0-9]{2}' \
+            && ok "activated_at stamped" || bad "activated_at not a timestamp: $(printf '%s' "$row" | cut -c1-70)"
+        printf '%s' "$row" | grep -qE '"last_seen_at":"[0-9]{4}-[0-9]{2}-[0-9]{2}' \
+            && ok "last_seen_at stamped" || bad "last_seen_at not a timestamp"
 
         # A cold CLI cache calls validate on every gate; that must not write each time.
         seen_before=$(printf '%s' "$row" | sed -n 's/.*"last_seen_at":"\([^"]*\)".*/\1/p')
@@ -378,7 +402,13 @@ else
     csv="email,display_name"$'\n'
     i=1
     while [ "$i" -le 31 ]; do csv="${csv}bulk${i}-$RUN@example.com,Bulk $i"$'\n'; i=$((i+1)); done
-    imp=$(curl -s -X POST -b "$JAR" "$API/v1/classroom/members/import" -H 'Content-Type: text/csv' --data-binary "$csv")
+    imp_code=$(curl -s -o "$BODY" -w '%{http_code}' -X POST -b "$JAR" "$API/v1/classroom/members/import" \
+        -H 'Content-Type: text/csv' --data-binary "$csv")
+    imp=$(cat "$BODY")
+    # A non-2xx here is a fact about the request, not data to parse. Say so once
+    # and loudly: a 429 read as an empty result set is what turned one refusal
+    # into five unrelated-looking failures on 2026-09-22.
+    http_ok "bulk import" "$imp_code" "$imp"
     for m in $(printf '%s' "$imp" | grep -o '"member_id":"[^"]*"' | cut -d'"' -f4); do echo "$m|" >> "$ISSUED_KEYS"; done
     imported=$(printf '%s' "$imp" | grep -o '"member_id":"[^"]*"' | wc -l)
     [ "$imported" -gt 0 ] && ok "import registered $imported seat(s) for cleanup" || bad "import returned no member ids"
@@ -387,15 +417,24 @@ else
     # behaviour under test.
     printf '%s' "$imp" | grep -qE '"created(_email_failed)?"' && ok "import created rows" || bad "import created nothing"
     printf '%s' "$imp" | grep -q 'over_capacity' && ok "31st learner → over_capacity" || bad "learner cap not enforced"
-    printf '%s' "$imp" | grep -q '"header"' && bad "header row was imported" || ok "header row skipped"
+    # Positive form: the header line must not appear as a result row. Checking
+    # only for the absence of a string passes against any error body.
+    if printf '%s' "$imp" | grep -q '"results":'; then
+        printf '%s' "$imp" | grep -q '"email":"email"' \
+            && bad "header row was imported as a member" || ok "header row skipped"
+    else
+        bad "import returned no results array — cannot tell whether the header was skipped"
+    fi
     # The roster fills the cap, so a further single invite must be refused too.
     code=$(curl -s -o /dev/null -w '%{http_code}' -X POST -b "$JAR" "$API/v1/classroom/members" \
         -H 'Content-Type: application/x-www-form-urlencoded' --data-urlencode "email=over-$RUN@example.com")
     check "invite past the learner cap → 409" "$code" "409"
 
     echo "== bad rows never block good ones"
-    mixed=$(curl -s -X POST -b "$JAR" "$API/v1/classroom/members/import" -H 'Content-Type: text/csv' \
-        --data-binary "not-an-email,Bad"$'\n'"also bad,Worse")
+    mixed_code=$(curl -s -o "$BODY" -w '%{http_code}' -X POST -b "$JAR" "$API/v1/classroom/members/import" \
+        -H 'Content-Type: text/csv' --data-binary "not-an-email,Bad"$'\n'"also bad,Worse")
+    mixed=$(cat "$BODY")
+    http_ok "mixed import" "$mixed_code" "$mixed"
     printf '%s' "$mixed" | grep -q '"invalid"' && ok "invalid rows reported per row" || bad "invalid rows not reported"
 
     echo "== rotation invalidates the old key"
@@ -459,6 +498,62 @@ else
     fi
 
     # A synthetic solo license (scripts/mint-smoke-solo.ts), never a customer key.
+    # Rate limits are production behaviour that had never been tested on
+    # purpose — the 2026-09-22 outage was a limit doing exactly its job while
+    # the suite mistook the refusal for broken parsing. Drive the per-session
+    # import window (5/hour) deliberately, in its own session so the shared
+    # smoke session keeps its budget.
+    echo "== rate limit is enforced and well-formed"
+    rl_tok=$(magic_token "$EMAIL")
+    RL_JAR="$(mktemp)"
+    if [ -z "$rl_tok" ]; then
+        bad "no token for the rate-limit session"
+    else
+        curl -s -o /dev/null -c "$RL_JAR" "$API/v1/auth/verify?token=$rl_tok"
+        rl_import() {  # → HTTP status, body in $BODY
+            curl -s -o "$BODY" -w '%{http_code}' -X POST -b "$RL_JAR" \
+                "$API/v1/classroom/members/import" -H 'Content-Type: text/csv' \
+                --data-binary "ratelimit-$1-$RUN@example.com,RL $1"
+        }
+
+        # Five allowed, then refused. Register anything created for cleanup.
+        i=1; allowed=0; refused=""
+        while [ "$i" -le 6 ]; do
+            c=$(rl_import "$i")
+            for m in $(grep -o '"member_id":"[^"]*"' "$BODY" | cut -d'"' -f4); do echo "$m|" >> "$ISSUED_KEYS"; done
+            case "$c" in 2*) allowed=$((allowed+1)) ;; 429) refused="$c"; break ;; esac
+            i=$((i+1))
+        done
+        check "session import limit allows exactly 5" "$allowed" "5"
+        check "the 6th import is refused" "$refused" "429"
+
+        # Documented shape, not just a status.
+        limited_body=$(cat "$BODY")
+        printf '%s' "$limited_body" | grep -q '"code":"rate_limited"' && ok "429 carries code rate_limited" || bad "429 missing code"
+        printf '%s' "$limited_body" | grep -q '"scope":"session"' && ok "429 names the scope that bound" || bad "429 missing scope"
+        printf '%s' "$limited_body" | grep -q '"limit":5' && ok "429 reports the limit" || bad "429 missing limit"
+        used_1=$(printf '%s' "$limited_body" | sed -n 's/.*"used":\([0-9]*\).*/\1/p')
+        [ "$used_1" = "5" ] && ok "429 reports used at the limit" || bad "429 used=$used_1, expected 5"
+
+        # A refusal must not push the caller further from recovery.
+        rl_import 99 >/dev/null
+        used_2=$(sed -n 's/.*"used":\([0-9]*\).*/\1/p' "$BODY")
+        check "a refused request does not increment the counter" "$used_2" "$used_1"
+
+        # The window it tells you to wait for is the one that actually resets.
+        retry=$(printf '%s' "$limited_body" | sed -n 's/.*"retry_after_seconds":\([0-9]*\).*/\1/p')
+        if [ -n "$retry" ] && [ "$retry" -gt 0 ] && [ "$retry" -le 3600 ]; then
+            ok "retry_after_seconds within the hourly window ($retry s)"
+        else
+            bad "retry_after_seconds outside the hourly window: '$retry'"
+        fi
+
+        # The shared session is a different bucket and must be unaffected.
+        c=$(curl -s -o /dev/null -w '%{http_code}' -b "$JAR" "$API/v1/classroom/members")
+        check "the main session is not collaterally limited" "$c" "200"
+    fi
+    rm -f "$RL_JAR"
+
     echo "== solo licenses are unaffected"
     if [ -z "${SMOKE_SOLO_KEY:-}" ] && [ -f "$SOLO_KEY_FILE" ]; then
         SMOKE_SOLO_KEY=$(tr -d '\r\n' < "$SOLO_KEY_FILE" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
