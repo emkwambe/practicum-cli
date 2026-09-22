@@ -22,8 +22,18 @@ if ! grep -qx '\*' "$FILE"; then
     exit 1
 fi
 
-allowed=$(grep '^!' "$FILE" | sed 's/^!//' | sed 's#/\*\*$##' | sort -u)
+# Entries ending in "/" are structural: gitignore semantics never look inside a
+# directory that "*" excluded, so a directory must be re-included before a file
+# in it can be. They publish nothing themselves, so they are not counted here —
+# but a glob (dashboard/**) would publish everything and is not stripped.
+allowed=$(grep '^!' "$FILE" | sed 's/^!//' | grep -v '/$' | sort -u)
 expected=$(printf '%s\n' "$EXPECTED" | sort -u)
+
+if grep -q '^!.*\*' "$FILE"; then
+    echo "  FAIL  allow-list contains a glob — it must name each published file"
+    grep '^!.*\*' "$FILE" | sed 's/^/        /'
+    exit 1
+fi
 
 if [ "$allowed" = "$expected" ]; then
     echo "  PASS  asset allow-list is exactly: $(printf '%s' "$expected" | tr '\n' ' ')"
