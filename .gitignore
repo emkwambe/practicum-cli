@@ -10,4 +10,4 @@ Thumbs.db
 .idea/
 
 # Practicum state (user-specific, not tracked)
-# These are created at runtime in ~/.practicum/
+# These are created at runtime in ~/.practicum/.wrangler/
