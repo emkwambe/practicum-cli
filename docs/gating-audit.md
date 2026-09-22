@@ -20,35 +20,34 @@ menu. Same behaviour for both the hardcoded Linux Foundations menu and the gener
 
 ## Paid Tier Gates
 
-| Product | Price | Sold as | Enforced as |
+| Product | Price | Sold as | Enforced as (since `practicum-api`) |
 |---|---|---|---|
-| Single Course | $49 | one course | **all 8 courses** (any valid key unlocks everything) |
-| Data Engineering Track | $99 | Linux + Shell + Data Forging | all 8 courses |
-| Platform Engineering Track | $129 | Linux + Git + Docker + CI/CD + Terraform + K8s | all 8 courses |
-| Full Catalog v3 | $199 | all 8 courses | all 8 courses |
-| Team 5 Seats | $899 | full catalog × 5 learners | all 8 courses; seat count = Dodo activation limit only |
-| Team 10 Seats | $1,599 | full catalog × 10 learners | all 8 courses; seat count = Dodo activation limit only |
+| Single Course | $49 | one course | that course only |
+| Data Engineering Track | $99 | Linux + Shell + Data Forging | `linux-foundations shell-mastery data-forging` |
+| Platform Engineering Track | $129 | Linux + Git + Docker + CI/CD + Terraform + K8s | `linux-foundations git-essentials docker-essentials cicd-pipelines terraform-iac kubernetes` |
+| Full Catalog v3 | $199 | all 8 courses | all 8 |
+| Team 5 Seats | $899 | full catalog × 5 learners | all 8; `seats: 5` recorded, **not enforced** |
+| Team 10 Seats | $1,599 | full catalog × 10 learners | all 8; `seats: 10` recorded, **not enforced** |
 
-There is no product/entitlement concept in the client. `activate_license` stores the key
-and prints "All premium content is now unlocked." (`lib/license.sh:73`). The only
-per-product differentiation available today is the activation limit configured on each
-Dodo license-key product (server side). Team seats therefore work as "N device
-activations on one key" — there is no learner identity, dashboard, or completion
-tracking despite the landing-page copy.
+Entitlements are decided server-side: `workers/practicum-api/src/index.ts`
+`PRODUCT_ENTITLEMENTS` maps each Dodo `product_id` to course slugs (matching
+`courses/<slug>/`). The CLI never sees a product→course map; it stores the
+`entitlements` array the server returns and `can_access_course` checks membership.
+Team seats are still only a number on the record — there is no learner identity,
+dashboard, or completion tracking despite the landing-page copy (item 7).
+
+*(Before `practicum-api`: no entitlement concept; any valid key unlocked all 8 courses.)*
 
 ## Gate Mechanism
 
-- **License check location:** `lib/license.sh:227` `can_access_day` → `lib/license.sh:98` `validate_license`. Call sites: `practicum:230` (Linux Foundations day menu) and `practicum:238` (generic day menu). Those are the **only two** call sites.
-- **License format:** opaque Dodo Payments license key string (whatever Dodo issues; the client does not parse or checksum it). Validated via public endpoints `POST https://api.dodopayments.com/licenses/activate|validate|deactivate` (`lib/license.sh:6`).
-- **Local storage:** `~/.practicum/license.json` (`lib/license.sh:7`), plain text: `license_key`, `instance_id`, `device`, `activated_at`, `last_validated`, `valid`. No env-var override exists.
-- **Validation commands:** `practicum activate <key>` (`practicum:1506`), `practicum deactivate` (`:1509`), `practicum license` (`:1511`, status only — prints ACTIVE / FREE). There is no `practicum license verify`; validation runs lazily inside `can_access_day` when a premium day is opened.
-- **Gate enforcement level:** **day** (day ≥ 4 of any course). Not per-course, not per-lesson, not per-product.
-- **Error message on block:** the `show_upgrade_prompt` box, headed
-  `🔒 Premium Content — License Required` / `Days 1-3 are free. Days 4-10 require a license.`
-  On failed activation: `❌ Activation failed.` followed by one of
-  `This key has reached its activation limit.`, `This license key has expired.`,
-  `Invalid license key. Check for typos.`, or `Error: <raw body>`.
-- **Trial/grace period:** No trial beyond Days 1–3. **Offline grace: 7 days** (`LICENSE_CACHE_DAYS=7`, `lib/license.sh:8`) — if `last_validated` is < 7 days old and the file says `"valid": true`, no network call is made. If curl is missing, the cache is trusted indefinitely. If online validation fails but the cache is inside the 7-day window, access is still granted.
+- **License check location:** `lib/license.sh:213` `can_access_day <dayN> [course]` → `lib/license.sh:201` `can_access_course <slug>` → `lib/license.sh:158` `validate_license`. Call sites: `practicum:230` / `:238` (day menus) and `:714` (quiz select).
+- **Key issuance:** `workers/practicum-api` (Cloudflare Worker, `api.practicum-cli.dev`). Dodo `payment.succeeded` webhook → Standard-Webhooks HMAC signature check (5-min tolerance) → key = `PRAC-XXXX-XXXX-XXXX-XXXX` (first 16 hex of `HMAC-SHA256(HMAC_SECRET, payment_id)`) → KV `LICENSES[key] = {email, product_id, entitlements, seats, activated, revoked…}`, `ORDERS[payment_id] = key` for idempotency → key emailed via Resend. `refund.succeeded` / `dispute.*` set `revoked: true`.
+- **License format:** `PRAC-` + 4×4 upper-hex. The client normalises case/whitespace and otherwise treats it as opaque; only the server can say whether it exists.
+- **Local storage:** `~/.practicum/license.json` (`lib/license.sh:11`, mode 600), written **only** from a server response: `key`, `email`, `product_id`, `entitlements` (space-separated slugs), `seats`, `activated_at`, `cached_epoch`, `valid`. `PRACTICUM_API` env var overrides the server URL (used by tests).
+- **Validation commands:** `practicum activate <key>` (`GET /license/validate`, writes cache), `practicum deactivate` (deletes the local cache only), `practicum license` (status: masked key, email, course list). Revalidation runs lazily inside `can_access_course` when the cache is older than 24 h.
+- **Gate enforcement level:** **course × day** — day ≥ 4 of a course requires that course's slug in `entitlements`. Days 1–3 and all of `00-cli-immersion` (`FREE_COURSES`) bypass the check.
+- **Error message on block:** the `show_upgrade_prompt` box, headed `🔒 Premium Content — License Required`, then either `Days 1-3 are free. Days 4+ require a license.` (no license) or `Your license does not include <Course Name>.` (licensed, wrong product). On failed activation: `❌ Activation failed.` + the server's `error` (`License not found`, `License revoked`) or `❌ Could not reach the license server.`
+- **Trial/grace period:** No trial beyond Days 1–3. **Cache TTL 24 h** (`LICENSE_CACHE_TTL`) — no network call while fresh. Past TTL the client revalidates; if the server answers `valid:false` the cache is deleted immediately; if the server is unreachable the cache is honoured up to **7 days** after the last successful validation (`LICENSE_OFFLINE_GRACE`), then blocked. Epochs are stored as integers, so no `date -d` (portable to macOS/BSD).
 
 ## Planned: Labs Gate (v3.0.0 roadmap)
 

@@ -1,17 +1,22 @@
 #!/bin/bash
-# Practicum CLI — License Management (Dodo Payments)
-# Public endpoints — no API key required in client code
-# https://docs.dodopayments.com/features/license-keys
+# Practicum CLI — License Management
+#
+# Keys are minted server-side by the practicum-api Worker when Dodo Payments
+# reports a successful payment, and validated against it here. The local cache
+# in ~/.practicum/license.json is only ever written from a server response.
+#
+# Pure bash + coreutils + curl. No jq.
 
-DODO_API="https://api.dodopayments.com"
+PRACTICUM_API="${PRACTICUM_API:-https://api.practicum-cli.dev}"
 LICENSE_FILE="$HOME/.practicum/license.json"
-LICENSE_CACHE_DAYS=7  # offline grace period
+LICENSE_CACHE_TTL=86400        # 24h — trust cache without a server call
+LICENSE_OFFLINE_GRACE=604800   # 7d  — keep working offline if server unreachable
+FREE_COURSES="00-cli-immersion"
 
 init_license() {
     mkdir -p "$HOME/.practicum"
 }
 
-# Check if curl is available
 check_curl() {
     if ! command -v curl &>/dev/null; then
         echo -e "  ${C_RED}Error: curl is required for license activation.${C_RESET}"
@@ -20,235 +25,212 @@ check_curl() {
     fi
 }
 
-# Activate a license key on this device
-activate_license() {
-    local license_key="$1"
-    
-    if [ -z "$license_key" ]; then
-        echo -e "  ${C_RED}Usage: practicum activate <license_key>${C_RESET}"
-        echo ""
-        echo -e "  ${C_DIM}Get your key at: https://practicum-cli.dev${C_RESET}"
-        return 1
-    fi
-    
-    check_curl || return 1
-    
-    local device_name
-    device_name="$(whoami)@$(hostname)"
-    
-    echo -e "  ${C_CYAN}Activating license...${C_RESET}"
-    
-    local response
-    response=$(curl -s -w "\n%{http_code}" \
-        -X POST "${DODO_API}/licenses/activate" \
-        -H "Content-Type: application/json" \
-        -d "{\"license_key\": \"${license_key}\", \"name\": \"${device_name}\"}" \
-        2>/dev/null)
-    
-    local http_code
-    http_code=$(echo "$response" | tail -1)
-    local body
-    body=$(echo "$response" | sed '$d')
-    
-    if [ "$http_code" = "200" ] || [ "$http_code" = "201" ]; then
-        # Extract instance_id from response
-        local instance_id
-        instance_id=$(echo "$body" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
-        
-        # Store license locally
-        cat > "$LICENSE_FILE" << LJSON
+# --- tiny JSON helpers (flat objects only) ----------------------------------
+
+# _json_str '<json>' field  → string value of "field"
+_json_str() {
+    printf '%s' "$1" | sed -n "s/.*\"$2\":\"\([^\"]*\)\".*/\1/p" | head -1
+}
+
+# _json_num '<json>' field  → numeric/bool value of "field"
+_json_num() {
+    printf '%s' "$1" | sed -n "s/.*\"$2\":\([0-9a-z.]*\).*/\1/p" | head -1
+}
+
+# _json_arr '<json>' field  → array of strings as space-separated words
+_json_arr() {
+    printf '%s' "$1" | sed -n "s/.*\"$2\":\[\([^]]*\)\].*/\1/p" | head -1 | tr -d '"' | tr ',' ' '
+}
+
+# _license_field field → value from the local cache file
+_license_field() {
+    [ -f "$LICENSE_FILE" ] || return 1
+    sed -n "s/^ *\"$1\": *\"\{0,1\}\([^\",]*\)\"\{0,1\},\{0,1\}$/\1/p" "$LICENSE_FILE" | head -1
+}
+
+# --- server ------------------------------------------------------------------
+
+# _license_fetch <key> → prints server JSON; exit 0 = reachable, 1 = network error
+_license_fetch() {
+    curl -s --connect-timeout 5 --max-time 15 \
+        "$PRACTICUM_API/license/validate?key=$1" 2>/dev/null
+}
+
+# _license_write <server-json>  — cache a validated response
+_license_write() {
+    local body="$1"
+    cat > "$LICENSE_FILE" << LJSON
 {
-    "license_key": "${license_key}",
-    "instance_id": "${instance_id}",
-    "device": "${device_name}",
-    "activated_at": "$(date -Iseconds)",
-    "last_validated": "$(date -Iseconds)",
-    "valid": true
+    "key": "$(_json_str "$body" key)",
+    "email": "$(_json_str "$body" email)",
+    "product_id": "$(_json_str "$body" product_id)",
+    "entitlements": "$(_json_arr "$body" entitlements)",
+    "seats": "$(_json_num "$body" seats)",
+    "activated_at": "$(_json_str "$body" activated_at)",
+    "cached_epoch": "$(date +%s)",
+    "valid": "true"
 }
 LJSON
-        
+    chmod 600 "$LICENSE_FILE"
+}
+
+# --- commands ----------------------------------------------------------------
+
+activate_license() {
+    local key
+    key=$(printf '%s' "$1" | tr '[:lower:]' '[:upper:]' | tr -d '[:space:]')
+
+    if [ -z "$key" ]; then
+        echo -e "  ${C_RED}Usage: practicum activate <license_key>${C_RESET}"
         echo ""
-        echo -e "  ${C_GREEN}✅ License activated successfully!${C_RESET}"
-        echo -e "  ${C_DIM}  Device: ${device_name}${C_RESET}"
-        echo -e "  ${C_DIM}  All premium content is now unlocked.${C_RESET}"
-        echo ""
-        return 0
-    else
+        echo -e "  ${C_DIM}Get your key at: https://practicum-cli.dev/#pricing${C_RESET}"
+        return 1
+    fi
+
+    check_curl || return 1
+
+    echo -e "  ${C_CYAN}Validating license...${C_RESET}"
+    local body
+    if ! body=$(_license_fetch "$key") || [ -z "$body" ]; then
+        echo -e "  ${C_RED}❌ Could not reach the license server. Check your connection.${C_RESET}"
+        return 1
+    fi
+
+    if [ "$(_json_num "$body" valid)" != "true" ]; then
         echo ""
         echo -e "  ${C_RED}❌ Activation failed.${C_RESET}"
-        
-        # Parse error
-        if echo "$body" | grep -qi "activation.*limit\|max.*activation"; then
-            echo -e "  ${C_YELLOW}  This key has reached its activation limit.${C_RESET}"
-            echo -e "  ${C_DIM}  Deactivate another device first: practicum deactivate${C_RESET}"
-        elif echo "$body" | grep -qi "expired"; then
-            echo -e "  ${C_YELLOW}  This license key has expired.${C_RESET}"
-            echo -e "  ${C_DIM}  Renew at: https://practicum-cli.dev${C_RESET}"
-        elif echo "$body" | grep -qi "not found\|invalid"; then
-            echo -e "  ${C_YELLOW}  Invalid license key. Check for typos.${C_RESET}"
-        else
-            echo -e "  ${C_YELLOW}  Error: ${body}${C_RESET}"
-        fi
+        echo -e "  ${C_YELLOW}  $(_json_str "$body" error)${C_RESET}"
+        echo -e "  ${C_DIM}  Check the key in your purchase email, or contact practicum@mpingo.ai${C_RESET}"
         echo ""
         return 1
     fi
+
+    _license_write "$body"
+
+    echo ""
+    echo -e "  ${C_GREEN}✅ License activated for $(_json_str "$body" email)${C_RESET}"
+    echo -e "  ${C_WHITE}  Courses unlocked:${C_RESET}"
+    local c
+    for c in $(_json_arr "$body" entitlements); do
+        echo -e "  ${C_DIM}    • $(get_course_name "$c")${C_RESET}"
+    done
+    echo ""
+    return 0
 }
 
-# Validate the stored license (called on startup)
-validate_license() {
-    if [ ! -f "$LICENSE_FILE" ]; then
-        return 1  # no license
-    fi
-    
-    local license_key
-    license_key=$(grep '"license_key"' "$LICENSE_FILE" | cut -d'"' -f4)
-    
-    if [ -z "$license_key" ]; then
-        return 1
-    fi
-    
-    # Check offline grace period
-    local last_validated
-    last_validated=$(grep '"last_validated"' "$LICENSE_FILE" | cut -d'"' -f4)
-    if [ -n "$last_validated" ]; then
-        local last_epoch
-        last_epoch=$(date -d "$last_validated" +%s 2>/dev/null || echo 0)
-        local now_epoch
-        now_epoch=$(date +%s)
-        local diff_days=$(( (now_epoch - last_epoch) / 86400 ))
-        
-        if [ "$diff_days" -lt "$LICENSE_CACHE_DAYS" ]; then
-            # Within grace period, trust cached result
-            grep -q '"valid": true' "$LICENSE_FILE" && return 0
-        fi
-    fi
-    
-    # Online validation
-    if ! command -v curl &>/dev/null; then
-        # No curl, trust cache
-        grep -q '"valid": true' "$LICENSE_FILE" && return 0
-        return 1
-    fi
-    
-    local response
-    response=$(curl -s -w "\n%{http_code}" \
-        -X POST "${DODO_API}/licenses/validate" \
-        -H "Content-Type: application/json" \
-        -d "{\"license_key\": \"${license_key}\"}" \
-        --connect-timeout 5 \
-        2>/dev/null)
-    
-    local http_code
-    http_code=$(echo "$response" | tail -1)
-    local body
-    body=$(echo "$response" | sed '$d')
-    
-    if [ "$http_code" = "200" ]; then
-        if echo "$body" | grep -qi '"valid":\s*true\|"valid": true'; then
-            # Update last_validated timestamp
-            sed -i "s/\"last_validated\": \"[^\"]*\"/\"last_validated\": \"$(date -Iseconds)\"/" "$LICENSE_FILE" 2>/dev/null
-            return 0
-        fi
-    fi
-    
-    # Validation failed — but allow offline grace
-    if [ "$diff_days" -lt "$LICENSE_CACHE_DAYS" ] 2>/dev/null; then
-        grep -q '"valid": true' "$LICENSE_FILE" && return 0
-    fi
-    
-    return 1
-}
-
-# Deactivate license on this device
+# Remove the local license (frees this machine; the key itself stays valid).
 deactivate_license() {
     if [ ! -f "$LICENSE_FILE" ]; then
         echo -e "  ${C_YELLOW}No active license found.${C_RESET}"
         return 1
     fi
-    
-    check_curl || return 1
-    
-    local license_key instance_id
-    license_key=$(grep '"license_key"' "$LICENSE_FILE" | cut -d'"' -f4)
-    instance_id=$(grep '"instance_id"' "$LICENSE_FILE" | cut -d'"' -f4)
-    
-    echo -e "  ${C_CYAN}Deactivating license...${C_RESET}"
-    
-    local response
-    response=$(curl -s -w "\n%{http_code}" \
-        -X POST "${DODO_API}/licenses/deactivate" \
-        -H "Content-Type: application/json" \
-        -d "{\"license_key\": \"${license_key}\", \"license_key_instance_id\": \"${instance_id}\"}" \
-        2>/dev/null)
-    
-    local http_code
-    http_code=$(echo "$response" | tail -1)
-    
-    if [ "$http_code" = "200" ]; then
-        rm -f "$LICENSE_FILE"
-        echo -e "  ${C_GREEN}✅ License deactivated. You can activate on another device.${C_RESET}"
-    else
-        echo -e "  ${C_YELLOW}  Deactivation may have failed. Removing local license anyway.${C_RESET}"
-        rm -f "$LICENSE_FILE"
-    fi
+    rm -f "$LICENSE_FILE"
+    echo -e "  ${C_GREEN}✅ License removed from this machine.${C_RESET}"
+    echo -e "  ${C_DIM}  Re-activate any time with: practicum activate <key>${C_RESET}"
     echo ""
 }
 
-# Check license status (for display)
 license_status() {
-    if [ -f "$LICENSE_FILE" ]; then
-        local key device activated
-        key=$(grep '"license_key"' "$LICENSE_FILE" | cut -d'"' -f4)
-        device=$(grep '"device"' "$LICENSE_FILE" | cut -d'"' -f4)
-        activated=$(grep '"activated_at"' "$LICENSE_FILE" | cut -d'"' -f4)
-        local masked_key="${key:0:8}...${key: -4}"
-        
+    if [ -f "$LICENSE_FILE" ] && [ "$(_license_field valid)" = "true" ]; then
+        local key
+        key=$(_license_field key)
         echo -e "  ${C_GREEN}License: ACTIVE${C_RESET}"
-        echo -e "  ${C_DIM}  Key: ${masked_key}${C_RESET}"
-        echo -e "  ${C_DIM}  Device: ${device}${C_RESET}"
-        echo -e "  ${C_DIM}  Activated: ${activated}${C_RESET}"
+        echo -e "  ${C_DIM}  Key:   ${key:0:9}...${key: -4}${C_RESET}"
+        echo -e "  ${C_DIM}  Email: $(_license_field email)${C_RESET}"
+        echo -e "  ${C_DIM}  Courses:${C_RESET}"
+        local c
+        for c in $(_license_field entitlements); do
+            echo -e "  ${C_DIM}    • $(get_course_name "$c")${C_RESET}"
+        done
     else
-        echo -e "  ${C_YELLOW}License: FREE (Days 1-3 only)${C_RESET}"
-        echo -e "  ${C_DIM}  Upgrade: https://practicum-cli.dev${C_RESET}"
+        echo -e "  ${C_YELLOW}License: FREE (CLI Immersion + Days 1-3 of every course)${C_RESET}"
+        echo -e "  ${C_DIM}  Upgrade:  https://practicum-cli.dev/#pricing${C_RESET}"
         echo -e "  ${C_DIM}  Activate: practicum activate <key>${C_RESET}"
     fi
 }
 
-# Check if content is accessible (free vs paid)
+# --- validation --------------------------------------------------------------
+
+# validate_license — 0 if a valid license is cached (refreshing it when stale).
+#   fresh cache (< 24h)             → trust, no network
+#   stale cache, server reachable   → refresh; revoked/unknown → drop cache
+#   stale cache, server unreachable → trust up to 7d after last validation
+validate_license() {
+    [ -f "$LICENSE_FILE" ] || return 1
+    [ "$(_license_field valid)" = "true" ] || return 1
+
+    local key cached age
+    key=$(_license_field key)
+    [ -n "$key" ] || return 1
+    cached=$(_license_field cached_epoch)
+    age=$(( $(date +%s) - ${cached:-0} ))
+
+    [ "$age" -lt "$LICENSE_CACHE_TTL" ] && return 0
+
+    local body
+    if command -v curl &>/dev/null && body=$(_license_fetch "$key") && [ -n "$body" ]; then
+        if [ "$(_json_num "$body" valid)" = "true" ]; then
+            _license_write "$body"
+            return 0
+        fi
+        # Server answered and said no (revoked / not found): drop the cache.
+        rm -f "$LICENSE_FILE"
+        return 1
+    fi
+
+    # Unreachable: offline grace.
+    [ "$age" -lt "$LICENSE_OFFLINE_GRACE" ]
+}
+
+# is_free_course <slug>
+is_free_course() {
+    local c
+    for c in $FREE_COURSES; do [ "$1" = "$c" ] && return 0; done
+    return 1
+}
+
+# is_premium_content <dayN> — days 1-3 are free, day 4+ premium
 is_premium_content() {
-    local day="$1"
-    # Days 1-3 are free, Days 4-10 require license
-    case "$day" in
-        day1|day2|day3) return 1 ;;  # NOT premium (free)
-        *) return 0 ;;               # IS premium
+    case "$1" in
+        day1|day2|day3) return 1 ;;
+        *) return 0 ;;
     esac
 }
 
+# can_access_course <slug> — free course, or licensed with that slug entitled
+can_access_course() {
+    local course="$1"
+    is_free_course "$course" && return 0
+    validate_license || return 1
+    local c
+    for c in $(_license_field entitlements); do
+        [ "$c" = "$course" ] && return 0
+    done
+    return 1
+}
+
+# can_access_day <dayN> [course-slug] — course defaults to the active course
 can_access_day() {
     local day="$1"
     local course="${2:-$(get_active_course)}"
-
-    # CLI Immersion (Course 0) is fully free — all days unrestricted
-    if [ "$course" = "00-cli-immersion" ]; then
-        return 0
-    fi
-
-    # Free days always accessible
-    if ! is_premium_content "$day"; then
-        return 0
-    fi
-
-    # Premium days require valid license
-    validate_license
+    is_free_course "$course" && return 0
+    is_premium_content "$day" || return 0
+    can_access_course "$course"
 }
 
 show_upgrade_prompt() {
+    local course
+    course=$(get_active_course)
     echo ""
     echo -e "  ${C_PURPLE}=========================================${C_RESET}"
     echo -e "  ${C_YELLOW}  🔒 Premium Content — License Required${C_RESET}"
     echo -e "  ${C_PURPLE}=========================================${C_RESET}"
     echo ""
-    echo -e "  ${C_WHITE}Days 1-3 are free. Days 4+ require a license.${C_RESET}"
+    if [ -f "$LICENSE_FILE" ] && [ "$(_license_field valid)" = "true" ]; then
+        echo -e "  ${C_WHITE}Your license does not include $(get_course_name "$course").${C_RESET}"
+    else
+        echo -e "  ${C_WHITE}Days 1-3 are free. Days 4+ require a license.${C_RESET}"
+    fi
     echo ""
     echo -e "  ${C_WHITE}  Single Course${C_RESET}      ${C_GREEN}\$49${C_RESET}   ${C_DIM}One course + certificate${C_RESET}"
     echo -e "  ${C_WHITE}  Data Engineering${C_RESET}   ${C_GREEN}\$99${C_RESET}   ${C_DIM}3 courses · 26 days${C_RESET}"

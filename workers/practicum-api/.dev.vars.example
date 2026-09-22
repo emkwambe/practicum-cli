@@ -1,0 +1,3 @@
+DODO_WEBHOOK_SECRET=whsec_dGVzdHNlY3JldHRlc3RzZWNyZXR0ZXN0c2VjcmV0
+HMAC_SECRET=local-test-hmac-secret
+RESEND_API_KEY=re_dummy_local
