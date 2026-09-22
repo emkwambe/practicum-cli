@@ -67,17 +67,19 @@ Ordered by severity.
 1. **All paid content ships in plain text in the public repo.** `courses/*/day4..day10/*.txt`, every quiz, and every capstone test are readable with `cat` or on GitHub without any license. The CLI gate only controls the *menu*, not the content. This is the fundamental weakness; every other gap is secondary to it.
 2. **`~/.practicum/license.json` is self-asserted.** A hand-written file with any `license_key`, `"valid": true`, and a fresh `last_validated` passes `validate_license` for 7 days, and can be re-dated forever. No signature, no HMAC, no server-issued token is checked.
 3. **No product entitlement — a $49 key unlocks $199 of content.** Single Course and both Tracks are enforced identically to Full Catalog. Fix requires the client to read the product ID from the Dodo `validate` response (or embed a product→course map keyed on `product_id`), then have `can_access_day` take the course slug.
-4. **Quizzes for premium days are ungated.** `cmd_quiz_select` (`practicum:666`) → `cmd_quiz_day4..10` / `cmd_generic_quiz_day` (`practicum:390`) never call `can_access_day`. An unlicensed learner can take and pass every quiz.
+4. ~~**Quizzes for premium days are ungated.**~~ **RESOLVED in `ce90d8a`.** `cmd_quiz_select` now calls `can_access_day "day${qchoice}" "$active_slug"` before dispatch and returns 1 with the upgrade prompt on block. *(Was: `practicum:666` → `cmd_quiz_day4..10` / `cmd_generic_quiz_day` never checked the license.)*
 5. **Certificates are ungated.** `cmd_certificate` (`practicum:748`) only requires the free Day 1 quiz. Combined with (4), a free learner can produce a full-course certificate.
-6. **CLI Immersion Day 4 is wrongly gated** — contradicts the "all 4 days free" promise on the landing page. One-line fix: exempt `00-cli-immersion` in `is_premium_content` (needs a course argument).
+6. ~~**CLI Immersion Day 4 is wrongly gated**~~ **RESOLVED in `ce90d8a`.** `can_access_day` now takes an optional course arg (defaults to the active course) and returns 0 for `00-cli-immersion` on every day. *(Was: the `day_num -le 3` check had no course exemption.)*
 7. **Team products have no team semantics.** No learner identity, no dashboard, no completion tracking — a seat is just an activation slot. Landing-page copy ("Team dashboard · Completion tracking") over-promises relative to v3.1.0.
-8. **`show_upgrade_prompt` prices are stale.** It advertises "Practicum Silver $129/year", "Gold $199/year", "Early bird $79/yr" — subscription tiers that no longer exist. The site sells one-time Tracks/Catalog. Update `lib/license.sh:239`–`262` to match live pricing.
+8. ~~**`show_upgrade_prompt` prices are stale.**~~ **RESOLVED in `ce90d8a`.** Prompt now lists Single Course $49 / Data Engineering $99 / Platform Eng $129 / Full Catalog $199, one-time, linking to `practicum-cli.dev/#pricing`. `grep -r "Silver\|Gold\|/month\|/year\|subscription" lib/` → 0. *(Was: Silver/Gold yearly tiers and an early-bird offer.)*
 9. **Scores are not namespaced per course.** `scores.txt` keys collide across courses, so passing the Day 4 quiz in Linux Foundations marks it passed in Kubernetes. Affects the Labs gate and certificate accuracy.
 10. **Grace-period edge cases.** `date -d` is GNU-only; on macOS/BSD it fails, `last_epoch` becomes 0, `diff_days` is huge, so the offline cache is *never* trusted — licensed macOS users are hard-blocked when offline. Conversely, no-curl systems trust the cache forever.
 11. **Version drift.** `practicum` reports 3.0.0; git history is at v3.1.0.
 
 ### Minimal hardening order
-1. Gate quizzes and certificates with `can_access_day` (closes 4, 5).
-2. Exempt CLI Immersion (closes 6). Refresh `show_upgrade_prompt` copy (closes 8).
+1. ~~Gate quizzes with `can_access_day` (closes 4).~~ Done `ce90d8a`. Certificates (5) still open.
+2. ~~Exempt CLI Immersion (closes 6). Refresh `show_upgrade_prompt` copy (closes 8).~~ Done `ce90d8a`.
 3. Read `product_id` from the Dodo `validate` response and scope `can_access_day` by course (closes 3).
 4. Move premium course content out of the public repo (fetch on activation, or ship encrypted and decrypt with a server-issued key) — the only real fix for 1 and 2.
+
+**Changelog:** 2026-09-22 — items 4, 6, 8 resolved in `ce90d8a`.
