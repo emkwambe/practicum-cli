@@ -197,6 +197,38 @@ Implement invite, CSV import, resend, and revoke. Invites generate a learner key
 - [ ] Every seat action written to `audit_log`
 - [ ] Smoke: invite, 31st-seat rejection, revoke, key rotation
 
+### Phase 7C-0 — Activation write (shipped ahead of 7C)
+
+Before this, nothing in the product recorded that a learner had ever started.
+`/license/validate` set `activated_at` on the **KV** record only; `index.ts` held
+no reference to `CLASSROOM_DB`, so `members.activated_at`, `members.last_seen_at`
+and the `invited → active` transition had no writer at all. Live check at the
+time: **0 of 214 learner rows** had `activated_at` set, and `last_seen_at` was
+null everywhere. The roster's "Last seen" column and its Active badge were
+therefore unreachable, and §1's "cohort progress" promise had no foundation.
+
+- [x] `handleValidate` writes to D1 when `license.classroom_id` is present:
+      `invited → active`, `activated_at` stamped once via `COALESCE`, and
+      `last_seen_at` moved only when null or older than one hour, so a cold CLI
+      cache calling validate on every gate does not write each time. One
+      statement, so a member is never half-promoted.
+- [x] `WHERE … AND status != 'revoked'` — a revoked seat is never resurrected,
+      even by a stale KV record still validating during propagation.
+- [x] The D1 write is wrapped in try/catch and logged. A learner must never be
+      locked out of their course because a statistics write failed.
+- [x] Roster shows a real relative time ("just now", "3 hours ago", "yesterday"),
+      with the exact date on hover; the em dash is reserved for genuinely
+      never-seen members. Active badge confirmed rendering once status flips.
+- [x] Backfill available at `POST /v1/admin/backfill-activation` (X-Smoke-Secret
+      gated, dry by default, `?apply=1` to write). Dry run on production:
+      231 keys scanned, 230 classroom keys, 22 activated, **0 to promote** —
+      every activated classroom key belonged to a smoke member since revoked,
+      so there was nothing to repair and it was not run in apply mode. Re-run
+      the dry form after the first real cohort if this ever needs revisiting.
+- [x] Smoke: invited with no last seen → activate → active with last seen
+      stamped → second validate within the hour does not move it → a revoked
+      member stays revoked after a validate attempt.
+
 ### Phase 7C — Progress pipeline (CLI ↔ API)
 
 Add `lib/progress.sh` with `progress_emit <event> <content_id>` (appends a pipe-delimited line with a generated `event_id` to the outbox) and `progress_flush` (curls each line as form data, removes lines on 2xx, keeps them on failure). Hook emission into lesson completion and lab verification. Add the consent notice on first classroom activation. The Worker's `POST /v1/progress` validates the key, confirms the member is active, validates `content_id` against the manifest, inserts the event (ignoring duplicates), upserts `progress_state`, and bumps `last_seen_at`.
@@ -217,6 +249,10 @@ Add `lib/progress.sh` with `progress_emit <event> <content_id>` (appends a pipe-
   both — a flaky lab network must not lock a class out mid-session. Update
   `docs/classroom.md` ("up to a day" becomes "within about an hour") in the
   same change.
+- [ ] `POST /v1/progress` also refreshes `members.last_seen_at`, reusing the
+      same one-hour staleness window as 7C-0 rather than writing per event.
+      `/license/validate` already returns `classroom_id` and `member_id`, so the
+      CLI never has to be told where it belongs.
 - [ ] Smoke: bash script emits, flushes, and the event appears in `progress_state`
 
 ### Phase 7D — Assignments, reporting, CSV, community

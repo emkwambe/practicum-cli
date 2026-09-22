@@ -265,6 +265,33 @@ async function handleDodoWebhook(request: Request, env: Env): Promise<Response> 
   return new Response("OK");
 }
 
+// How stale last_seen_at may get before a validate refreshes it. The CLI
+// revalidates on a 24h cache cycle but calls through on every gate when the
+// cache is cold, so without this a busy learner would write on every command.
+const LAST_SEEN_STALE_AFTER = "-1 hour";
+
+// One statement does all three things, so there is no window where a member is
+// half-promoted:
+//   - 'invited' becomes 'active' (any other status, including 'revoked', is left alone)
+//   - activated_at is stamped once and never overwritten
+//   - last_seen_at moves only when it is missing or older than the window
+// The WHERE clause excludes revoked members outright: a revoked seat must stay
+// revoked even if a stale KV record still validates during propagation.
+async function touchClassroomMember(env: Env, classroomId: string, memberId: string): Promise<void> {
+  await env.CLASSROOM_DB.prepare(
+    `UPDATE members
+        SET status       = CASE WHEN status = 'invited' THEN 'active' ELSE status END,
+            activated_at = COALESCE(activated_at, datetime('now')),
+            last_seen_at = CASE
+                             WHEN last_seen_at IS NULL
+                               OR last_seen_at < datetime('now', '${LAST_SEEN_STALE_AFTER}')
+                             THEN datetime('now')
+                             ELSE last_seen_at
+                           END
+      WHERE id = ? AND classroom_id = ? AND status != 'revoked'`,
+  ).bind(memberId, classroomId).run();
+}
+
 async function handleValidate(request: Request, env: Env): Promise<Response> {
   const key = new URL(request.url).searchParams.get("key")?.trim().toUpperCase();
   if (!key) return json({ valid: false, error: "No key provided" }, 400);
@@ -284,6 +311,17 @@ async function handleValidate(request: Request, env: Env): Promise<Response> {
     license.activated = true;
     license.activated_at = new Date().toISOString();
     await env.LICENSES.put(key, JSON.stringify(license));
+  }
+
+  // Classroom keys also update the roster so an instructor can see who has
+  // actually started. Deliberately non-fatal: a learner must never be locked
+  // out of their course because a statistics write failed.
+  if (license.classroom_id && license.member_id) {
+    try {
+      await touchClassroomMember(env, license.classroom_id, license.member_id);
+    } catch (e) {
+      console.error(`roster touch failed for ${license.member_id}: ${e}`);
+    }
   }
 
   return json({

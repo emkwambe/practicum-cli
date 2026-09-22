@@ -300,9 +300,26 @@ let ACTIVE_INSTRUCTORS = 0;  // drives the last-instructor revoke guard
 const STATUS_LABEL = { invited: 'Invited', active: 'Active', revoked: 'Revoked' };
 const fmtDate = (v) => {
   if (!v) return '—';
-  const d = new Date(String(v).replace(' ', 'T') + (String(v).endsWith('Z') ? '' : 'Z'));
+  const d = parseUtc(v);
   return Number.isNaN(d.valueOf()) ? '—' : d.toISOString().slice(0, 10);
 };
+
+// D1 stores "YYYY-MM-DD HH:MM:SS" in UTC with no zone marker, so it has to be
+// told it is UTC or every reading is out by the viewer's offset.
+const parseUtc = (v) => new Date(String(v).replace(' ', 'T') + (/[Zz]|[+-]\d{2}:?\d{2}$/.test(String(v)) ? '' : 'Z'));
+
+function relativeTime(v) {
+  const then = parseUtc(v);
+  if (Number.isNaN(then.valueOf())) return '—';
+  const mins = Math.round((Date.now() - then.getTime()) / 60000);
+  if (mins < 2) return 'just now';
+  if (mins < 60) return `${mins} min ago`;
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return hours === 1 ? '1 hour ago' : `${hours} hours ago`;
+  const days = Math.round(hours / 24);
+  if (days < 30) return days === 1 ? 'yesterday' : `${days} days ago`;
+  return then.toISOString().slice(0, 10);
+}
 
 function badge(text, cls) {
   const el = document.createElement('span');
@@ -338,7 +355,11 @@ function rosterRow(m) {
   }
 
   const seen = document.createElement('td');
-  seen.textContent = fmtDate(m.last_seen_at || m.activated_at);
+  // The em dash means genuinely never started, which is information an
+  // instructor acts on — so it must not also stand in for "we didn't record it".
+  const seenAt = m.last_seen_at || m.activated_at;
+  seen.textContent = seenAt ? relativeTime(seenAt) : '—';
+  if (seenAt) seen.title = fmtDate(seenAt);
 
   const acts = document.createElement('td');
   acts.className = 'acts';

@@ -322,6 +322,42 @@ else
         done
     fi
 
+    # 7C-0: activating a classroom key must promote the roster row, so an
+    # instructor can see who has actually started. Before this, every learner
+    # showed as invited with no last seen, forever.
+    echo "== activation updates the roster (7C-0)"
+    # member_row <member_id> → that member's JSON object from the roster
+    member_row() {
+        curl -s -b "$JAR" "$API/v1/classroom/members" | tr '}' '\n' | grep "\"id\":\"$1\""
+    }
+    # A dedicated member whose key nothing else has touched: the checks above
+    # already validate $KEY, which would itself have promoted the row.
+    lc_body=$(invite "lifecycle-$RUN@example.com")
+    LC_MEM=$(jfield "$lc_body" member_id); LC_KEY=$(jfield "$lc_body" test_key)
+    [ -n "$LC_MEM" ] && echo "$LC_MEM|$LC_KEY" >> "$ISSUED_KEYS"
+
+    if [ -n "$LC_MEM" ] && [ -n "$LC_KEY" ]; then
+        row=$(member_row "$LC_MEM")
+        printf '%s' "$row" | grep -q '"status":"invited"' && ok "before activation: invited" || bad "not invited before activation"
+        printf '%s' "$row" | grep -q '"last_seen_at":null' && ok "before activation: no last seen" || bad "last seen set before activation"
+
+        curl -s -o /dev/null "$API/license/validate?key=$LC_KEY"
+        sleep 2
+        row=$(member_row "$LC_MEM")
+        printf '%s' "$row" | grep -q '"status":"active"' && ok "after activation: active" || bad "status did not flip to active"
+        printf '%s' "$row" | grep -q '"activated_at":null' && bad "activated_at not stamped" || ok "activated_at stamped"
+        printf '%s' "$row" | grep -q '"last_seen_at":null' && bad "last_seen_at not stamped" || ok "last_seen_at stamped"
+
+        # A cold CLI cache calls validate on every gate; that must not write each time.
+        seen_before=$(printf '%s' "$row" | sed -n 's/.*"last_seen_at":"\([^"]*\)".*/\1/p')
+        curl -s -o /dev/null "$API/license/validate?key=$LC_KEY"
+        sleep 2
+        seen_after=$(printf '%s' "$(member_row "$LC_MEM")" | sed -n 's/.*"last_seen_at":"\([^"]*\)".*/\1/p')
+        check "second validate within the hour does not move last_seen_at" "$seen_after" "$seen_before"
+    else
+        bad "no lifecycle member/key — activation write untested"
+    fi
+
     echo "== normalisation and duplicates"
     dup=$(invite "  LEARNER-$RUN@Example.COM  ")
     printf '%s' "$dup" | grep -q 'already on this roster' && ok "email normalised; duplicate rejected" || bad "duplicate not caught: $(printf '%s' "$dup" | cut -c1-70)"
@@ -411,6 +447,15 @@ else
             && ok "CLI has the revoked-seat message" || bad "CLI missing revoked-seat message"
         curl -s -b "$JAR" "$API/v1/classroom/members" | grep -q '"status":"revoked"' \
             && ok "roster shows revoked status" || bad "roster missing revoked status"
+
+        # A validate attempt on a revoked key must not resurrect the roster row:
+        # the UPDATE excludes revoked members outright.
+        curl -s -o /dev/null "$API/license/validate?key=$KEY"
+        sleep 2
+        printf '%s' "$(member_row "$MEM")" | grep -q '"status":"revoked"' \
+            && ok "revoked member stays revoked after a validate attempt" || bad "revoked member was resurrected"
+        code=$(curl -s -o /dev/null -w '%{http_code}' "$API/license/validate?key=$KEY")
+        check "revoked key still 403 after the attempt" "$code" "403"
     fi
 
     # A synthetic solo license (scripts/mint-smoke-solo.ts), never a customer key.
