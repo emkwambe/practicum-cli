@@ -206,6 +206,17 @@ Add `lib/progress.sh` with `progress_emit <event> <content_id>` (appends a pipe-
 - [ ] No events sent before consent; solo licenses never emit
 - [ ] Revoked or expired learners get 403 and the CLI stops retrying those events
 - [ ] Rate limit on `/v1/progress` per key
+- [ ] **Classroom keys re-validate hourly; solo keys keep the 24h cache.** 7B
+  made revocation real, but a revoked learner can keep working for up to 24h
+  because `LICENSE_CACHE_TTL` is a flat 86400s — on top of KV propagation. An
+  instructor reasonably expects removing a seat to take effect the same lesson.
+  Since 7C is already changing `lib/license.sh`, make the TTL depend on the
+  licence: 3600s when the cached record carries a `classroom_id`, 86400s
+  otherwise. Solo learners keep working offline for a day; classroom learners
+  lose at most an hour of staleness. The 7-day offline grace stays as-is for
+  both — a flaky lab network must not lock a class out mid-session. Update
+  `docs/classroom.md` ("up to a day" becomes "within about an hour") in the
+  same change.
 - [ ] Smoke: bash script emits, flushes, and the event appears in `progress_state`
 
 ### Phase 7D — Assignments, reporting, CSV, community

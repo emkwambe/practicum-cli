@@ -41,10 +41,14 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# Fixture ids are written by scripts/seed-test-classroom.mjs.
+# Fixture ids are written by scripts/seed-test-classroom.mjs. An explicit
+# environment variable wins over the file, so a run can be pointed elsewhere
+# without editing the fixture (and so the guard below can be exercised).
 if [ -f "$HERE/smoke_fixture.env" ]; then
-    # shellcheck disable=SC1090
-    . "$HERE/smoke_fixture.env"
+    while IFS='=' read -r fk fv; do
+        case "$fk" in ''|\#*) continue ;; esac
+        eval "[ -n \"\${$fk:-}\" ] || $fk=\"\$fv\""
+    done < "$HERE/smoke_fixture.env"
 fi
 EMAIL="${SMOKE_INSTRUCTOR_EMAIL:-smoke-instructor@practicum-cli.dev}"
 EMAIL_B="${SMOKE_INSTRUCTOR_B_EMAIL:-smoke-instructor-b@practicum-cli.dev}"
@@ -175,7 +179,13 @@ else
         b_body=$(curl -s -b "$JAR_B" "$API/v1/classroom")
         b_id=$(field "$b_body" id)
         check "session B sees classroom B" "$b_id" "$ROOM_B"
-        printf '%s' "$b_body" | grep -q '"is_test":true' && ok "classroom B is is_test = 1" || bad "classroom B is NOT a test classroom"
+        # Hard refusal, not a soft failure: if a smoke classroom is not is_test
+        # the fixture is pointing at something real and the run must stop.
+        if ! printf '%s' "$b_body" | grep -q '"is_test":true'; then
+            echo "  ABORT: classroom B ($b_id) is not flagged is_test." >&2
+            exit 3
+        fi
+        ok "classroom B is is_test = 1"
         a_id=$(field "$(curl -s -b "$JAR" "$API/v1/classroom")" id)
         check "session A still sees only A" "$a_id" "$ROOM"
         [ "$a_id" != "$b_id" ] && ok "sessions are isolated" || bad "sessions cross classrooms"
@@ -186,6 +196,32 @@ else
         # Production state persists between runs, so the suite starts by clearing
     # any seats a previous run left in classroom A. Instructors are left alone —
     # revoking them would lock the suite out of its own classroom.
+    # Belt and braces before anything is revoked. The API already scopes every
+    # member lookup to the session's own classroom — revokeMember's WHERE is
+    # "id = ? AND classroom_id = ?" with the id taken from the session, never
+    # the client, and it soft-revokes rather than deleting. This block refuses
+    # to proceed unless the classroom on this session is one of the two smoke
+    # classrooms AND is flagged is_test, so a misconfigured fixture can never
+    # point the suite at real seats.
+    echo "== reset guard"
+    guard=$(curl -s -b "$JAR" "$API/v1/classroom")
+    guard_id=$(field "$guard" id)
+    guard_qa="cls_manualqa000000000000000"
+
+    if [ "$guard_id" = "$guard_qa" ]; then
+        echo "  ABORT: session is the manual QA classroom — it must never be reset." >&2
+        exit 3
+    fi
+    if [ "$guard_id" != "$ROOM" ] && [ "$guard_id" != "$ROOM_B" ]; then
+        echo "  ABORT: session classroom '$guard_id' is not a smoke classroom." >&2
+        exit 3
+    fi
+    if ! printf '%s' "$guard" | grep -q '"is_test":true'; then
+        echo "  ABORT: classroom '$guard_id' is not flagged is_test — refusing to touch its seats." >&2
+        exit 3
+    fi
+    ok "reset guard: session is smoke classroom $guard_id, is_test"
+
     echo "== reset classroom A learner seats"
     stale=0
     for mid in $(curl -s -b "$JAR" "$API/v1/classroom/members" \
