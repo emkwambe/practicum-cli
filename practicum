@@ -23,6 +23,7 @@ init_state
 init_mastery
 init_license
 seed_course_unlocks
+migrate_scores "$(get_active_course)"
 
 # --- Command Implementations ---
 

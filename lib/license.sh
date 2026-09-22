@@ -80,6 +80,59 @@ _license_write() {
 }
 LJSON
     chmod 600 "$LICENSE_FILE"
+    _cache_seal
+}
+
+# --- cache integrity -----------------------------------------------------
+#
+# The cache is signed with HMAC-SHA256 keyed on the license key itself, so a
+# hand-written file (forged entitlements, re-dated cached_epoch) fails
+# verification and is discarded. This raises the cost of a local bypass; it
+# is not a hard DRM boundary — someone with the file also has the key.
+# Where openssl is missing the check degrades to the epoch window alone.
+
+_has_openssl() { command -v openssl >/dev/null 2>&1; }
+
+# _cache_sign <license-key> <content> → hex HMAC
+_cache_sign() {
+    printf '%s' "$2" | openssl dgst -sha256 -hmac "$1" 2>/dev/null | awk '{print $NF}'
+}
+
+# _cache_seal — add a cache_sig field computed over the rest of the file
+_cache_seal() {
+    _has_openssl || return 0
+    local key content sig
+    key=$(_license_field key)
+    [ -n "$key" ] || return 0
+    content=$(grep -v '"cache_sig"' "$LICENSE_FILE")
+    sig=$(_cache_sign "$key" "$content")
+    [ -n "$sig" ] || return 0
+    # Insert before the closing brace, keeping the JSON valid.
+    printf '%s\n' "$content" | sed '$d' > "${LICENSE_FILE}.tmp"
+    printf '    ,"cache_sig": "%s"\n}\n' "$sig" >> "${LICENSE_FILE}.tmp"
+    mv "${LICENSE_FILE}.tmp" "$LICENSE_FILE"
+    chmod 600 "$LICENSE_FILE"
+}
+
+# _cache_intact — 0 if the cache is unmodified since it was written,
+# or if signing is unavailable (graceful degradation).
+_cache_intact() {
+    if ! _has_openssl; then
+        [ -n "${LICENSE_SIG_WARNED:-}" ] || {
+            LICENSE_SIG_WARNED=1
+            echo -e "  ${C_DIM}Note: openssl not found — license cache signature unavailable, epoch check only.${C_RESET}" >&2
+        }
+        return 0
+    fi
+    local key content expected stored
+    key=$(_license_field key)
+    [ -n "$key" ] || return 1
+    stored=$(sed -n 's/.*"cache_sig": *"\([^"]*\)".*/\1/p' "$LICENSE_FILE" | head -1)
+    [ -n "$stored" ] || return 1
+    # Content as it was at seal time: everything but the sig line, closing brace restored.
+    content=$(grep -v '"cache_sig"' "$LICENSE_FILE" | sed '$d')$'\n''}'
+    expected=$(_cache_sign "$key" "$content")
+    [ -n "$expected" ] && [ "$stored" = "$expected" ]
 }
 
 # --- commands ----------------------------------------------------------------
@@ -200,6 +253,21 @@ validate_license() {
         return 1
     fi
     [ "$(_license_field valid)" = "true" ] || return 1
+
+    # Tampered or unsigned cache: never trust its contents. Ask the server
+    # with the stored key — a genuine key re-seals a correct cache, anything
+    # else is discarded.
+    if ! _cache_intact; then
+        local tkey tbody
+        tkey=$(_license_field key)
+        if [ -n "$tkey" ] && command -v curl &>/dev/null && tbody=$(_license_fetch "$tkey") &&
+           [ "$(_json_num "$tbody" valid)" = "true" ]; then
+            _license_write "$tbody"
+        else
+            rm -f "$LICENSE_FILE"
+            return 1
+        fi
+    fi
 
     # Annual term — checked from the cache first, no network needed.
     if _license_expired; then

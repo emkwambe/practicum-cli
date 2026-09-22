@@ -46,18 +46,52 @@ unlock_lesson() {
     fi
 }
 
+# Scores are namespaced per course: "<course-slug>:<key>=<value>".
+# Callers pass the bare key ("day4_quiz"); the slug is applied here so a
+# pass in one course never reads as a pass in another.
+_score_key() {
+    local slug
+    slug=$(get_active_course 2>/dev/null)
+    echo "${slug:-linux-foundations}:$1"
+}
+
 save_score() {
-    local quiz="$1"
+    local key
+    key=$(_score_key "$1")
     local score="$2"
     # Remove old score if exists, then add new
-    grep -v "^${quiz}=" "$SCORES_FILE" > "$SCORES_FILE.tmp" 2>/dev/null
-    echo "${quiz}=${score}" >> "$SCORES_FILE.tmp"
+    grep -v "^${key}=" "$SCORES_FILE" > "$SCORES_FILE.tmp" 2>/dev/null
+    echo "${key}=${score}" >> "$SCORES_FILE.tmp"
     mv "$SCORES_FILE.tmp" "$SCORES_FILE"
 }
 
 get_score() {
-    local quiz="$1"
-    grep "^${quiz}=" "$SCORES_FILE" 2>/dev/null | cut -d= -f2
+    local key
+    key=$(_score_key "$1")
+    grep "^${key}=" "$SCORES_FILE" 2>/dev/null | cut -d= -f2
+}
+
+# One-time migration: pre-namespacing files hold bare "day1_quiz=passed"
+# lines. Those scores were all earned in the course that was active then,
+# so attribute them to the slug passed in (the active course at upgrade).
+migrate_scores() {
+    local slug="${1:-linux-foundations}"
+    [ -f "$SCORES_FILE" ] || return 0
+    [ -s "$SCORES_FILE" ] || return 0
+    # Already migrated if every non-empty line carries a slug prefix.
+    grep -qv '^[a-z0-9][a-z0-9-]*:' "$SCORES_FILE" || return 0
+
+    local tmp line
+    tmp="${SCORES_FILE}.migrating"
+    : > "$tmp"
+    while IFS= read -r line; do
+        [ -n "$line" ] || continue
+        case "$line" in
+            *:*=*) printf '%s\n' "$line" >> "$tmp" ;;   # already namespaced
+            *)     printf '%s:%s\n' "$slug" "$line" >> "$tmp" ;;
+        esac
+    done < "$SCORES_FILE"
+    mv "$tmp" "$SCORES_FILE"
 }
 
 get_mode() {
