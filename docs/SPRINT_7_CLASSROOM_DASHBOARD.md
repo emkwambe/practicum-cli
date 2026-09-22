@@ -211,7 +211,7 @@ Add `lib/progress.sh` with `progress_emit <event> <content_id>` (appends a pipe-
   because `LICENSE_CACHE_TTL` is a flat 86400s — on top of KV propagation. An
   instructor reasonably expects removing a seat to take effect the same lesson.
   Since 7C is already changing `lib/license.sh`, make the TTL depend on the
-  licence: 3600s when the cached record carries a `classroom_id`, 86400s
+  license: 3600s when the cached record carries a `classroom_id`, 86400s
   otherwise. Solo learners keep working offline for a day; classroom learners
   lose at most an hour of staleness. The 7-day offline grace stays as-is for
   both — a flaky lab network must not lock a class out mid-session. Update
@@ -239,6 +239,38 @@ Extend the Dodo webhook for the Classroom product (`pdt_0No8Kgf2Z4FOleEA96DEW`):
 - [ ] Renewal, grace, cancellation, and expiry each simulated and verified
 - [ ] Waitlist subscribers emailed that Classroom is open (separate send, after go-live)
 - [ ] CTA flipped only after every row in §1 has passing prod evidence
+
+---
+
+### Phase 7F — Public installer (not started)
+
+There is no installer. `https://practicum-cli.dev/install.sh` was advertised on
+the homepage in four places and in the classroom invite email, and has returned
+404 since the site first went up on 2026-07-13 — no such file exists in the
+repo, on the site, or on GitHub raw. Both surfaces now document the `git clone`
+method instead, which works, and the smoke suite fetches every URL they print.
+A real installer is its own piece of work because it is a public
+arbitrary-code-execution entry point and deserves to be treated as one.
+
+- [ ] `install.sh` at the repo root, served from an **immutable** URL — a tag or
+      commit SHA, never a branch, so the script a learner runs cannot change
+      under them between the docs and the deploy.
+- [ ] `practicum-cli.dev/install` redirects to that pinned URL. The site worker
+      is assets-only today, so this means adding a worker script to it — do not
+      place any `.sh` under `lib/`; standing rule 2 holds.
+- [ ] Checksum published alongside, and a documented verify-then-run form for
+      anyone who does not want to pipe curl into bash.
+- [ ] Optional key activation, accepting both `--key` and `PRACTICUM_KEY`
+      (the env form keeps the key out of shell history and the process list),
+      activating via the installed binary's absolute path so it works in a shell
+      whose PATH has not been refreshed.
+- [ ] Tested on Linux and macOS, bash and zsh; an uninstall path that removes
+      the install directory and leaves `~/.practicum` alone unless asked.
+- [ ] Smoke: run the one-liner in a clean container, assert the CLI validates a
+      key afterwards, assert the checksum matches, and assert `/install`
+      resolves to the pinned URL.
+- [ ] Homepage and invite email switch to the one-liner only once all of the
+      above is green in production.
 
 ---
 

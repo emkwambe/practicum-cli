@@ -12,7 +12,7 @@ API="${API:-https://api.practicum-cli.dev}"
 SITE="${SITE:-https://practicum-cli.dev}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 JAR="$(mktemp)"; JAR_B="$(mktemp)"; BODY="$(mktemp)"
-# Every licence key this run issues is recorded here and revoked on exit, so a
+# Every license key this run issues is recorded here and revoked on exit, so a
 # failed or interrupted run never leaves a usable key behind. Keys issued in a
 # test classroom also expire on their own after TEST_LICENSE_TTL_HOURS.
 ISSUED_KEYS="$(mktemp)"
@@ -272,7 +272,7 @@ else
 
     # KV is eventually consistent: a revoked or rotated key can still validate
     # from an edge cache for a short window. Locally the write is immediate, so
-    # this only matters against production. The CLI caches licences for 24h
+    # this only matters against production. The CLI caches licenses for 24h
     # anyway, which dwarfs this window — but the suite must not race it.
     validate_becomes() {  # $1 = key, $2 = expected HTTP code → 0 when reached
         local key="$1" want="$2" i code
@@ -289,7 +289,7 @@ else
     MEM=$(jfield "$body" member_id); KEY=$(jfield "$body" test_key)
     [ -n "$MEM" ] && echo "$MEM|$KEY" >> "$ISSUED_KEYS"
     [ -n "$MEM" ] && ok "invite created a member" || bad "invite failed: $(printf '%s' "$body" | cut -c1-90)"
-    [ -n "$KEY" ] && ok "invite issued a licence key" || bad "no key issued"
+    [ -n "$KEY" ] && ok "invite issued a license key" || bad "no key issued"
 
     if [ -n "$KEY" ]; then
         vbody=$(curl -s "$API/license/validate?key=$KEY")
@@ -297,6 +297,29 @@ else
         printf '%s' "$vbody" | grep -q '"role":"learner"' && ok "key role is learner" || bad "wrong key role"
         printf '%s' "$vbody" | grep -q '"kubernetes"' && ok "key carries full catalog" || bad "key missing entitlements"
         printf '%s' "$vbody" | grep -q "\"classroom_id\"\|$ROOM" && ok "key is bound to the classroom" || bad "key not classroom-bound"
+    fi
+
+    # Every URL a learner is handed must resolve, including ones buried in shell
+    # commands. The invite email shipped a 404 install URL for weeks because
+    # nothing checked the links inside the commands it printed.
+    echo "== every URL in the invite email resolves"
+    # test_email_text is the last field in the object, so take everything after
+    # the marker and drop the closing quote/brace, then unescape.
+    EMAIL_TEXT=$(printf '%s' "$body" \
+        | sed 's/.*"test_email_text":"//; s/"}[[:space:]]*$//' \
+        | sed 's/\\n/\n/g; s/\\"/"/g; s/\\\\/\\/g')
+    if [ -z "$EMAIL_TEXT" ]; then
+        bad "no test_email_text returned — email content unverified"
+    else
+        printf '%s' "$EMAIL_TEXT" | grep -q 'install\.sh' && bad "email references a non-existent installer" \
+            || ok "email references no hosted installer"
+        urls=$(printf '%s' "$EMAIL_TEXT" | grep -oE 'https?://[A-Za-z0-9._~:/?#@!$&*+,;=%-]+' \
+            | sed 's/[.,)]*$//' | sort -u)
+        [ -n "$urls" ] && ok "email contains $(printf '%s\n' "$urls" | wc -l | tr -d ' ') URL(s)" || bad "email contains no URLs"
+        for u in $urls; do
+            ucode=$(curl -s -o /dev/null -w '%{http_code}' -L --max-time 25 "$u")
+            check "email URL 200: $(printf '%s' "$u" | cut -c1-58)" "$ucode" "200"
+        done
     fi
 
     echo "== normalisation and duplicates"
@@ -350,6 +373,33 @@ else
         KEY="$NEWKEY"
     fi
 
+    # A classroom with no instructor cannot be administered at all, and removing
+    # your own seat signs you out mid-action. Both are refused server-side.
+    echo "== revoke guards"
+    ME_ID=$(field "$(curl -s -b "$JAR" "$API/v1/classroom")" member_id)
+    if [ -z "$ME_ID" ]; then
+        bad "summary did not return the signed-in member_id"
+    else
+        # With the 2nd instructor still present, self-revoke is refused on its own terms.
+        self=$(curl -s -o "$BODY" -w '%{http_code}' -X DELETE -b "$JAR" "$API/v1/classroom/members/$ME_ID")
+        check "revoking your own seat → 409" "$self" "409"
+        grep -q 'self_revoke' "$BODY" && ok "self-revoke reports code self_revoke" || bad "wrong self-revoke code"
+
+        # Remove the 2nd instructor, leaving exactly one; the rule now changes.
+        if [ -n "${M2:-}" ]; then
+            code=$(curl -s -o /dev/null -w '%{http_code}' -X DELETE -b "$JAR" "$API/v1/classroom/members/$M2")
+            check "2nd instructor can be revoked" "$code" "200"
+            last=$(curl -s -o "$BODY" -w '%{http_code}' -X DELETE -b "$JAR" "$API/v1/classroom/members/$ME_ID")
+            check "revoking the last instructor → 409" "$last" "409"
+            grep -q 'last_instructor' "$BODY" && ok "last instructor reports code last_instructor" || bad "wrong last-instructor code"
+            # And the classroom still has a working instructor afterwards.
+            curl -s -b "$JAR" "$API/v1/classroom" | grep -q '"instructors":{"used":1' \
+                && ok "classroom still has its instructor" || bad "instructor seat lost"
+        else
+            bad "no 2nd instructor available — last-instructor rule untested"
+        fi
+    fi
+
     echo "== revoke"
     if [ -n "$MEM" ]; then
         code=$(curl -s -o /dev/null -w '%{http_code}' -X DELETE -b "$JAR" "$API/v1/classroom/members/$MEM")
@@ -363,18 +413,18 @@ else
             && ok "roster shows revoked status" || bad "roster missing revoked status"
     fi
 
-    # A synthetic solo licence (scripts/mint-smoke-solo.ts), never a customer key.
-    echo "== solo licences are unaffected"
+    # A synthetic solo license (scripts/mint-smoke-solo.ts), never a customer key.
+    echo "== solo licenses are unaffected"
     if [ -z "${SMOKE_SOLO_KEY:-}" ] && [ -f "$SOLO_KEY_FILE" ]; then
         SMOKE_SOLO_KEY=$(tr -d '\r\n' < "$SOLO_KEY_FILE" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
     fi
     if [ -n "${SMOKE_SOLO_KEY:-}" ]; then
         solo=$(curl -s "$API/license/validate?key=$SMOKE_SOLO_KEY")
-        printf '%s' "$solo" | grep -q '"valid":true' && ok "solo licence still validates" || bad "solo licence broke"
+        printf '%s' "$solo" | grep -q '"valid":true' && ok "solo license still validates" || bad "solo license broke"
         printf '%s' "$solo" | grep -q '"entitlements":\["linux-foundations"\]' \
-            && ok "solo licence keeps its single-course entitlement" || bad "solo entitlements changed"
-        printf '%s' "$solo" | grep -q 'classroom_id' && bad "solo licence carries classroom fields" \
-            || ok "solo licence has no classroom fields"
+            && ok "solo license keeps its single-course entitlement" || bad "solo entitlements changed"
+        printf '%s' "$solo" | grep -q 'classroom_id' && bad "solo license carries classroom fields" \
+            || ok "solo license has no classroom fields"
     else
         bad "no solo key — run: node scripts/mint-smoke-solo.ts (writes $SOLO_KEY_FILE)"
     fi
@@ -424,6 +474,28 @@ fi
 
 # The site worker serves ./lib, which also holds the CLI's shell libraries.
 # .assetsignore must keep every one of them off the public origin.
+# The homepage told every visitor to curl an installer that never existed.
+# Check the live page's own install instructions, not a copy in the repo.
+echo "== homepage install instructions resolve"
+if curl -s -o "$BODY" --connect-timeout 10 "$SITE/"; then
+    grep -q 'install\.sh' "$BODY" && bad "homepage still references a non-existent installer" \
+        || ok "homepage references no hosted installer"
+    # Every URL inside a copy-to-clipboard command or code block must resolve.
+    site_urls=$(grep -oE 'https?://[A-Za-z0-9._~:/?#@!$&*+,;=%-]+' "$BODY" \
+        | sed 's/[.,)<"'"'"']*$//' \
+        | grep -vE 'fonts\.(googleapis|gstatic)\.com|checkout\.dodopayments\.com|^https?://practicum-cli\.dev/?$' \
+        | sort -u)
+    for u in $site_urls; do
+        ucode=$(curl -s -o /dev/null -w '%{http_code}' -L --max-time 25 "$u")
+        check "homepage URL 200: $(printf '%s' "$u" | cut -c1-54)" "$ucode" "200"
+    done
+    # The documented method must actually be the one that works.
+    grep -q 'git clone https://github.com/emkwambe/practicum-cli.git' "$BODY" \
+        && ok "homepage documents the clone install" || bad "homepage lost its install instructions"
+else
+    echo "  SKIP  homepage install check — $SITE not reachable"
+fi
+
 echo "== CLI shell libraries are not published"
 if printf '%s' "$SITE" | grep -q 'practicum-cli.dev'; then
     for leaked in license.sh state.sh lessons.sh .assetsignore; do

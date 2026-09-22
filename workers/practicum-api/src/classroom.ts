@@ -25,7 +25,7 @@ export interface ClassroomEnv {
   SMOKE_TOKEN_SECRET?: string;
 }
 
-// Licences issued inside a test classroom are short-lived, so a key that
+// Licenses issued inside a test classroom are short-lived, so a key that
 // escapes a smoke run cannot be used for long. Used by 7B when it mints
 // learner keys; smoke also revokes every key it issues.
 export const TEST_LICENSE_TTL_HOURS = 24;
@@ -319,7 +319,7 @@ async function handleLogout(request: Request, env: ClassroomEnv): Promise<Respon
 async function handleClassroomSummary(request: Request, env: ClassroomEnv, session: Session): Promise<Response> {
   const room = await env.CLASSROOM_DB.prepare(
     `SELECT id, name, status, learner_limit, instructor_limit, expires_at, grace_until,
-            telegram_invite_url, is_test
+            telegram_invite_url, qa_mail_to, is_test
        FROM classrooms WHERE id = ?`,
   )
     .bind(session.classroom_id)
@@ -332,6 +332,7 @@ async function handleClassroomSummary(request: Request, env: ClassroomEnv, sessi
       expires_at: string;
       grace_until: string | null;
       telegram_invite_url: string | null;
+      qa_mail_to: string | null;
       is_test: number;
     }>();
   if (!room) return json(request, { error: "Classroom not found" }, 404);
@@ -358,16 +359,17 @@ async function handleClassroomSummary(request: Request, env: ClassroomEnv, sessi
       grace_until: room.grace_until,
       telegram_invite_url: room.telegram_invite_url,
       is_test: room.is_test === 1,
+      qa_mail_to: room.qa_mail_to,
     },
     seats: {
       learners: { used: used.learner, limit: room.learner_limit },
       instructors: { used: used.instructor, limit: room.instructor_limit },
     },
-    signed_in_as: { email: session.email, role: session.role },
+    signed_in_as: { email: session.email, role: session.role, member_id: session.member_id },
   });
 }
 
-// A solo licence for smoke use: one course, far-future expiry, is_test set.
+// A solo license for smoke use: one course, far-future expiry, is_test set.
 // Built by the same buildLicenseRecord() the Dodo webhook uses, so if the
 // record shape drifts this fixture drifts with it and the suite notices.
 const SMOKE_SOLO_PRODUCT = "pdt_0No8cX1sZ1XCttHIl5fh3";   // Linux Foundations, $49/yr
@@ -428,7 +430,7 @@ export async function routeClassroom(request: Request, env: ClassroomEnv): Promi
     });
   }
 
-  // Mints the synthetic solo licence the smoke suite validates against, so no
+  // Mints the synthetic solo license the smoke suite validates against, so no
   // customer key is ever used as a fixture. Gated on the same X-Smoke-Secret as
   // the magic-link test path — the only sanctioned production test entry point.
   // The record is is_test, so it is excluded from customer and revenue counts.

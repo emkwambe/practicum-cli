@@ -60,7 +60,7 @@ it to both the allow-list and the lint's expected set — never widening the
 allow-list with a glob.
 
 **3. All new Dodo products are recurring yearly. No one-time products.**
-The site sells annual licences with no autorenewal, and `practicum-api` stamps
+The site sells annual licenses with no autorenewal, and `practicum-api` stamps
 `expires_at = created_at + 365d` on every key. A one-time product would mint a
 key the copy describes as annual, which the platform then expires.
 
@@ -70,19 +70,19 @@ key the copy describes as annual, which the platform then expires.
 belongs to an active instructor in an `is_test = 1` classroom. Every other
 case — no header, wrong header, valid header against a real classroom, or the
 secret unset — returns the byte-identical body an unknown address gets. Do not
-add another way to obtain a token, a session, or a licence key out of
+add another way to obtain a token, a session, or a license key out of
 production: no debug routes, no `?test=1` parameters, no environment sniffing.
 If a future phase needs a new prod-testable capability, gate it on this same
 header and the same `is_test` check, and assert the negative cases in smoke.
 The secret is never printed, never passed on a command line, and never
 committed; local runs use a different value in `.dev.vars`.
 The same header gates `POST /v1/admin/mint-smoke-solo`, which mints the
-synthetic solo licence the suite validates against — a real customer key is
+synthetic solo license the suite validates against — a real customer key is
 never used as a fixture. That record carries `is_test`, and every customer
 count, revenue figure or export must filter through `countableLicense()`.
 Classroom C (`cls_manualqa…`, `qa_mail_to` set) is for manual QA and really
 does deliver mail; the smoke suite must never touch it, and asserts that it
-does not. Licences issued
+does not. Licenses issued
 inside a test classroom expire after `TEST_LICENSE_TTL_HOURS` (24h) and smoke
 revokes every key it issues on exit, including on failure.
 

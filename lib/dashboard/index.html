@@ -38,7 +38,8 @@ input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{ou
 button{font-family:var(--mono);font-size:.9rem;font-weight:600;padding:.85rem 2rem;background:var(--g);
   color:var(--bg);border:none;border-radius:6px;cursor:pointer;transition:background .2s}
 button:hover{background:var(--gd)}
-button[disabled]{opacity:.6;cursor:progress}
+button[disabled]{opacity:.55;cursor:not-allowed}
+button.busy[disabled]{cursor:progress}
 .btn-quiet{background:transparent;color:var(--t);border:1px solid var(--br);padding:.5rem 1.1rem;font-size:.8rem}
 .btn-quiet:hover{background:transparent;border-color:var(--t);color:var(--w)}
 .stack{display:flex;flex-direction:column;gap:1rem}
@@ -107,8 +108,8 @@ footer .wrap{padding-block:1.25rem}
   <section id="view-login">
     <p class="eyebrow">Instructor sign-in</p>
     <h1>Classroom dashboard</h1>
-    <p class="lede">Enter the email address your Classroom licence was issued to. We send a
-      single-use sign-in link — no password to manage, no licence key in your clipboard.</p>
+    <p class="lede">Enter the email address your Classroom license was issued to. We send a
+      single-use sign-in link — no password to manage, no license key in your clipboard.</p>
     <form class="card auth stack" id="login-form" novalidate>
       <div>
         <label for="email">Instructor email</label>
@@ -150,7 +151,7 @@ footer .wrap{padding-block:1.25rem}
         <div class="meter"><i id="instructor-meter" style="width:0%"></i></div>
       </div>
       <div class="card stat">
-        <div class="k">Licence</div>
+        <div class="k">License</div>
         <div class="v" style="font-size:1rem"><span class="pill" id="room-status">—</span></div>
         <div class="k" style="margin-top:.5rem" id="room-expiry">&nbsp;</div>
       </div>
@@ -160,9 +161,9 @@ footer .wrap{padding-block:1.25rem}
       <h2>Classroom details</h2>
       <dl>
         <dt>Signed in</dt><dd id="me-email">—</dd>
-        <dt>Classroom ID</dt><dd id="room-id">—</dd>
         <dt>Telegram group</dt><dd id="room-telegram">Not set yet</dd>
       </dl>
+      <p class="muted" style="margin:.25rem 0 0">Support reference: <span id="support-ref">—</span></p>
       <ul class="soon">
         <li>Assignments and the cohort progress matrix — next release</li>
       </ul>
@@ -249,9 +250,12 @@ async function loadHome() {
   const { classroom, seats, signed_in_as } = await res.json();
   $('room-name').textContent = classroom.name;
   $('room-sub').textContent = classroom.is_test
-    ? 'Test classroom — email is routed to a sink address.'
+    ? (classroom.qa_mail_to
+        ? `Test classroom — all email is delivered to ${classroom.qa_mail_to}.`
+        : 'Test classroom — email is discarded, not delivered.')
     : 'Seats, assignments and cohort progress for this classroom.';
-  $('room-id').textContent = classroom.id;
+  $('support-ref').textContent = classroom.id;
+  ME = signed_in_as;
   $('me-email').textContent = `${signed_in_as.email} (${signed_in_as.role})`;
 
   const status = $('room-status');
@@ -289,6 +293,9 @@ async function loadHome() {
 }
 
 // --- roster ----------------------------------------------------------------
+
+let ME = {};                 // signed_in_as from /v1/classroom
+let ACTIVE_INSTRUCTORS = 0;  // drives the last-instructor revoke guard
 
 const STATUS_LABEL = { invited: 'Invited', active: 'Active', revoked: 'Revoked' };
 const fmtDate = (v) => {
@@ -349,10 +356,24 @@ function rosterRow(m) {
     revoke.type = 'button';
     revoke.className = 'btn-quiet';
     revoke.textContent = 'Revoke';
-    revoke.title = 'Remove this seat. Their key stops working.';
-    revoke.addEventListener('click', () => memberAction(revoke,
-      `Remove ${m.email} from this classroom? Their key stops working and the seat is freed.`,
-      `/v1/classroom/members/${m.id}`, 'DELETE'));
+
+    // Mirrors the two server-side rules, so the button never offers an action
+    // the API will refuse. The API remains the authority.
+    const isSelf = m.id === ME.member_id;
+    const isLastInstructor = m.role === 'instructor' && ACTIVE_INSTRUCTORS <= 1;
+
+    if (isSelf) {
+      revoke.disabled = true;
+      revoke.title = 'You cannot remove your own seat. Ask another instructor to do it.';
+    } else if (isLastInstructor) {
+      revoke.disabled = true;
+      revoke.title = 'This is the only instructor on the classroom. Invite another instructor first.';
+    } else {
+      revoke.title = 'Remove this seat. Their key stops working.';
+      revoke.addEventListener('click', () => memberAction(revoke,
+        `Remove ${m.email} from this classroom? Their key stops working and the seat is freed.`,
+        `/v1/classroom/members/${m.id}`, 'DELETE'));
+    }
 
     acts.append(resend, revoke);
   } else {
@@ -385,6 +406,7 @@ async function loadRoster() {
   const res = await api('/v1/classroom/members');
   if (!res.ok) return;
   const { members } = await res.json();
+  ACTIVE_INSTRUCTORS = members.filter((m) => m.role === 'instructor' && m.status !== 'revoked').length;
   const body = $('roster-body');
   body.replaceChildren(...members.map(rosterRow));
   $('roster-empty').hidden = members.length > 0;
@@ -502,7 +524,7 @@ $('login-form').addEventListener('submit', async (e) => {
   const email = $('email').value.trim();
   const err = $('login-error');
   err.hidden = true;
-  if (!email) { fail(err, 'Enter the email address your licence was issued to.'); return; }
+  if (!email) { fail(err, 'Enter the email address your license was issued to.'); return; }
 
   const button = $('login-submit');
   button.disabled = true;

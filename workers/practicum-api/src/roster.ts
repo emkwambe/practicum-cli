@@ -9,7 +9,7 @@
 // D1 and KV are not transactional, so every operation is ordered to fail safe:
 //
 //   invite  D1 conditional insert (seat cap enforced in the statement) →
-//           KV licence write (on failure, delete the D1 row) →
+//           KV license write (on failure, delete the D1 row) →
 //           email (on failure, keep the seat, email_status = 'failed')
 //   revoke  KV disable first → then mark revoked in D1
 //           (a crash between the two leaves a dead key holding a seat, which an
@@ -104,7 +104,7 @@ const loadClassroom = (env: RosterEnv, id: string) =>
        FROM classrooms WHERE id = ?`,
   ).bind(id).first<ClassroomRow>();
 
-// Licence expiry for a seat: the classroom's own date, or a short TTL in a test
+// License expiry for a seat: the classroom's own date, or a short TTL in a test
 // classroom so a key that escapes a smoke run dies on its own.
 function seatExpiry(room: ClassroomRow): string {
   if (room.is_test === 1) return new Date(Date.now() + TEST_LICENSE_TTL_HOURS * 3600_000).toISOString();
@@ -140,9 +140,55 @@ async function disableLicense(env: RosterEnv, key: string, reason: string): Prom
   await env.LICENSES.put(key, JSON.stringify(rec));
 }
 
+// Every URL and command in here is verified end to end by the smoke suite:
+// each link must return 200, and the install sequence is run in a clean HOME.
+// There is no hosted installer, so nothing here may reference one — the clone
+// steps below are the ones the site documents and the only ones that work.
+export function inviteSubject(room: { name: string }): string {
+  return `You're invited to ${room.name} on Practicum`;
+}
+
+export function inviteEmailText(opts: {
+  key: string;
+  role: LicenseRole;
+  room: ClassroomRow;
+  invitedBy: string;
+}): string {
+  const telegram = opts.room.telegram_invite_url
+    ? `\nYour class group:\n  ${opts.room.telegram_invite_url}\n`
+    : "";
+  const instructor = opts.role === "instructor-admin"
+    ? `\nYou also have instructor access. Sign in at https://practicum-cli.dev/dashboard/\nwith this email address — no password, we send you a link.\n`
+    : "";
+
+  return (
+    `${opts.invitedBy} invited you to ${opts.room.name} on Practicum.\n\n` +
+    `Practicum teaches Linux, Git, Docker, CI/CD, Terraform and Kubernetes\n` +
+    `entirely in your terminal. You learn by running real commands against\n` +
+    `real systems, not by watching videos.\n\n` +
+    `1. Install it\n\n` +
+    `   git clone https://github.com/emkwambe/practicum-cli.git\n` +
+    `   cd practicum-cli && chmod +x practicum\n\n` +
+    `2. Activate your license\n\n` +
+    `   ./practicum activate ${opts.key}\n\n` +
+    `   On a shared or lab machine, keep the key out of your shell history:\n` +
+    `   PRACTICUM_KEY=your-key ./practicum activate\n\n` +
+    `3. Start learning\n\n` +
+    `   ./practicum start\n\n` +
+    `Your license key\n\n` +
+    `   ${opts.key}\n` +
+    telegram +
+    instructor +
+    `\nYour lesson and lab progress in this classroom is shared with your\n` +
+    `instructor. Nothing else from your machine is collected.\n\n` +
+    `Stuck? Reply to this email or write to practicum@mpingo.ai\n` +
+    `Practicum CLI — https://practicum-cli.dev\n`
+  );
+}
+
 async function sendInviteEmail(
   env: RosterEnv,
-  opts: { to: string; key: string; role: LicenseRole; room: ClassroomRow },
+  opts: { to: string; key: string; role: LicenseRole; room: ClassroomRow; invitedBy: string },
 ): Promise<boolean> {
   // A test classroom sends to its QA address when one is set, else the sink.
   const recipient = opts.room.is_test === 1 ? (opts.room.qa_mail_to ?? TEST_EMAIL_SINK) : opts.to;
@@ -150,12 +196,6 @@ async function sendInviteEmail(
     console.error(`RESEND_API_KEY not set — invite for ${recipient} NOT emailed`);
     return false;
   }
-  const telegram = opts.room.telegram_invite_url
-    ? `\nYour class group:\n  ${opts.room.telegram_invite_url}\n`
-    : "";
-  const dashboard = opts.role === "instructor-admin"
-    ? `\nYou also have dashboard access. Sign in at https://practicum-cli.dev/dashboard/ with this address.\n`
-    : "";
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -163,16 +203,8 @@ async function sendInviteEmail(
     body: JSON.stringify({
       from: "Practicum CLI <practicum@mpingo.ai>",
       to: recipient,
-      subject: `Your seat in ${opts.room.name}`,
-      text:
-        `You have a seat in ${opts.room.name}.\n\n` +
-        `Install and activate in one line:\n` +
-        `  curl -sL https://practicum-cli.dev/install.sh | bash && practicum activate ${opts.key}\n\n` +
-        `Your licence key:\n  ${opts.key}\n` +
-        telegram +
-        dashboard +
-        `\nYour lesson and lab progress in this classroom is shared with your instructor.\n` +
-        `Practicum CLI\nhttps://practicum-cli.dev\n`,
+      subject: inviteSubject(opts.room),
+      text: inviteEmailText(opts),
     }),
   });
   if (!res.ok) console.error(`Resend failed (${res.status}) for ${recipient}: ${await res.text()}`);
@@ -192,6 +224,7 @@ async function inviteOne(
   rawEmail: string,
   displayName: string | null,
   role: LicenseRole,
+  invitedBy: string,
 ): Promise<InviteOutcome> {
   const email = normaliseEmail(rawEmail);
   if (!isEmail(email)) return { ok: false, status: 400, error: "invalid email" };
@@ -232,7 +265,7 @@ async function inviteOne(
   } catch (e) {
     await env.CLASSROOM_DB.prepare(`DELETE FROM members WHERE id = ?`).bind(memberId).run();
     console.error(`KV write failed for ${memberId}, seat released: ${e}`);
-    return { ok: false, status: 502, error: "could not issue a licence key — seat released, try again" };
+    return { ok: false, status: 502, error: "could not issue a license key — seat released, try again" };
   }
 
   await env.CLASSROOM_DB.prepare(
@@ -240,7 +273,7 @@ async function inviteOne(
   ).bind(key.slice(0, 8), await sha256Hex(key), memberId).run();
 
   // Email last: a failure here costs the invite, not the seat.
-  const sent = await sendInviteEmail(env, { to: email, key, role, room });
+  const sent = await sendInviteEmail(env, { to: email, key, role, room, invitedBy });
   await env.CLASSROOM_DB.prepare(`UPDATE members SET email_status = ? WHERE id = ?`)
     .bind(sent ? "sent" : "failed", memberId).run();
 
@@ -269,7 +302,7 @@ async function createMember(request: Request, env: RosterEnv, session: Session):
 
   const body = await readBody(request);
   const role: LicenseRole = body.role === "instructor" || body.role === "instructor-admin" ? "instructor-admin" : "learner";
-  const result = await inviteOne(env, session, room, body.email ?? "", body.display_name?.trim() || null, role);
+  const result = await inviteOne(env, session, room, body.email ?? "", body.display_name?.trim() || null, role, session.email);
 
   if (!result.ok) return json(request, { error: result.error }, result.status);
   // The key itself is never returned to the browser — it goes to the learner by
@@ -280,8 +313,15 @@ async function createMember(request: Request, env: RosterEnv, session: Session):
     role,
     key_prefix: result.key.slice(0, 8),
     email_status: result.email_status,
-    // Smoke needs the key to prove the licence validates; test classrooms only.
-    ...(room.is_test === 1 ? { test_key: result.key } : {}),
+    // Test classrooms only: the key proves the license validates, and the exact
+    // email body lets smoke check every URL and command a learner is given.
+    ...(room.is_test === 1
+      ? {
+          test_key: result.key,
+          test_email_subject: inviteSubject(room),
+          test_email_text: inviteEmailText({ key: result.key, role, room, invitedBy: session.email }),
+        }
+      : {}),
   }, 201);
 }
 
@@ -323,7 +363,7 @@ async function importMembers(request: Request, env: RosterEnv, session: Session)
       results.push({ row: i + 1, email: row.email, outcome: "invalid" });
       continue;
     }
-    const r = await inviteOne(env, session, room, email, row.name, "learner");
+    const r = await inviteOne(env, session, room, email, row.name, "learner", session.email);
     if (r.ok) {
       results.push({
         row: i + 1, email, member_id: r.member_id,
@@ -376,7 +416,7 @@ async function resendMember(request: Request, env: RosterEnv, session: Session, 
   ).bind(newRotation, newKey.slice(0, 8), await sha256Hex(newKey), member.id).run();
   await disableLicense(env, oldKey, "rotated");
 
-  const sent = await sendInviteEmail(env, { to: member.email, key: newKey, role, room });
+  const sent = await sendInviteEmail(env, { to: member.email, key: newKey, role, room, invitedBy: session.email });
   await env.CLASSROOM_DB.prepare(`UPDATE members SET email_status = ? WHERE id = ?`)
     .bind(sent ? "sent" : "failed", member.id).run();
 
@@ -392,10 +432,38 @@ async function resendMember(request: Request, env: RosterEnv, session: Session, 
 async function revokeMember(request: Request, env: RosterEnv, session: Session, memberId: string): Promise<Response> {
   if (!env.HMAC_SECRET) return json(request, { error: "Key service unavailable" }, 503);
   const member = await env.CLASSROOM_DB.prepare(
-    `SELECT id, email, rotations, status FROM members WHERE id = ? AND classroom_id = ?`,
-  ).bind(memberId, session.classroom_id).first<{ id: string; email: string; rotations: number; status: string }>();
+    `SELECT id, email, role, rotations, status FROM members WHERE id = ? AND classroom_id = ?`,
+  ).bind(memberId, session.classroom_id).first<{
+    id: string; email: string; role: string; rotations: number; status: string;
+  }>();
   if (!member) return json(request, { error: "Member not found" }, 404);
   if (member.status === "revoked") return json(request, { ok: true, already: true });
+
+  // A classroom with no instructor cannot be administered: nobody could sign in
+  // to invite, revoke, or export, and recovering it needs manual intervention.
+  // Checked before the self-revoke rule so the sole instructor gets the reason
+  // that actually explains their situation.
+  if (member.role === "instructor") {
+    const others = await env.CLASSROOM_DB.prepare(
+      `SELECT COUNT(*) AS n FROM members
+        WHERE classroom_id = ? AND role = 'instructor' AND status IN ('invited','active') AND id != ?`,
+    ).bind(session.classroom_id, member.id).first<{ n: number }>();
+    if ((others?.n ?? 0) === 0) {
+      return json(request, {
+        error: "This is the only instructor on the classroom. Invite another instructor before removing this one.",
+        code: "last_instructor",
+      }, 409);
+    }
+  }
+
+  // Removing your own seat would sign you out mid-action and, for the last
+  // instructor, strand the classroom. Another instructor can always do it.
+  if (member.id === session.member_id) {
+    return json(request, {
+      error: "You cannot remove your own seat. Ask another instructor to do it.",
+      code: "self_revoke",
+    }, 409);
+  }
 
   // KV first: after this the key cannot be used, whatever happens next. The
   // reverse order could free a seat while the key still validated.

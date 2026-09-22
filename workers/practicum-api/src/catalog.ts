@@ -1,4 +1,4 @@
-// Shape of a licence record in the LICENSES KV namespace, shared by the Dodo
+// Shape of a license record in the LICENSES KV namespace, shared by the Dodo
 // webhook (index.ts) and classroom seat provisioning (roster.ts). Both write
 // the same shape so lib/license.sh needs no knowledge of where a key came from.
 
@@ -24,16 +24,16 @@ export interface LicenseRecord {
   revoked: boolean;
   revoked_at: string | null;
   revoked_reason: string | null;
-  // Present only on classroom-issued keys. Solo licences never carry these,
+  // Present only on classroom-issued keys. Solo licenses never carry these,
   // and nothing in the validate path requires them.
   classroom_id?: string;
   member_id?: string;
-  // Synthetic licences minted for smoke tests. Any customer count, revenue
+  // Synthetic licenses minted for smoke tests. Any customer count, revenue
   // report or export MUST filter these out — see countableLicense().
   is_test?: boolean;
 }
 
-// The single place a licence record is constructed. The Dodo webhook, classroom
+// The single place a license record is constructed. The Dodo webhook, classroom
 // seat provisioning and the smoke-key minter all go through here so a record
 // can never be hand-assembled and drift from what /license/validate expects.
 export function buildLicenseRecord(opts: {
@@ -69,8 +69,8 @@ export function buildLicenseRecord(opts: {
   };
 }
 
-// Whether a licence represents a real customer. Every count, revenue figure or
-// export of licences must be filtered through this, not written ad hoc.
+// Whether a license represents a real customer. Every count, revenue figure or
+// export of licenses must be filtered through this, not written ad hoc.
 export const countableLicense = (r: Pick<LicenseRecord, "is_test">) => r.is_test !== true;
 
 const enc = new TextEncoder();

@@ -1,4 +1,4 @@
-// Mints the synthetic solo licence the smoke suite validates against.
+// Mints the synthetic solo license the smoke suite validates against.
 //
 //   node scripts/mint-smoke-solo.ts            # production
 //   API=http://127.0.0.1:8787 node scripts/mint-smoke-solo.ts   # local dev
@@ -40,7 +40,7 @@ const body = (await res.json()) as { key: string; email: string; entitlements: s
 mkdirSync(dirname(KEY_FILE), { recursive: true });
 writeFileSync(KEY_FILE, body.key, { encoding: "utf8" });   // no BOM, no trailing newline
 
-console.log("Smoke solo licence minted.");
+console.log("Smoke solo license minted.");
 console.log(`  written to   ${KEY_FILE}`);
 console.log(`  email        ${body.email}`);
 console.log(`  entitlements ${body.entitlements.join(", ")}`);

@@ -1,17 +1,17 @@
 # Practicum Classroom — instructor guide
 
-A Classroom licence gives you 30 learner seats and 2 instructor seats for a
-12-month term, with the full catalogue and all Practicum Labs for everyone on
+A Classroom license gives you 30 learner seats and 2 instructor seats for a
+12-month term, with the full catalog and all Practicum Labs for everyone on
 the roster.
 
 ## Signing in
 
 The dashboard is at **practicum-cli.dev/dashboard/**. There is no password:
-enter the email address your Classroom licence was issued to and we send a
+enter the email address your Classroom license was issued to and we send a
 sign-in link. The link works once and expires after 15 minutes, and it only
 works for an instructor on an active classroom.
 
-We deliberately don't sign you in with a licence key. Keys get pasted into
+We deliberately don't sign you in with a license key. Keys get pasted into
 terminals and shared screens, and this dashboard shows your learners' names,
 email addresses and progress.
 
@@ -19,8 +19,8 @@ email addresses and progress.
 
 Invite one at a time from the roster, or import a CSV of up to 100 rows with
 `email,display_name` (a header row is optional — download the template from the
-dashboard). Each learner gets an email with their own licence key and a
-one-line install command.
+dashboard). Each learner gets an email with their own license key and the
+three steps to install Practicum, activate it, and start the course.
 
 Rows are handled independently: a bad address in your CSV is reported on its
 own row and never blocks the good ones. The results table tells you exactly
@@ -46,11 +46,11 @@ to cut off access urgently.
 
 Two things are in the way:
 
-1. **Propagation (seconds to about a minute).** Licence data is replicated
+1. **Propagation (seconds to about a minute).** License data is replicated
    around the world so the CLI is fast everywhere. A revocation takes a short
    while to reach every location.
-2. **The learner's cached licence (up to 24 hours).** The CLI remembers a valid
-   licence for 24 hours so learners can work on a train, on hotel wifi, or in a
+2. **The learner's cached license (up to 24 hours).** The CLI remembers a valid
+   license for 24 hours so learners can work on a train, on hotel wifi, or in a
    lab with no internet. Until that cache next refreshes, their terminal does
    not know anything changed.
 
@@ -59,7 +59,7 @@ after you revoke them. The seat is freed for re-use immediately — it is only
 their existing copy that lags.
 
 If you need access stopped sooner than that, revoke the seat and tell the
-learner; running `practicum license` refreshes their licence on the spot and
+learner; running `practicum license` refreshes their license on the spot and
 they will see that their seat was removed.
 
 When it does take effect, the learner sees:
@@ -70,13 +70,14 @@ Your classroom seat was removed. Contact your instructor.
 
 ## What your learners see
 
-Learners install Practicum, run `practicum activate <key>`, and get the full
-catalogue for the length of your licence term.
+Learners clone the repo, run `./practicum activate <key>` (or
+`PRACTICUM_KEY=... ./practicum activate` on a shared machine), and get the full
+catalog for the length of your license term.
 
 The first time a classroom key is activated, the CLI tells the learner plainly
 that their lesson and lab progress is shared with their instructor, and asks
 them to acknowledge it before anything is sent. Nothing is reported before that
-acknowledgement, and solo (non-classroom) licences never report progress at all.
+acknowledgement, and solo (non-classroom) licenses never report progress at all.
 
 ## Your Telegram group
 
@@ -85,9 +86,9 @@ invite email, and learners can print it any time with `practicum community`.
 You manage the group yourself — we only distribute the link, and only to people
 who hold a seat.
 
-## Licence term
+## License term
 
-Your licence runs for 12 months from purchase and does not auto-renew. New
+Your license runs for 12 months from purchase and does not auto-renew. New
 courses, lessons and labs added during that period are included. If you cancel,
 access continues to the end of the term; there are no prorated refunds for
 unused months.

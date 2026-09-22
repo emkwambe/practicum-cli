@@ -138,11 +138,15 @@ _cache_intact() {
 # --- commands ----------------------------------------------------------------
 
 activate_license() {
+    # PRACTICUM_KEY keeps the key out of shell history and the process list,
+    # which matters on the shared and lab machines classrooms often run on.
+    local raw="${1:-${PRACTICUM_KEY:-}}"
     local key
-    key=$(printf '%s' "$1" | tr '[:lower:]' '[:upper:]' | tr -d '[:space:]')
+    key=$(printf '%s' "$raw" | tr '[:lower:]' '[:upper:]' | tr -d '[:space:]')
 
     if [ -z "$key" ]; then
         echo -e "  ${C_RED}Usage: practicum activate <license_key>${C_RESET}"
+        echo -e "  ${C_DIM}   or: PRACTICUM_KEY=<license_key> practicum activate${C_RESET}"
         echo ""
         echo -e "  ${C_DIM}Get your key at: https://practicum-cli.dev/#pricing${C_RESET}"
         return 1
