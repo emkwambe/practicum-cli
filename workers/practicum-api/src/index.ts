@@ -54,6 +54,9 @@ const PRODUCT_SEATS: Record<string, number> = {
   pdt_0No7umOh6PEBDCQTfXWzm: 10,
 };
 
+const LICENSE_TERM_DAYS = 365;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
 interface LicenseRecord {
   key: string;
   email: string;
@@ -62,6 +65,7 @@ interface LicenseRecord {
   order_id: string;
   seats: number;
   created_at: string;
+  expires_at: string;   // ISO, created_at + LICENSE_TERM_DAYS
   activated: boolean;
   activated_at: string | null;
   revoked: boolean;
@@ -134,7 +138,7 @@ export async function verifyDodoSignature(request: Request, body: string, secret
 // Email
 // ---------------------------------------------------------------------------
 
-async function sendLicenseEmail(env: Env, email: string, key: string, entitlements: string[]): Promise<boolean> {
+async function sendLicenseEmail(env: Env, email: string, key: string, entitlements: string[], expiresAt: string): Promise<boolean> {
   if (!env.RESEND_API_KEY) {
     console.error(`RESEND_API_KEY not set — license ${key} for ${email} NOT emailed`);
     return false;
@@ -151,6 +155,7 @@ async function sendLicenseEmail(env: Env, email: string, key: string, entitlemen
         `Your Practicum CLI license key:\n\n${key}\n\n` +
         `Activate with:\n  practicum activate ${key}\n\n` +
         `Courses unlocked:\n${courseList}\n\n` +
+        `Valid until ${expiresAt.slice(0, 10)}. Annual license, no autorenewal.\n\n` +
         `Practicum CLI — Precision tools that last.\nhttps://practicum-cli.dev`,
     }),
   });
@@ -224,6 +229,7 @@ async function handleDodoWebhook(request: Request, env: Env): Promise<Response> 
   }
 
   const key = await generateLicenseKey(orderId, env.HMAC_SECRET);
+  const now = Date.now();
   const record: LicenseRecord = {
     key,
     email,
@@ -231,7 +237,8 @@ async function handleDodoWebhook(request: Request, env: Env): Promise<Response> 
     entitlements,
     order_id: orderId,
     seats: PRODUCT_SEATS[productId] ?? 1,
-    created_at: new Date().toISOString(),
+    created_at: new Date(now).toISOString(),
+    expires_at: new Date(now + LICENSE_TERM_DAYS * DAY_MS).toISOString(),
     activated: false,
     activated_at: null,
     revoked: false,
@@ -242,7 +249,7 @@ async function handleDodoWebhook(request: Request, env: Env): Promise<Response> 
   await env.LICENSES.put(key, JSON.stringify(record));
   await env.ORDERS.put(orderId, key);
 
-  await sendLicenseEmail(env, email, key, entitlements);
+  await sendLicenseEmail(env, email, key, entitlements, record.expires_at);
   return new Response("OK");
 }
 
@@ -253,6 +260,13 @@ async function handleValidate(request: Request, env: Env): Promise<Response> {
   const license = await env.LICENSES.get<LicenseRecord>(key, "json");
   if (!license) return json({ valid: false, error: "License not found" }, 404);
   if (license.revoked) return json({ valid: false, error: "License revoked" }, 403);
+
+  // Annual term. Records minted before expiry existed fall back to created_at + term.
+  const expiresAt = license.expires_at ?? new Date(Date.parse(license.created_at) + LICENSE_TERM_DAYS * DAY_MS).toISOString();
+  const expiresEpoch = Math.floor(Date.parse(expiresAt) / 1000);
+  if (Date.now() >= expiresEpoch * 1000) {
+    return json({ valid: false, error: "License expired", expires_at: expiresAt, expires_epoch: expiresEpoch }, 403);
+  }
 
   if (!license.activated) {
     license.activated = true;
@@ -268,6 +282,8 @@ async function handleValidate(request: Request, env: Env): Promise<Response> {
     entitlements: license.entitlements,
     seats: license.seats,
     activated_at: license.activated_at,
+    expires_at: expiresAt,
+    expires_epoch: expiresEpoch,
   });
 }
 

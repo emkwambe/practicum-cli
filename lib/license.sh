@@ -9,6 +9,8 @@
 
 PRACTICUM_API="${PRACTICUM_API:-https://api.practicum-cli.dev}"
 LICENSE_FILE="$HOME/.practicum/license.json"
+LICENSE_EXPIRED_FILE="$HOME/.practicum/license.expired"   # date of last expiry, for messaging
+LICENSE_DENY_REASON="unlicensed"   # set by validate_license / can_access_course
 LICENSE_CACHE_TTL=86400        # 24h — trust cache without a server call
 LICENSE_OFFLINE_GRACE=604800   # 7d  — keep working offline if server unreachable
 FREE_COURSES="00-cli-immersion"
@@ -67,6 +69,8 @@ _license_write() {
     "entitlements": "$(_json_arr "$body" entitlements)",
     "seats": "$(_json_num "$body" seats)",
     "activated_at": "$(_json_str "$body" activated_at)",
+    "expires_at": "$(_json_str "$body" expires_at)",
+    "expires_epoch": "$(_json_num "$body" expires_epoch)",
     "cached_epoch": "$(date +%s)",
     "valid": "true"
 }
@@ -106,6 +110,7 @@ activate_license() {
     fi
 
     _license_write "$body"
+    rm -f "$LICENSE_EXPIRED_FILE"
 
     echo ""
     echo -e "  ${C_GREEN}✅ License activated for $(_json_str "$body" email)${C_RESET}"
@@ -114,8 +119,23 @@ activate_license() {
     for c in $(_json_arr "$body" entitlements); do
         echo -e "  ${C_DIM}    • $(get_course_name "$c")${C_RESET}"
     done
+    echo -e "  ${C_WHITE}  Valid until: $(_license_expiry_date)${C_RESET}  ${C_DIM}(annual license, no autorenewal)${C_RESET}"
     echo ""
     return 0
+}
+
+# _license_expiry_date → YYYY-MM-DD from the cached expires_at
+_license_expiry_date() {
+    local iso
+    iso=$(_license_field expires_at)
+    printf '%s' "${iso:0:10}"
+}
+
+# _license_expired → 0 if the cached license is past its expiry
+_license_expired() {
+    local exp
+    exp=$(_license_field expires_epoch)
+    [ -n "$exp" ] && [ "$(date +%s)" -ge "$exp" ]
 }
 
 # Remove the local license (frees this machine; the key itself stays valid).
@@ -134,15 +154,26 @@ license_status() {
     if [ -f "$LICENSE_FILE" ] && [ "$(_license_field valid)" = "true" ]; then
         local key
         key=$(_license_field key)
+        if _license_expired; then
+            echo -e "  ${C_YELLOW}License: EXPIRED on $(_license_expiry_date)${C_RESET}"
+            echo -e "  ${C_DIM}  Renew: https://practicum-cli.dev/#pricing${C_RESET}"
+            return 0
+        fi
         echo -e "  ${C_GREEN}License: ACTIVE${C_RESET}"
-        echo -e "  ${C_DIM}  Key:   ${key:0:9}...${key: -4}${C_RESET}"
-        echo -e "  ${C_DIM}  Email: $(_license_field email)${C_RESET}"
+        echo -e "  ${C_DIM}  Key:     ${key:0:9}...${key: -4}${C_RESET}"
+        echo -e "  ${C_DIM}  Email:   $(_license_field email)${C_RESET}"
+        echo -e "  ${C_DIM}  Expires: $(_license_expiry_date)${C_RESET}"
         echo -e "  ${C_DIM}  Courses:${C_RESET}"
         local c
         for c in $(_license_field entitlements); do
             echo -e "  ${C_DIM}    • $(get_course_name "$c")${C_RESET}"
         done
     else
+        if [ -f "$LICENSE_EXPIRED_FILE" ]; then
+            echo -e "  ${C_YELLOW}License: EXPIRED on $(cat "$LICENSE_EXPIRED_FILE")${C_RESET}"
+            echo -e "  ${C_DIM}  Renew: https://practicum-cli.dev/#pricing${C_RESET}"
+            return 0
+        fi
         echo -e "  ${C_YELLOW}License: FREE (CLI Immersion + Days 1-3 of every course)${C_RESET}"
         echo -e "  ${C_DIM}  Upgrade:  https://practicum-cli.dev/#pricing${C_RESET}"
         echo -e "  ${C_DIM}  Activate: practicum activate <key>${C_RESET}"
@@ -156,8 +187,18 @@ license_status() {
 #   stale cache, server reachable   → refresh; revoked/unknown → drop cache
 #   stale cache, server unreachable → trust up to 7d after last validation
 validate_license() {
-    [ -f "$LICENSE_FILE" ] || return 1
+    LICENSE_DENY_REASON="unlicensed"
+    if [ ! -f "$LICENSE_FILE" ]; then
+        [ -f "$LICENSE_EXPIRED_FILE" ] && LICENSE_DENY_REASON="expired"
+        return 1
+    fi
     [ "$(_license_field valid)" = "true" ] || return 1
+
+    # Annual term — checked from the cache first, no network needed.
+    if _license_expired; then
+        _license_expire_locally "$(_license_expiry_date)"
+        return 1
+    fi
 
     local key cached age
     key=$(_license_field key)
@@ -173,13 +214,24 @@ validate_license() {
             _license_write "$body"
             return 0
         fi
-        # Server answered and said no (revoked / not found): drop the cache.
-        rm -f "$LICENSE_FILE"
+        # Server answered and said no (expired / revoked / not found): drop the cache.
+        if [ "$(_json_str "$body" error)" = "License expired" ]; then
+            _license_expire_locally "$(_json_str "$body" expires_at | cut -c1-10)"
+        else
+            rm -f "$LICENSE_FILE"
+        fi
         return 1
     fi
 
     # Unreachable: offline grace.
     [ "$age" -lt "$LICENSE_OFFLINE_GRACE" ]
+}
+
+# _license_expire_locally <YYYY-MM-DD> — purge the cache, remember the date for messaging
+_license_expire_locally() {
+    rm -f "$LICENSE_FILE"
+    printf '%s\n' "$1" > "$LICENSE_EXPIRED_FILE"
+    LICENSE_DENY_REASON="expired"
 }
 
 # is_free_course <slug>
@@ -206,6 +258,7 @@ can_access_course() {
     for c in $(_license_field entitlements); do
         [ "$c" = "$course" ] && return 0
     done
+    LICENSE_DENY_REASON="entitlement"
     return 1
 }
 
@@ -218,7 +271,13 @@ can_access_day() {
     can_access_course "$course"
 }
 
+# show_upgrade_prompt [reason] — reason: unlicensed | expired | entitlement
+# Defaults to whatever the last can_access_* call decided.
 show_upgrade_prompt() {
+    local reason="${1:-${LICENSE_DENY_REASON:-unlicensed}}"
+    if [ "$reason" = "unlicensed" ] && [ ! -f "$LICENSE_FILE" ] && [ -f "$LICENSE_EXPIRED_FILE" ]; then
+        reason="expired"
+    fi
     local course
     course=$(get_active_course)
     echo ""
@@ -226,18 +285,27 @@ show_upgrade_prompt() {
     echo -e "  ${C_YELLOW}  🔒 Premium Content — License Required${C_RESET}"
     echo -e "  ${C_PURPLE}=========================================${C_RESET}"
     echo ""
-    if [ -f "$LICENSE_FILE" ] && [ "$(_license_field valid)" = "true" ]; then
-        echo -e "  ${C_WHITE}Your license does not include $(get_course_name "$course").${C_RESET}"
-    else
-        echo -e "  ${C_WHITE}Days 1-3 are free. Days 4+ require a license.${C_RESET}"
-    fi
+    case "$reason" in
+        expired)
+            local when
+            when=$(cat "$LICENSE_EXPIRED_FILE" 2>/dev/null)
+            echo -e "  ${C_WHITE}Your Practicum license expired${when:+ on $when}.${C_RESET}"
+            echo -e "  ${C_WHITE}Renew your annual license to continue.${C_RESET}"
+            ;;
+        entitlement)
+            echo -e "  ${C_WHITE}$(get_course_name "$course") is not included in your license.${C_RESET}"
+            ;;
+        *)
+            echo -e "  ${C_WHITE}Days 1-3 are free. Days 4+ require a license.${C_RESET}"
+            ;;
+    esac
     echo ""
-    echo -e "  ${C_WHITE}  Single Course${C_RESET}      ${C_GREEN}\$49${C_RESET}   ${C_DIM}One course + certificate${C_RESET}"
-    echo -e "  ${C_WHITE}  Data Engineering${C_RESET}   ${C_GREEN}\$99${C_RESET}   ${C_DIM}3 courses · 26 days${C_RESET}"
-    echo -e "  ${C_WHITE}  Platform Eng${C_RESET}      ${C_GREEN}\$129${C_RESET}   ${C_DIM}6 courses · 66 days${C_RESET}"
-    echo -e "  ${C_WHITE}  Full Catalog${C_RESET}      ${C_GREEN}\$199${C_RESET}   ${C_DIM}All 8 courses + updates${C_RESET}"
+    echo -e "  ${C_WHITE}  Single Course${C_RESET}      ${C_GREEN}\$49/yr${C_RESET}   ${C_DIM}One course + certificate${C_RESET}"
+    echo -e "  ${C_WHITE}  Data Engineering${C_RESET}   ${C_GREEN}\$99/yr${C_RESET}   ${C_DIM}3 courses · 26 days${C_RESET}"
+    echo -e "  ${C_WHITE}  Platform Eng${C_RESET}      ${C_GREEN}\$129/yr${C_RESET}   ${C_DIM}6 courses · 66 days${C_RESET}"
+    echo -e "  ${C_WHITE}  Full Catalog${C_RESET}      ${C_GREEN}\$199/yr${C_RESET}   ${C_DIM}All 8 courses + Labs${C_RESET}"
     echo ""
-    echo -e "  ${C_WHITE}Buy once. Yours forever.${C_RESET}"
+    echo -e "  ${C_WHITE}Annual license. No autorenewal.${C_RESET}"
     echo -e "  ${C_CYAN}  Purchase: https://practicum-cli.dev/#pricing${C_RESET}"
     echo -e "  ${C_CYAN}  Activate: practicum activate <your-key>${C_RESET}"
     echo ""
