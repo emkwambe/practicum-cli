@@ -27,15 +27,26 @@ cleanup() {
             ctok=$(magic_token "$EMAIL" 2>/dev/null)
             [ -n "$ctok" ] && curl -s -o /dev/null -c "$JAR" "$API/v1/auth/verify?token=$ctok" 2>/dev/null
         fi
+        # The member id is what the DELETE addresses and is always present; the
+        # key is only known for seats issued one at a time, since a CSV import
+        # returns member ids without keys. Name the id on every line so each one
+        # identifies what it revoked, and add the key prefix when we have it.
+        # (The old format sliced to the first "-", which is the literal "PRAC"
+        # on every key, so every line read the same — and blank for imports.)
+        revoked_n=0; failed_n=0
         while IFS='|' read -r member_id key; do
             [ -n "$member_id" ] || continue
+            what="$member_id"
+            [ -n "$key" ] && what="$member_id (${key:0:9}…)"
             code=$(curl -s -o /dev/null -w '%{http_code}' -X DELETE -b "$JAR" \
                 "$API/v1/classroom/members/$member_id" 2>/dev/null)
             case "$code" in
-                2*) echo "  revoked ${key%%-*}-…" ;;
-                *)  echo "  WARNING: could not revoke ${key%%-*}-… (HTTP $code) — it expires on its own within ${TEST_LICENSE_TTL_HOURS:-24}h" ;;
+                2*) echo "  revoked $what"; revoked_n=$((revoked_n + 1)) ;;
+                *)  echo "  FAILED to revoke $what — HTTP $code; the key expires on its own within ${TEST_LICENSE_TTL_HOURS:-24}h"
+                    failed_n=$((failed_n + 1)) ;;
             esac
         done < "$ISSUED_KEYS"
+        echo "  $revoked_n revoked, $failed_n failed"
     fi
     rm -f "$JAR" "$JAR_B" "$BODY" "$ISSUED_KEYS"
 }
