@@ -18,7 +18,7 @@
 //   resend  write new KV key → update D1 hash/prefix → disable old KV key
 //           (the learner is never without a working key)
 
-import { FULL_CATALOG, licenseKeyFrom, sha256Hex, type LicenseRecord, type LicenseRole } from "./catalog";
+import { FULL_CATALOG, buildLicenseRecord, licenseKeyFrom, sha256Hex, type LicenseRecord, type LicenseRole } from "./catalog";
 import { TEST_LICENSE_TTL_HOURS, type ClassroomEnv, type Session, newId, readBody, corsHeaders } from "./classroom";
 
 export interface RosterEnv extends ClassroomEnv {
@@ -28,7 +28,11 @@ export interface RosterEnv extends ClassroomEnv {
 
 const CSV_MAX_BYTES = 64 * 1024;
 const CSV_MAX_ROWS = 100;
-const RATE_LIMIT = { invite: 60, import: 5 }; // per session, per hour
+// Two layers. The session window contains a single runaway tab; the classroom
+// window is the backstop that caps what one classroom can cost in outbound
+// email per day however many sessions an instructor opens.
+const RATE_LIMIT = { invite: 60, import: 5 };            // per session, per hour
+const CLASSROOM_DAILY = { invite: 200, import: 20 };     // per classroom, per day
 const TEST_EMAIL_SINK = "delivered@resend.dev";
 const CLASSROOM_PRODUCT = "pdt_0No8Kgf2Z4FOleEA96DEW";
 
@@ -64,10 +68,22 @@ async function rateLimited(
   bucket: keyof typeof RATE_LIMIT,
 ): Promise<boolean> {
   const sid = (await sha256Hex(sessionId(request))).slice(0, 24);
-  const key = `rl:${bucket}:${sid}:${Math.floor(Date.now() / 3_600_000)}`;
-  const used = Number((await env.SESSIONS.get(key)) ?? "0");
-  if (used >= RATE_LIMIT[bucket]) return true;
-  await env.SESSIONS.put(key, String(used + 1), { expirationTtl: 3600 });
+  const hour = Math.floor(Date.now() / 3_600_000);
+  const day = Math.floor(Date.now() / 86_400_000);
+  const sessionKey = `rl:${bucket}:${sid}:${hour}`;
+  const roomKey = `rlc:${bucket}:${session.classroom_id}:${day}`;
+
+  const [sessionUsed, roomUsed] = await Promise.all([
+    env.SESSIONS.get(sessionKey).then((v) => Number(v ?? "0")),
+    env.SESSIONS.get(roomKey).then((v) => Number(v ?? "0")),
+  ]);
+
+  if (sessionUsed >= RATE_LIMIT[bucket] || roomUsed >= CLASSROOM_DAILY[bucket]) return true;
+
+  await Promise.all([
+    env.SESSIONS.put(sessionKey, String(sessionUsed + 1), { expirationTtl: 3600 }),
+    env.SESSIONS.put(roomKey, String(roomUsed + 1), { expirationTtl: 86_400 }),
+  ]);
   return false;
 }
 
@@ -77,13 +93,14 @@ interface ClassroomRow {
   expires_at: string;
   telegram_invite_url: string | null;
   is_test: number;
+  qa_mail_to: string | null;
   learner_limit: number;
   instructor_limit: number;
 }
 
 const loadClassroom = (env: RosterEnv, id: string) =>
   env.CLASSROOM_DB.prepare(
-    `SELECT id, name, expires_at, telegram_invite_url, is_test, learner_limit, instructor_limit
+    `SELECT id, name, expires_at, telegram_invite_url, is_test, qa_mail_to, learner_limit, instructor_limit
        FROM classrooms WHERE id = ?`,
   ).bind(id).first<ClassroomRow>();
 
@@ -99,24 +116,18 @@ async function writeLicense(
   opts: { key: string; email: string; role: LicenseRole; room: ClassroomRow; member_id: string },
 ): Promise<void> {
   const expires_at = seatExpiry(opts.room);
-  const record: LicenseRecord = {
+  const record: LicenseRecord = buildLicenseRecord({
     key: opts.key,
     email: opts.email,
     product_id: CLASSROOM_PRODUCT,
     entitlements: FULL_CATALOG,
     order_id: `classroom:${opts.room.id}:${opts.member_id}`,
-    seats: 1,
     role: opts.role,
-    created_at: new Date().toISOString(),
     expires_at,
-    activated: false,
-    activated_at: null,
-    revoked: false,
-    revoked_at: null,
-    revoked_reason: null,
     classroom_id: opts.room.id,
     member_id: opts.member_id,
-  };
+    is_test: opts.room.is_test === 1,
+  });
   await env.LICENSES.put(opts.key, JSON.stringify(record));
 }
 
@@ -133,7 +144,8 @@ async function sendInviteEmail(
   env: RosterEnv,
   opts: { to: string; key: string; role: LicenseRole; room: ClassroomRow },
 ): Promise<boolean> {
-  const recipient = opts.room.is_test === 1 ? TEST_EMAIL_SINK : opts.to;
+  // A test classroom sends to its QA address when one is set, else the sink.
+  const recipient = opts.room.is_test === 1 ? (opts.room.qa_mail_to ?? TEST_EMAIL_SINK) : opts.to;
   if (!env.RESEND_API_KEY) {
     console.error(`RESEND_API_KEY not set — invite for ${recipient} NOT emailed`);
     return false;
@@ -300,7 +312,9 @@ async function importMembers(request: Request, env: RosterEnv, session: Session)
   }
 
   const { rows, skipped } = parseCsv(text);
-  const results: Array<{ row: number; email: string; outcome: string; detail?: string }> = [];
+  // member_id is returned for created rows so the smoke suite can revoke every
+  // seat it opens; without it an aborted run leaks seats into the classroom.
+  const results: Array<{ row: number; email: string; outcome: string; member_id?: string; detail?: string }> = [];
 
   // Bad rows never block good ones: each is invited on its own.
   for (const [i, row] of rows.entries()) {
@@ -311,7 +325,10 @@ async function importMembers(request: Request, env: RosterEnv, session: Session)
     }
     const r = await inviteOne(env, session, room, email, row.name, "learner");
     if (r.ok) {
-      results.push({ row: i + 1, email, outcome: r.email_status === "sent" ? "created" : "created_email_failed" });
+      results.push({
+        row: i + 1, email, member_id: r.member_id,
+        outcome: r.email_status === "sent" ? "created" : "created_email_failed",
+      });
     } else if (r.status === 409 && r.error.includes("already")) {
       results.push({ row: i + 1, email, outcome: "duplicate" });
     } else if (r.status === 409) {

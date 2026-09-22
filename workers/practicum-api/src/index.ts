@@ -7,6 +7,7 @@
 // Secrets (wrangler secret put): DODO_WEBHOOK_SECRET, HMAC_SECRET, RESEND_API_KEY
 
 import { routeClassroom, corsHeaders, type ClassroomEnv } from "./classroom";
+import { buildLicenseRecord, type LicenseRecord, type LicenseRole } from "./catalog";
 
 export interface Env extends ClassroomEnv {
   LICENSES: KVNamespace;
@@ -71,8 +72,7 @@ const PRODUCT_SEATS: Record<string, number> = {
 };
 
 const CLASSROOM_PRODUCT = "pdt_0No8Kgf2Z4FOleEA96DEW";
-type Role = "learner" | "instructor-admin";
-const PRODUCT_ROLE: Record<string, Role> = {
+const PRODUCT_ROLE: Record<string, LicenseRole> = {
   [CLASSROOM_PRODUCT]: "instructor-admin",
   // all others default to "learner"
 };
@@ -80,25 +80,8 @@ const PRODUCT_ROLE: Record<string, Role> = {
 const LICENSE_TERM_DAYS = 365;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-interface LicenseRecord {
-  key: string;
-  email: string;
-  product_id: string;
-  entitlements: string[];
-  order_id: string;
-  seats: number;
-  role: Role;
-  created_at: string;
-  expires_at: string;   // ISO, created_at + LICENSE_TERM_DAYS
-  activated: boolean;
-  activated_at: string | null;
-  revoked: boolean;
-  revoked_at: string | null;
-  revoked_reason: string | null;
-  // Set by classroom seat provisioning (roster.ts); absent on solo licences.
-  classroom_id?: string;
-  member_id?: string;
-}
+// LicenseRecord lives in catalog.ts — one definition shared by the webhook,
+// classroom seat provisioning and the smoke-key minter.
 
 // ---------------------------------------------------------------------------
 // Crypto helpers
@@ -264,7 +247,7 @@ async function handleDodoWebhook(request: Request, env: Env): Promise<Response> 
 
   const key = await generateLicenseKey(orderId, env.HMAC_SECRET);
   const now = Date.now();
-  const record: LicenseRecord = {
+  const record: LicenseRecord = buildLicenseRecord({
     key,
     email,
     product_id: productId,
@@ -272,14 +255,8 @@ async function handleDodoWebhook(request: Request, env: Env): Promise<Response> 
     order_id: orderId,
     seats: PRODUCT_SEATS[productId] ?? 1,
     role: PRODUCT_ROLE[productId] ?? "learner",
-    created_at: new Date(now).toISOString(),
     expires_at: new Date(now + LICENSE_TERM_DAYS * DAY_MS).toISOString(),
-    activated: false,
-    activated_at: null,
-    revoked: false,
-    revoked_at: null,
-    revoked_reason: null,
-  };
+  });
 
   await env.LICENSES.put(key, JSON.stringify(record));
   await env.ORDERS.put(orderId, key);

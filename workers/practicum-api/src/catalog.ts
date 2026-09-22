@@ -28,7 +28,50 @@ export interface LicenseRecord {
   // and nothing in the validate path requires them.
   classroom_id?: string;
   member_id?: string;
+  // Synthetic licences minted for smoke tests. Any customer count, revenue
+  // report or export MUST filter these out — see countableLicense().
+  is_test?: boolean;
 }
+
+// The single place a licence record is constructed. The Dodo webhook, classroom
+// seat provisioning and the smoke-key minter all go through here so a record
+// can never be hand-assembled and drift from what /license/validate expects.
+export function buildLicenseRecord(opts: {
+  key: string;
+  email: string;
+  product_id: string;
+  entitlements: string[];
+  order_id: string;
+  seats?: number;
+  role?: LicenseRole;
+  expires_at: string;
+  classroom_id?: string;
+  member_id?: string;
+  is_test?: boolean;
+}): LicenseRecord {
+  return {
+    key: opts.key,
+    email: opts.email,
+    product_id: opts.product_id,
+    entitlements: opts.entitlements,
+    order_id: opts.order_id,
+    seats: opts.seats ?? 1,
+    role: opts.role ?? "learner",
+    created_at: new Date().toISOString(),
+    expires_at: opts.expires_at,
+    activated: false,
+    activated_at: null,
+    revoked: false,
+    revoked_at: null,
+    revoked_reason: null,
+    ...(opts.classroom_id ? { classroom_id: opts.classroom_id, member_id: opts.member_id } : {}),
+    ...(opts.is_test ? { is_test: true } : {}),
+  };
+}
+
+// Whether a licence represents a real customer. Every count, revenue figure or
+// export of licences must be filtered through this, not written ad hoc.
+export const countableLicense = (r: Pick<LicenseRecord, "is_test">) => r.is_test !== true;
 
 const enc = new TextEncoder();
 

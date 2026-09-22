@@ -55,6 +55,7 @@ ROOM_B="${SMOKE_CLASSROOM_B_ID:-cls_smoketest0000000000001}"
 # the wire, so it is never echoed, never passed on a command line, and never
 # included in failure output. Local runs use the separate value in .dev.vars.
 SECRET_FILE="${SMOKE_TOKEN_SECRET_FILE:-/c/Users/HP/.practicum/smoke_token_secret}"
+SOLO_KEY_FILE="${SMOKE_SOLO_KEY_FILE:-/c/Users/HP/.practicum/smoke_solo_key}"
 if [ -z "${SMOKE_TOKEN_SECRET:-}" ]; then
     if [ -f "$SECRET_FILE" ]; then
         SMOKE_TOKEN_SECRET=$(tr -d '\r\n' < "$SECRET_FILE" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
@@ -182,7 +183,20 @@ else
         bad "classroom B not seeded — scoping untested"
     fi
 
-        echo "== seats: invite, caps, revoke, rotation (7B)"
+        # Production state persists between runs, so the suite starts by clearing
+    # any seats a previous run left in classroom A. Instructors are left alone —
+    # revoking them would lock the suite out of its own classroom.
+    echo "== reset classroom A learner seats"
+    stale=0
+    for mid in $(curl -s -b "$JAR" "$API/v1/classroom/members" \
+        | tr '}' '\n' | grep '"role":"learner"' | grep -v '"status":"revoked"' \
+        | sed -n 's/.*"id":"\([^"]*\)".*/\1/p'); do
+        curl -s -o /dev/null -X DELETE -b "$JAR" "$API/v1/classroom/members/$mid"
+        stale=$((stale + 1))
+    done
+    echo "  cleared $stale learner seat(s) from a previous run"
+
+    echo "== seats: invite, caps, revoke, rotation (7B)"
     RUN="smoke$(date +%s)"
     # Every key issued below is recorded for the EXIT trap immediately after the
     # call that creates it, so an interrupt mid-suite still cleans up.
@@ -193,6 +207,21 @@ else
             --data-urlencode "display_name=Smoke $RUN" 2>/dev/null
     }
     jfield() { printf '%s' "$1" | sed -n "s/.*\"$2\":\"\([^\"]*\)\".*/\1/p" | head -1; }
+
+    # KV is eventually consistent: a revoked or rotated key can still validate
+    # from an edge cache for a short window. Locally the write is immediate, so
+    # this only matters against production. The CLI caches licences for 24h
+    # anyway, which dwarfs this window — but the suite must not race it.
+    validate_becomes() {  # $1 = key, $2 = expected HTTP code → 0 when reached
+        local key="$1" want="$2" i code
+        for i in 1 2 3 4 5 6 7 8; do
+            code=$(curl -s -o "$BODY" -w '%{http_code}' "$API/license/validate?key=$key")
+            [ "$code" = "$want" ] && return 0
+            sleep 3
+        done
+        printf '%s' "$code"
+        return 1
+    }
 
     body=$(invite "learner-$RUN@example.com")
     MEM=$(jfield "$body" member_id); KEY=$(jfield "$body" test_key)
@@ -230,6 +259,8 @@ else
     while [ "$i" -le 31 ]; do csv="${csv}bulk${i}-$RUN@example.com,Bulk $i"$'\n'; i=$((i+1)); done
     imp=$(curl -s -X POST -b "$JAR" "$API/v1/classroom/members/import" -H 'Content-Type: text/csv' --data-binary "$csv")
     for m in $(printf '%s' "$imp" | grep -o '"member_id":"[^"]*"' | cut -d'"' -f4); do echo "$m|" >> "$ISSUED_KEYS"; done
+    imported=$(printf '%s' "$imp" | grep -o '"member_id":"[^"]*"' | wc -l)
+    [ "$imported" -gt 0 ] && ok "import registered $imported seat(s) for cleanup" || bad "import returned no member ids"
     # Locally the invite email always fails (dummy Resend key), so a created row
     # reports created_email_failed — the seat is kept either way, which is the
     # behaviour under test.
@@ -253,8 +284,7 @@ else
         [ -n "$NEWKEY" ] && echo "$MEM|$NEWKEY" >> "$ISSUED_KEYS"
         [ -n "$NEWKEY" ] && [ "$NEWKEY" != "$KEY" ] && ok "resend rotated the key" || bad "key did not rotate"
         curl -s "$API/license/validate?key=$NEWKEY" | grep -q '"valid":true' && ok "new key validates" || bad "new key invalid"
-        code=$(curl -s -o /dev/null -w '%{http_code}' "$API/license/validate?key=$KEY")
-        check "old key stops validating" "$code" "403"
+        validate_becomes "$KEY" 403 >/dev/null && ok "old key stops validating" || bad "old key still validates"
         KEY="$NEWKEY"
     fi
 
@@ -262,8 +292,7 @@ else
     if [ -n "$MEM" ]; then
         code=$(curl -s -o /dev/null -w '%{http_code}' -X DELETE -b "$JAR" "$API/v1/classroom/members/$MEM")
         check "revoke accepted" "$code" "200"
-        rbody=$(curl -s -o "$BODY" -w '%{http_code}' "$API/license/validate?key=$KEY")
-        check "revoked key → 403" "$rbody" "403"
+        validate_becomes "$KEY" 403 >/dev/null && ok "revoked key → 403" || bad "revoked key still validates"
         grep -q 'License revoked' "$BODY" && ok "revoked key reports 'License revoked'" || bad "wrong revoke error"
         # lib/license.sh turns exactly that string into the learner-facing line.
         grep -q 'Your classroom seat was removed' "$HERE/../lib/license.sh" \
@@ -272,13 +301,30 @@ else
             && ok "roster shows revoked status" || bad "roster missing revoked status"
     fi
 
+    # A synthetic solo licence (scripts/mint-smoke-solo.ts), never a customer key.
     echo "== solo licences are unaffected"
-    if [ -n "${SMOKE_SOLO_KEY:-}" ]; then
-        curl -s "$API/license/validate?key=$SMOKE_SOLO_KEY" | grep -q '"valid":true' \
-            && ok "existing solo licence still validates" || bad "solo licence broke"
-    else
-        echo "  SKIP  solo licence check — set SMOKE_SOLO_KEY to a known-good non-classroom key"
+    if [ -z "${SMOKE_SOLO_KEY:-}" ] && [ -f "$SOLO_KEY_FILE" ]; then
+        SMOKE_SOLO_KEY=$(tr -d '\r\n' < "$SOLO_KEY_FILE" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
     fi
+    if [ -n "${SMOKE_SOLO_KEY:-}" ]; then
+        solo=$(curl -s "$API/license/validate?key=$SMOKE_SOLO_KEY")
+        printf '%s' "$solo" | grep -q '"valid":true' && ok "solo licence still validates" || bad "solo licence broke"
+        printf '%s' "$solo" | grep -q '"entitlements":\["linux-foundations"\]' \
+            && ok "solo licence keeps its single-course entitlement" || bad "solo entitlements changed"
+        printf '%s' "$solo" | grep -q 'classroom_id' && bad "solo licence carries classroom fields" \
+            || ok "solo licence has no classroom fields"
+    else
+        bad "no solo key — run: node scripts/mint-smoke-solo.ts (writes $SOLO_KEY_FILE)"
+    fi
+
+    # Classroom C exists for manual QA and delivers real mail. Nothing here may
+    # reach it: this session is scoped to classroom A, and that is asserted.
+    echo "== manual QA classroom is untouched"
+    qa_id="cls_manualqa000000000000000"
+    [ "$(field "$(curl -s -b "$JAR" "$API/v1/classroom")" id)" != "$qa_id" ] \
+        && ok "session is not classroom C" || bad "session leaked into the QA classroom"
+    code=$(curl -s -o /dev/null -w '%{http_code}' -b "$JAR" -X DELETE "$API/v1/classroom/members/mem_manualqa_instructor000")
+    check "cannot revoke a classroom C member from a classroom A session" "$code" "404"
 
 echo "== logout"
     curl -s -o /dev/null -X POST -b "$JAR" -c "$JAR" "$API/v1/auth/logout"

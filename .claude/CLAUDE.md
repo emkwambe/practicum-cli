@@ -75,7 +75,14 @@ production: no debug routes, no `?test=1` parameters, no environment sniffing.
 If a future phase needs a new prod-testable capability, gate it on this same
 header and the same `is_test` check, and assert the negative cases in smoke.
 The secret is never printed, never passed on a command line, and never
-committed; local runs use a different value in `.dev.vars`. Licences issued
+committed; local runs use a different value in `.dev.vars`.
+The same header gates `POST /v1/admin/mint-smoke-solo`, which mints the
+synthetic solo licence the suite validates against — a real customer key is
+never used as a fixture. That record carries `is_test`, and every customer
+count, revenue figure or export must filter through `countableLicense()`.
+Classroom C (`cls_manualqa…`, `qa_mail_to` set) is for manual QA and really
+does deliver mail; the smoke suite must never touch it, and asserts that it
+does not. Licences issued
 inside a test classroom expire after `TEST_LICENSE_TTL_HOURS` (24h) and smoke
 revokes every key it issues on exit, including on failure.
 

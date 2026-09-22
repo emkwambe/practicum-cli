@@ -13,6 +13,7 @@
 
 import manifest from "../../../content/manifest.json";
 import { routeRoster, type RosterEnv } from "./roster";
+import { buildLicenseRecord, licenseKeyFrom } from "./catalog";
 
 export interface ClassroomEnv {
   CLASSROOM_DB: D1Database;
@@ -159,8 +160,10 @@ async function sendMagicLinkEmail(
   link: string,
   classroomName: string,
   isTest: boolean,
+  qaMailTo: string | null,
 ): Promise<void> {
-  const recipient = isTest ? TEST_EMAIL_SINK : to;
+  // A test classroom sends to its QA address when one is set, else the sink.
+  const recipient = isTest ? (qaMailTo ?? TEST_EMAIL_SINK) : to;
   if (!env.RESEND_API_KEY) {
     console.error(`RESEND_API_KEY not set — magic link for ${recipient} NOT emailed`);
     return;
@@ -194,7 +197,7 @@ async function handleMagicLink(request: Request, env: ClassroomEnv): Promise<Res
 
   const row = await env.CLASSROOM_DB.prepare(
     `SELECT m.id AS member_id, m.classroom_id, m.email, m.role,
-            c.name AS classroom_name, c.is_test, c.status
+            c.name AS classroom_name, c.is_test, c.qa_mail_to, c.status
        FROM members m
        JOIN classrooms c ON c.id = m.classroom_id
       WHERE m.email = ? AND m.role = 'instructor' AND m.status = 'active'
@@ -210,6 +213,7 @@ async function handleMagicLink(request: Request, env: ClassroomEnv): Promise<Res
       role: string;
       classroom_name: string;
       is_test: number;
+      qa_mail_to: string | null;
     }>();
 
   // Unknown address, learner address, expired classroom: identical response.
@@ -229,6 +233,7 @@ async function handleMagicLink(request: Request, env: ClassroomEnv): Promise<Res
     `${base.replace(/\/$/, "")}/v1/auth/verify?token=${token}`,
     row.classroom_name,
     row.is_test === 1,
+    row.qa_mail_to,
   );
 
   await env.CLASSROOM_DB.prepare(
@@ -254,10 +259,23 @@ async function handleVerify(request: Request, env: ClassroomEnv): Promise<Respon
 
   if (!token) return retry("That sign-in link is missing its token.");
 
-  const key = `magic:${await sha256Hex(token)}`;
+  const hash = await sha256Hex(token);
+  const key = `magic:${hash}`;
   const payload = await env.SESSIONS.get<Session>(key, "json");
   if (!payload) return retry("That sign-in link has expired or has already been used.");
-  await env.SESSIONS.delete(key);
+
+  // Single use is enforced in D1, not by the KV delete below: KV is eventually
+  // consistent, so a deleted token can still read back from an edge cache for a
+  // short window. An INSERT reporting 0 changes proves this token was already
+  // spent, whatever KV says.
+  const claim = await env.CLASSROOM_DB.prepare(
+    `INSERT OR IGNORE INTO consumed_tokens (token_hash) VALUES (?)`,
+  ).bind(hash).run();
+  if ((claim.meta?.changes ?? 0) === 0) {
+    return retry("That sign-in link has already been used.");
+  }
+
+  await env.SESSIONS.delete(key);   // best-effort cleanup
 
   // Re-check standing at redemption: a seat revoked since the send must not open.
   const still = await env.CLASSROOM_DB.prepare(
@@ -336,6 +354,38 @@ async function handleClassroomSummary(request: Request, env: ClassroomEnv, sessi
   });
 }
 
+// A solo licence for smoke use: one course, far-future expiry, is_test set.
+// Built by the same buildLicenseRecord() the Dodo webhook uses, so if the
+// record shape drifts this fixture drifts with it and the suite notices.
+const SMOKE_SOLO_PRODUCT = "pdt_0No8cX1sZ1XCttHIl5fh3";   // Linux Foundations, $49/yr
+const SMOKE_SOLO_EMAIL = "smoke-solo@practicum-cli.dev";
+
+async function handleMintSmokeSolo(request: Request, env: ClassroomEnv & RosterEnv): Promise<Response> {
+  if (!env.HMAC_SECRET) return json(request, { error: "HMAC_SECRET not configured" }, 503);
+
+  const orderId = `smoke-solo:${SMOKE_SOLO_EMAIL}`;   // stable: re-running replaces, never accumulates
+  const key = await licenseKeyFrom(orderId, env.HMAC_SECRET);
+  const record = buildLicenseRecord({
+    key,
+    email: SMOKE_SOLO_EMAIL,
+    product_id: SMOKE_SOLO_PRODUCT,
+    entitlements: ["linux-foundations"],
+    order_id: orderId,
+    expires_at: new Date(Date.UTC(2099, 0, 1)).toISOString(),
+    is_test: true,
+  });
+  await env.LICENSES.put(key, JSON.stringify(record));
+
+  return json(request, {
+    ok: true,
+    key,
+    email: record.email,
+    entitlements: record.entitlements,
+    expires_at: record.expires_at,
+    is_test: true,
+  });
+}
+
 function retryPage(message: string): string {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -363,6 +413,17 @@ export async function routeClassroom(request: Request, env: ClassroomEnv): Promi
     return Response.json(manifest, {
       headers: { ...corsHeaders(request), "Cache-Control": "public, max-age=3600" },
     });
+  }
+
+  // Mints the synthetic solo licence the smoke suite validates against, so no
+  // customer key is ever used as a fixture. Gated on the same X-Smoke-Secret as
+  // the magic-link test path — the only sanctioned production test entry point.
+  // The record is is_test, so it is excluded from customer and revenue counts.
+  if (path === "/v1/admin/mint-smoke-solo" && method === "POST") {
+    if (!(await secretMatches(request.headers.get("X-Smoke-Secret"), env.SMOKE_TOKEN_SECRET))) {
+      return new Response("Not found", { status: 404 });
+    }
+    return handleMintSmokeSolo(request, env as ClassroomEnv & RosterEnv);
   }
 
   if (path === "/v1/auth/magic-link" && method === "POST") return handleMagicLink(request, env);
