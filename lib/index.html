@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Practicum CLI — The engineering practicum your team runs before production access</title>
+<meta name="description" content="296 lessons. 676 assessments. Zero videos. Terminal-native engineering training for Linux, Git, Docker, Terraform, Kubernetes, and more.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#1a1b2e;--bg2:#232438;--bg3:#1e1f33;--g:#2ecc71;--gd:#27ae60;--w:#fff;--t:#94a3b8;--td:#64748b;--br:#2d2e42;--rose:#e8bcb9;--cy:#67e8f9;--mx:1100px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--t);font-family:system-ui,-apple-system,sans-serif;line-height:1.7;-webkit-font-smoothing:antialiased}
+.mono{font-family:'JetBrains Mono',monospace}
+.rose-bar{height:4px;background:var(--rose)}
+nav{max-width:var(--mx);margin:0 auto;padding:1.25rem 2rem;display:flex;justify-content:space-between;align-items:center}
+.brand{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:1.1rem;color:var(--w);text-decoration:none}
+.nl{display:flex;gap:2rem;list-style:none}
+.nl a{color:var(--t);text-decoration:none;font-size:.9rem;transition:color .2s}
+.nl a:hover{color:var(--w)}
+section{padding:5rem 2rem}
+.c{max-width:var(--mx);margin:0 auto}
+.hero{text-align:center;padding:6rem 2rem 4rem}
+.hero h1{font-family:'JetBrains Mono',monospace;font-size:clamp(2rem,5vw,3.2rem);font-weight:700;color:var(--w);line-height:1.2;margin-bottom:1rem}
+.hero h1 .gr{color:var(--g)}
+.icar{font-family:'JetBrains Mono',monospace;color:var(--g);font-size:1rem;letter-spacing:.15em;margin-bottom:1.5rem}
+.sub{font-size:1.15rem;max-width:640px;margin:0 auto 3rem;line-height:1.8}
+.term{background:var(--bg3);border:1px solid var(--br);border-radius:10px;max-width:720px;margin:0 auto 3rem;text-align:left;overflow:hidden}
+.tb{padding:.75rem 1rem;display:flex;align-items:center;gap:.5rem;border-bottom:1px solid var(--br)}
+.d{width:12px;height:12px;border-radius:50%}.dr{background:#ff5f57}.dy{background:#febc2e}.dg{background:#28c840}
+.tt{font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--td);margin-left:.5rem}
+.term pre{padding:1.5rem;font-family:'JetBrains Mono',monospace;font-size:.85rem;line-height:1.8;color:var(--t);overflow-x:auto}
+.p{color:var(--g)}.cm{color:var(--w);font-weight:600}.lb{color:var(--g);font-weight:600}.ac{color:var(--cy)}
+.cr{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+.bp{font-family:'JetBrains Mono',monospace;font-size:.9rem;font-weight:600;padding:.85rem 2rem;background:var(--g);color:var(--bg);border:none;border-radius:6px;cursor:pointer;text-decoration:none;transition:background .2s;display:inline-block}
+.bp:hover{background:var(--gd)}
+.bo{font-family:'JetBrains Mono',monospace;font-size:.9rem;font-weight:600;padding:.85rem 2rem;background:transparent;color:var(--t);border:1px solid var(--br);border-radius:6px;cursor:pointer;text-decoration:none;transition:border-color .2s,color .2s;display:inline-block}
+.bo:hover{border-color:var(--t);color:var(--w)}
+.nums{background:var(--bg2);border-top:1px solid var(--br);border-bottom:1px solid var(--br);padding:2.5rem 2rem}
+.nums .c{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:2rem;text-align:center}
+.nv{font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:700;color:var(--g)}
+.nla{font-size:.85rem;color:var(--td);margin-top:.25rem}
+.sl{font-family:'JetBrains Mono',monospace;font-size:.8rem;font-weight:600;color:var(--g);text-transform:uppercase;letter-spacing:.15em;margin-bottom:.75rem}
+.st{font-family:'JetBrains Mono',monospace;font-size:clamp(1.5rem,3vw,2.2rem);font-weight:700;color:var(--w);margin-bottom:1rem}
+.sd{max-width:640px;margin-bottom:3rem;font-size:1.05rem}
+.cg{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.25rem}
+.cc{background:var(--bg2);border:1px solid var(--br);border-radius:8px;padding:1.5rem;transition:border-color .2s}
+.cc:hover{border-color:var(--g)}
+.cc.fr{border-color:var(--g)}
+.cn{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:1rem;color:var(--w);margin-bottom:.5rem}
+.cmt{font-size:.8rem;color:var(--td);margin-bottom:.5rem;font-family:'JetBrains Mono',monospace}
+.cd{font-size:.9rem;line-height:1.6}
+.bg{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:600;padding:.15rem .5rem;border-radius:3px;margin-right:.4rem;margin-top:.75rem}
+.bf{background:var(--g);color:var(--bg)}
+.bc{background:transparent;border:1px solid var(--br);color:var(--td)}
+.tg{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem}
+.tc{background:var(--bg2);border:1px solid var(--br);border-radius:8px;padding:2rem}
+.tc h3{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--w);font-size:1.1rem;margin-bottom:.5rem}
+.tp{font-family:'JetBrains Mono',monospace;font-size:1.5rem;font-weight:700;color:var(--g);margin-bottom:1rem}
+.tl{list-style:none}.tl li{padding:.3rem 0;font-size:.9rem}.tl li::before{content:'✓ ';color:var(--g);font-weight:600}
+.corp{background:var(--bg2);border-top:1px solid var(--br);border-bottom:1px solid var(--br)}
+.corpg{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:start}
+.corpg ul{list-style:none;margin-top:1.5rem}
+.corpg li{padding:.5rem 0;font-size:.95rem;border-bottom:1px solid var(--br)}
+.corpg li:last-child{border-bottom:none}
+.corpg li strong{color:var(--w)}
+.cq{font-family:'JetBrains Mono',monospace;font-size:1rem;color:var(--w);border-left:3px solid var(--g);padding-left:1.25rem;margin-top:2rem;font-style:italic}
+.ig{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem}
+.ic{background:var(--bg2);border:1px solid var(--br);border-radius:8px;padding:1.75rem}
+.ic h3{font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--w);font-size:1rem;margin-bottom:.25rem}
+.plat{font-size:.8rem;color:var(--cy);margin-bottom:1rem;font-family:'JetBrains Mono',monospace}
+.cb{background:var(--bg3);border:1px solid var(--br);border-radius:6px;padding:1rem;font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--cy);margin-top:.75rem;overflow-x:auto;position:relative}
+.cpb{position:absolute;top:.5rem;right:.5rem;background:var(--br);color:var(--td);border:none;border-radius:4px;padding:.2rem .5rem;font-family:'JetBrains Mono',monospace;font-size:.7rem;cursor:pointer}
+.cpb:hover{color:var(--w)}
+.pg{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.25rem}
+.pc{background:var(--bg2);border:1px solid var(--br);border-radius:8px;padding:2rem;position:relative}
+.pc.ft{border-color:var(--g)}
+.pb{position:absolute;top:-12px;right:1.5rem;background:var(--g);color:var(--bg);font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:700;padding:.25rem .75rem;border-radius:4px;text-transform:uppercase;letter-spacing:.05em}
+.pc h3{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--w);font-size:1rem;margin-bottom:.75rem}
+.pa{font-family:'JetBrains Mono',monospace;font-size:2.5rem;font-weight:700;color:var(--g)}
+.pds{font-size:.85rem;color:var(--td);margin:.75rem 0 1.25rem}
+.pf{list-style:none;margin-bottom:1.5rem}
+.pf li{font-size:.85rem;padding:.35rem 0}
+.pf li::before{content:'✓ ';color:var(--g);font-weight:600}
+footer{border-top:1px solid var(--br);padding:3rem 2rem;text-align:center}
+footer p{font-size:.85rem;color:var(--td)}
+footer a{color:var(--t);text-decoration:none}
+footer a:hover{color:var(--w)}
+.fl{margin-top:.75rem;font-family:'JetBrains Mono',monospace;font-size:.8rem}
+.fl a{margin:0 .75rem}
+@media(max-width:768px){.nl{display:none}.corpg{grid-template-columns:1fr}.pg{grid-template-columns:1fr}section{padding:3rem 1.25rem}}
+</style>
+</head>
+<body>
+<div class="rose-bar"></div>
+<nav><a href="#" class="brand">practicum.cli</a><ul class="nl"><li><a href="#method">Method</a></li><li><a href="#courses">Courses</a></li><li><a href="#tracks">Tracks</a></li><li><a href="#teams">Teams</a></li><li><a href="#install">Install</a></li><li><a href="#pricing">Pricing</a></li></ul></nav>
+
+<section class="hero" id="method"><div class="c">
+<h1>The Engineering <span class="gr">Practicum</span><br>Your Team Runs Before<br>Production Access</h1>
+<p class="icar">Intent. Context. Action. Result.</p>
+<p class="sub">296 lessons. 676 assessments. Zero videos. Practicum CLI lives in your terminal. You learn by doing — guided by the same methodology senior engineers use to train their juniors.</p>
+<div class="term"><div class="tb"><div class="d dr"></div><div class="d dy"></div><div class="d dg"></div><span class="tt">practicum-cli — bash</span></div>
+<pre>
+<span class="p">$</span> <span class="cm">practicum start</span>
+
+<span class="lb">[INTENT]</span>  <span>"Pod stuck in CrashLoopBackOff. Diagnose it."</span>
+<span class="lb">[CONTEXT]</span> 3-node cluster, app deployed 10 min ago, 4 restarts
+<span class="lb">[ACTION]</span>  <span class="ac">kubectl describe pod web-7d4f | grep -A5 "Last State"</span>
+<span class="lb">[RESULT]</span>  OOMKilled — container exceeded 256Mi memory limit
+
+<span class="p">$</span> <span class="cm">practicum progress</span>
+
+  Kubernetes         <span style="color:var(--g)">██████████████░░░░░░</span>  70%
+  Terraform          <span style="color:var(--g)">████████████████████</span> 100% ✓
+  Docker             <span style="color:var(--g)">████████████████████</span> 100% ✓
+  Linux Foundations  <span style="color:var(--g)">████████████████████</span> 100% ✓</pre></div>
+<div class="cr"><a href="#install" class="bp">curl -sL install.sh | bash</a><a href="#pricing" class="bo">View Pricing</a></div>
+</div></section>
+
+<div class="nums"><div class="c"><div><div class="nv">9</div><div class="nla">Courses</div></div><div><div class="nv">296</div><div class="nla">Lessons</div></div><div><div class="nv">676</div><div class="nla">Assessments</div></div><div><div class="nv">5</div><div class="nla">Cert Alignments</div></div><div><div class="nv">0</div><div class="nla">Videos</div></div></div></div>
+
+<section id="courses"><div class="c">
+<p class="sl">Curriculum</p><h2 class="st">9 courses. One terminal.</h2>
+<p class="sd">Every course uses the ICAR method. Every quiz tests judgment, not recall. Every capstone simulates a real professional engagement.</p>
+<div class="cg">
+<div class="cc fr"><div class="cn">CLI Immersion</div><div class="cmt">4 days · 16 lessons · 32 Qs</div><p class="cd">The grammar of every command. Flags, options, pipes, exit codes, PATH — learn to read any CLI tool.</p><span class="bg bf">FREE</span></div>
+<div class="cc"><div class="cn">Linux Foundations</div><div class="cmt">10 days · 56 lessons · 72 Qs</div><p class="cd">Navigate, search, script, and manage processes, permissions, networking, and services.</p><span class="bg bc">CompTIA A+ / Linux+</span></div>
+<div class="cc"><div class="cn">Git & Version Control</div><div class="cmt">10 days · 46 lessons · 77 Qs</div><p class="cd">Branches, merges, rebases, PRs, hooks, signed commits, and GitHub Actions workflows.</p></div>
+<div class="cc"><div class="cn">Shell Mastery</div><div class="cmt">8 days · 31 lessons · 61 Qs</div><p class="cd">Production scripts: argument parsing, control flow, awk/sed, traps, and strict mode.</p><span class="bg bc">Linux+ / LFCS</span></div>
+<div class="cc"><div class="cn">Data Forging</div><div class="cmt">8 days · 24 lessons · 78 Qs</div><p class="cd">Transform data: jq, csvkit, xsv, sqlite3, curl, API pipelines, stream processing.</p></div>
+<div class="cc"><div class="cn">Docker & Containers</div><div class="cmt">10 days · 46 lessons · 74 Qs</div><p class="cd">Build, ship, run: Dockerfiles, Compose, registries, security, Swarm orchestration.</p><span class="bg bc">DCA</span></div>
+<div class="cc"><div class="cn">CI/CD Pipelines</div><div class="cmt">8 days · 17 lessons · 61 Qs</div><p class="cd">GitHub Actions, automated testing, Docker builds, deploy strategies, secrets.</p></div>
+<div class="cc"><div class="cn">Terraform & IaC</div><div class="cmt">14 days · 30 lessons · 112 Qs</div><p class="cd">Plan, apply, manage: providers, modules, state, HCP Terraform, policy enforcement.</p><span class="bg bc">TF Associate 004</span></div>
+<div class="cc"><div class="cn">Kubernetes</div><div class="cmt">14 days · 30 lessons · 109 Qs</div><p class="cd">Pods to production: RBAC, networking, storage, Helm, etcd, troubleshooting — all 5 CKA domains.</p><span class="bg bc">CKA</span></div>
+</div></div></section>
+
+<section id="tracks"><div class="c">
+<p class="sl">Professional Tracks</p><h2 class="st">Choose your engineering path.</h2>
+<p class="sd">Each track bundles courses matching a real career trajectory. Save up to $193 vs buying individually.</p>
+<div class="tg">
+<div class="tc"><h3>Data Engineering</h3><div class="tp"><a href="https://checkout.dodopayments.com/buy/pdt_0No7umL7kMaekaV8OezhO" style="color:var(--g);text-decoration:none">$99</a></div><ul class="tl"><li>Linux Foundations</li><li>Shell Mastery</li><li>Data Forging</li></ul><p style="font-size:.8rem;color:var(--td);margin-top:1rem">3 courses · 26 days · 111 lessons</p></div>
+<div class="tc" style="border-color:var(--g)"><h3>Platform Engineering</h3><div class="tp"><a href="https://checkout.dodopayments.com/buy/pdt_0No7umM8Suwb4dLat0K8G" style="color:var(--g);text-decoration:none">$129</a></div><ul class="tl"><li>Linux Foundations</li><li>Git & Version Control</li><li>Docker & Containers</li><li>CI/CD Pipelines</li><li>Terraform & IaC</li><li>Kubernetes</li></ul><p style="font-size:.8rem;color:var(--td);margin-top:1rem">6 courses · 66 days · 225 lessons</p></div>
+<div class="tc"><h3>Full Catalog v3</h3><div class="tp"><a href="https://checkout.dodopayments.com/buy/pdt_0No7umMgQG48JrJhqRVkc" style="color:var(--g);text-decoration:none">$199</a></div><ul class="tl"><li>All 8 paid courses</li><li>All professional tracks</li><li>82 days of training</li><li>280 lessons + updates</li><li>676 assessments</li></ul><p style="font-size:.8rem;color:var(--td);margin-top:1rem">vs $392 buying individually</p></div>
+</div></div></section>
+
+<section class="corp" id="teams"><div class="c">
+<p class="sl">For Organizations</p><h2 class="st">We develop engineers internally.</h2>
+<p class="sd">That's the statement every engineering org wants to make. Practicum gives you the infrastructure to back it up.</p>
+<div class="corpg"><div>
+<ul><li><strong>Pre-boarding</strong> — new hires start before day one. They arrive productive.</li><li><strong>Internal mobility</strong> — an analyst wants platform engineering? Hand them a track. 66 days, no external bootcamp.</li><li><strong>Apprenticeship</strong> — structured progression from terminal basics to Kubernetes administration.</li><li><strong>Promotion readiness</strong> — "is this engineer ready?" Now you have the data.</li></ul>
+<div class="cq">"The only engineering training where the product IS the terminal."</div>
+</div><div>
+<h3 style="font-family:'JetBrains Mono',monospace;color:var(--w);margin-bottom:1rem">Team pricing</h3>
+<div class="cc" style="margin-bottom:1rem"><div class="cn">5 seats</div><div style="font-family:'JetBrains Mono',monospace;color:var(--g);font-size:1.3rem;font-weight:700"><a href="https://checkout.dodopayments.com/buy/pdt_0No7umNCBCxwKBAZALtnS" style="color:var(--g);text-decoration:none">$899</a></div><p style="font-size:.8rem;color:var(--td);margin-top:.5rem">Full catalog · Team dashboard · Completion tracking</p></div>
+<div class="cc" style="margin-bottom:1rem"><div class="cn">10 seats</div><div style="font-family:'JetBrains Mono',monospace;color:var(--g);font-size:1.3rem;font-weight:700"><a href="https://checkout.dodopayments.com/buy/pdt_0No7umOh6PEBDCQTfXWzm" style="color:var(--g);text-decoration:none">$1,599</a></div><p style="font-size:.8rem;color:var(--td);margin-top:.5rem">Full catalog · Team dashboard · Completion tracking</p></div>
+<div class="cc"><div class="cn">Enterprise</div><div style="font-family:'JetBrains Mono',monospace;color:var(--g);font-size:1.1rem;font-weight:700">Contact sales</div><p style="font-size:.8rem;color:var(--td);margin-top:.5rem">SSO · Department management · Skill dashboards · Custom exercises</p></div>
+<p style="font-size:.85rem;margin-top:1.5rem"><a href="mailto:practicum@mpingo.ai" style="color:var(--cy);text-decoration:none">practicum@mpingo.ai</a></p>
+</div></div></div></section>
+
+<section id="install"><div class="c">
+<p class="sl">Get Started</p><h2 class="st">Install in 60 seconds.</h2>
+<p class="sd">Runs on any machine with bash. No root. No Docker. No VM. Just your terminal.</p>
+<div class="ig">
+<div class="ic"><h3>🐧 Linux / WSL</h3><p class="plat">Ubuntu, Debian, Fedora, Arch</p><p>One command:</p><div class="cb"><button class="cpb" onclick="navigator.clipboard.writeText('curl -sL https://practicum-cli.dev/install.sh | bash')">copy</button>curl -sL<br>https://practicum-cli.dev/install.sh | bash</div><p style="margin-top:1rem;font-size:.85rem">Or clone manually:</p><div class="cb">git clone https://github.com/emkwambe/practicum-cli.git<br>cd practicum-cli && chmod +x practicum<br>./practicum start</div></div>
+<div class="ic"><h3>💻 Windows</h3><p class="plat">Windows 10 / 11</p><p style="font-size:.9rem">Open PowerShell as Admin, run <code style="color:var(--cy)">wsl --install</code>, restart. Open "Ubuntu" from Start menu. Then:</p><div class="cb"><button class="cpb" onclick="navigator.clipboard.writeText('curl -sL https://practicum-cli.dev/install.sh | bash')">copy</button>curl -sL<br>https://practicum-cli.dev/install.sh | bash</div></div>
+<div class="ic"><h3>🍎 macOS</h3><p class="plat">Intel & Apple Silicon</p><p style="font-size:.9rem">Open Terminal.app or iTerm2:</p><div class="cb"><button class="cpb" onclick="navigator.clipboard.writeText('curl -sL https://practicum-cli.dev/install.sh | bash')">copy</button>curl -sL<br>https://practicum-cli.dev/install.sh | bash</div><p style="font-size:.85rem;margin-top:.75rem">Works on both bash and zsh.</p></div>
+</div></div></section>
+
+<section id="pricing"><div class="c">
+<p class="sl">Pricing</p><h2 class="st">Buy it once. It's yours.</h2>
+<p class="sd">Days 1–3 are free. No credit card. No signup. Just install and learn.</p>
+<div class="pg">
+<div class="pc"><h3>Free</h3><div class="pa">$0</div><p class="pds">Try before you buy</p><ul class="pf"><li>CLI Immersion — all 4 days</li><li>Days 1–3 of every course</li><li>Quizzes and sandbox mode</li><li>No credit card required</li></ul><a href="#install" class="bo" style="display:block;text-align:center">Install Free</a></div>
+<div class="pc"><h3>Single Course</h3><div class="pa">$49</div><p class="pds">One course, lifetime access</p><ul class="pf"><li>Full access to one course</li><li>All quizzes and assessments</li><li>Completion certificate</li><li>Course updates included</li></ul><select id="course-select" onchange="var b=document.getElementById('course-buy');b.href=this.value||'#'" style="width:100%;padding:.6rem;margin-bottom:.75rem;background:var(--bg3);color:var(--w);border:1px solid var(--br);border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:.8rem;cursor:pointer"><option value="">Select a course...</option><option value="https://checkout.dodopayments.com/buy/pdt_0No7umC6gaGIE4EXLu2Gu">Linux Foundations</option><option value="https://checkout.dodopayments.com/buy/pdt_0No7umEyEyApMgJMBRwHI">Git & Version Control</option><option value="https://checkout.dodopayments.com/buy/pdt_0No7umGHodyphlPy7kVuw">Shell Mastery</option><option value="https://checkout.dodopayments.com/buy/pdt_0No7umI46jJ6QFGzDz9Wn">Data Forging</option><option value="https://checkout.dodopayments.com/buy/pdt_0No7umIT3vq6wQTDTLitA">Docker & Containers</option><option value="https://checkout.dodopayments.com/buy/pdt_0No7umIuzv3LovBDw9mJs">CI/CD Pipelines</option><option value="https://checkout.dodopayments.com/buy/pdt_0No7umJqQBlWvxZErrHqv">Terraform & IaC</option><option value="https://checkout.dodopayments.com/buy/pdt_0No7umKG7Jh3e57OeTvC6">Kubernetes</option></select><a id="course-buy" href="#" onclick="if(this.getAttribute('href')==='#'){alert('Select a course first');return false}" class="bo" style="display:block;text-align:center">Buy Course — $49</a></div>
+<div class="pc ft"><span class="pb">Most Popular</span><h3>Platform Engineering</h3><div class="pa">$129</div><p class="pds">6 courses, one career track</p><ul class="pf"><li>Linux + Git + Docker</li><li>CI/CD + Terraform + K8s</li><li>66 days of training</li><li>CKA + TF 004 + DCA aligned</li><li>All certificates</li></ul><a href="https://checkout.dodopayments.com/buy/pdt_0No7umM8Suwb4dLat0K8G" class="bp" style="display:block;text-align:center">Get Platform Track</a></div>
+<div class="pc"><h3>Full Catalog v3</h3><div class="pa">$199</div><p class="pds">All current courses + updates</p><ul class="pf"><li>All 8 paid courses</li><li>82 days, 280 lessons</li><li>676 assessments</li><li>5 certification alignments</li><li>All future v3 updates</li></ul><a href="https://checkout.dodopayments.com/buy/pdt_0No7umMgQG48JrJhqRVkc" class="bo" style="display:block;text-align:center">Get Full Catalog</a></div>
+</div></div></section>
+
+<footer><div class="c"><p>Mpingo Systems LLC — Precision Tools built to stay.</p><div class="fl"><a href="https://github.com/emkwambe/practicum-cli">GitHub</a><a href="mailto:eddy@mpingo.ai">Contact</a><a href="https://mpingo.ai">Mpingo.ai</a></div></div></footer>
+</body></html>
