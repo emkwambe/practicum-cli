@@ -226,12 +226,18 @@ is_premium_content() {
 
 can_access_day() {
     local day="$1"
-    
+    local course="${2:-$(get_active_course)}"
+
+    # CLI Immersion (Course 0) is fully free — all days unrestricted
+    if [ "$course" = "00-cli-immersion" ]; then
+        return 0
+    fi
+
     # Free days always accessible
     if ! is_premium_content "$day"; then
         return 0
     fi
-    
+
     # Premium days require valid license
     validate_license
 }
@@ -242,19 +248,15 @@ show_upgrade_prompt() {
     echo -e "  ${C_YELLOW}  🔒 Premium Content — License Required${C_RESET}"
     echo -e "  ${C_PURPLE}=========================================${C_RESET}"
     echo ""
-    echo -e "  ${C_WHITE}Days 1-3 are free. Days 4-10 require a license.${C_RESET}"
+    echo -e "  ${C_WHITE}Days 1-3 are free. Days 4+ require a license.${C_RESET}"
     echo ""
-    echo -e "  ${C_WHITE}  📘 Single Course${C_RESET}         ${C_GREEN}\$49 one-time${C_RESET}"
-    echo -e "  ${C_DIM}     One complete course + certificate${C_RESET}"
+    echo -e "  ${C_WHITE}  Single Course${C_RESET}      ${C_GREEN}\$49${C_RESET}   ${C_DIM}One course + certificate${C_RESET}"
+    echo -e "  ${C_WHITE}  Data Engineering${C_RESET}   ${C_GREEN}\$99${C_RESET}   ${C_DIM}3 courses · 26 days${C_RESET}"
+    echo -e "  ${C_WHITE}  Platform Eng${C_RESET}      ${C_GREEN}\$129${C_RESET}   ${C_DIM}6 courses · 66 days${C_RESET}"
+    echo -e "  ${C_WHITE}  Full Catalog${C_RESET}      ${C_GREEN}\$199${C_RESET}   ${C_DIM}All 8 courses + updates${C_RESET}"
     echo ""
-    echo -e "  ${C_WHITE}  🥈 Practicum Silver${C_RESET}      ${C_GREEN}\$129/year${C_RESET}"
-    echo -e "  ${C_DIM}     All 8 courses + 3 career paths${C_RESET}"
-    echo -e "  ${C_GREEN}     🎉 Early bird: \$79/yr (first 200)${C_RESET}"
-    echo ""
-    echo -e "  ${C_WHITE}  🥇 Practicum Gold${C_RESET}        ${C_GREEN}\$199/year${C_RESET}"
-    echo -e "  ${C_DIM}     Everything + capstone grading + interview prep${C_RESET}"
-    echo ""
-    echo -e "  ${C_CYAN}  Purchase: https://practicum-cli.dev${C_RESET}"
+    echo -e "  ${C_WHITE}Buy once. Yours forever.${C_RESET}"
+    echo -e "  ${C_CYAN}  Purchase: https://practicum-cli.dev/#pricing${C_RESET}"
     echo -e "  ${C_CYAN}  Activate: practicum activate <your-key>${C_RESET}"
     echo ""
     echo -e "  ${C_PURPLE}=========================================${C_RESET}"

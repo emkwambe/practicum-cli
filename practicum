@@ -709,7 +709,13 @@ cmd_quiz_select() {
     
     local active_slug
     active_slug=$(get_active_course)
-    
+
+    # Gate check — must mirror the lesson gate in cmd_start
+    if [[ "$qchoice" =~ ^[0-9]+$ ]] && ! can_access_day "day${qchoice}" "$active_slug"; then
+        show_upgrade_prompt
+        return 1
+    fi
+
     # For Linux Foundations, use hardcoded quiz handlers if they exist
     if [ "$active_slug" = "linux-foundations" ] && type "cmd_quiz_day${qchoice}" &>/dev/null; then
         "cmd_quiz_day${qchoice}"
