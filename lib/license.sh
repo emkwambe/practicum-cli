@@ -68,6 +68,7 @@ _license_write() {
     "product_id": "$(_json_str "$body" product_id)",
     "entitlements": "$(_json_arr "$body" entitlements)",
     "seats": "$(_json_num "$body" seats)",
+    "role": "$(_json_str "$body" role)",
     "activated_at": "$(_json_str "$body" activated_at)",
     "expires_at": "$(_json_str "$body" expires_at)",
     "expires_epoch": "$(_json_num "$body" expires_epoch)",
