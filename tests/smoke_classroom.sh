@@ -70,6 +70,8 @@ else
     code=$(curl -s -o "$BODY" -w '%{http_code}' -b "$JAR" "$API/v1/classroom")
     check "classroom summary 200" "$code" "200"
     check "summary is the session's classroom" "$(field "$(cat "$BODY")" id)" "$ROOM"
+    # is_test must be true or this suite would email real instructors.
+    grep -q '"is_test":true' "$BODY" && ok "classroom A is is_test = 1" || bad "classroom A is NOT a test classroom"
     grep -q '"learners"' "$BODY" && ok "seat counts present" || bad "seat counts missing"
     grep -q "\"email\":\"$EMAIL\"" "$BODY" && ok "signed-in identity present" || bad "identity missing"
 
@@ -81,8 +83,10 @@ else
     TOKEN_B=$(magic_token "$EMAIL_B")
     if [ -n "$TOKEN_B" ]; then
         curl -s -o /dev/null -c "$JAR_B" "$API/v1/auth/verify?token=$TOKEN_B"
-        b_id=$(field "$(curl -s -b "$JAR_B" "$API/v1/classroom")" id)
+        b_body=$(curl -s -b "$JAR_B" "$API/v1/classroom")
+        b_id=$(field "$b_body" id)
         check "session B sees classroom B" "$b_id" "$ROOM_B"
+        printf '%s' "$b_body" | grep -q '"is_test":true' && ok "classroom B is is_test = 1" || bad "classroom B is NOT a test classroom"
         a_id=$(field "$(curl -s -b "$JAR" "$API/v1/classroom")" id)
         check "session A still sees only A" "$a_id" "$ROOM"
         [ "$a_id" != "$b_id" ] && ok "sessions are isolated" || bad "sessions cross classrooms"
@@ -122,6 +126,34 @@ if curl -s -o /dev/null --connect-timeout 5 "$SITE/" 2>/dev/null; then
     grep -q 'Classroom dashboard' "$BODY" && ok "login view present" || bad "login view missing"
 else
     echo "  SKIP  dashboard shell — $SITE not reachable (set SITE to a running site)"
+fi
+
+# The site worker serves ./lib, which also holds the CLI's shell libraries.
+# .assetsignore must keep every one of them off the public origin.
+echo "== CLI shell libraries are not published"
+if printf '%s' "$SITE" | grep -q 'practicum-cli.dev'; then
+    for leaked in license.sh state.sh lessons.sh .assetsignore; do
+        code=$(curl -s -o /dev/null -w '%{http_code}' "$SITE/$leaked")
+        check "$leaked not served" "$code" "404"
+    done
+else
+    echo "  SKIP  asset leak check — only meaningful against the deployed site"
+fi
+
+# Production-only: the browser will reject a session cookie without these.
+echo "== session cookie attributes (production)"
+if printf '%s' "$API" | grep -q 'api.practicum-cli.dev'; then
+    PROD_TOKEN=$(magic_token "$EMAIL")
+    if [ -n "$PROD_TOKEN" ]; then
+        setc=$(curl -s -D - -o /dev/null "$API/v1/auth/verify?token=$PROD_TOKEN" | grep -i '^set-cookie:')
+        for attr in 'Secure' 'HttpOnly' 'SameSite=Lax' 'Domain=.practicum-cli.dev'; do
+            printf '%s' "$setc" | grep -qi -- "$attr" && ok "cookie has $attr" || bad "cookie missing $attr"
+        done
+    else
+        bad "no prod test token — cookie attributes untested"
+    fi
+else
+    echo "  SKIP  cookie attributes — production only (API is $API)"
 fi
 
 echo ""
