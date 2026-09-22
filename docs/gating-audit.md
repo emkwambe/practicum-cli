@@ -28,7 +28,7 @@ menu. Same behaviour for both the hardcoded Linux Foundations menu and the gener
 | Full Catalog v3 | $199 | all 8 courses | all 8 |
 | Team 5 Seats | $899 | full catalog × 5 learners | all 8; `seats: 5` recorded, **not enforced** |
 | Team 10 Seats | $1,599 | full catalog × 10 learners | all 8; `seats: 10` recorded, **not enforced** |
-| Classroom | $3,499/yr (recurring yearly) | 30 learner + 2 instructor seats | all 8 (`FULL_CATALOG`); `seats: 30`, `role: instructor-admin` recorded, **not enforced**. **WIRED** as of `838c5b1` — product `pdt_0No8Kgf2Z4FOleEA96DEW`, tile live on practicum-cli.dev (site deploy `3ca26917`) |
+| Classroom | $3,499/yr (recurring yearly) | 30 learner + 2 instructor seats | all 8 (`FULL_CATALOG`); `seats: 30`, `role: instructor-admin` recorded, **not enforced**. Entitlements wired server-side (`838c5b1`, product `pdt_0No8Kgf2Z4FOleEA96DEW`), but **CTA changed from buy → waitlist mailto** on the live site: checkout link removed, no purchases possible until the instructor dashboard and cohort features ship (item 7). Tile stays visible with an "in development" note to capture institutional interest. |
 
 Entitlements are decided server-side: `workers/practicum-api/src/index.ts`
 `PRODUCT_ENTITLEMENTS` maps each Dodo `product_id` to course slugs (matching
@@ -87,6 +87,7 @@ Ordered by severity.
 4. Move premium course content out of the public repo (fetch on activation, or ship encrypted and decrypt with a server-issued key) — the only real fix for 1 and 2.
 
 **Changelog:**
+- Classroom CTA switched from Dodo checkout to `mailto:practicum@mpingo.ai` waitlist; checkout link removed from the live page pending item 7 (dashboard build). API entitlements for the product remain in place.
 - `838c5b1` — Classroom tier wired: `pdt_0No8Kgf2Z4FOleEA96DEW`, 30 seats, `role: instructor-admin`, tile live on site (deploy `3ca26917`).
 - 2026-09-22 — items 4, 6, 8 resolved in `ce90d8a`.
 - 2026-09-22 — items 2, 3, 10 resolved in `15b6b5f` (practicum-api Worker `fbbfa00`, live at api.practicum-cli.dev).
