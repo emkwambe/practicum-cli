@@ -160,8 +160,12 @@ activate_license() {
     if [ "$(_json_num "$body" valid)" != "true" ]; then
         echo ""
         echo -e "  ${C_RED}❌ Activation failed.${C_RESET}"
-        echo -e "  ${C_YELLOW}  $(_json_str "$body" error)${C_RESET}"
-        echo -e "  ${C_DIM}  Check the key in your purchase email, or contact practicum@mpingo.ai${C_RESET}"
+        if [ "$(_json_str "$body" error)" = "License revoked" ]; then
+            echo -e "  ${C_YELLOW}  Your classroom seat was removed. Contact your instructor.${C_RESET}"
+        else
+            echo -e "  ${C_YELLOW}  $(_json_str "$body" error)${C_RESET}"
+            echo -e "  ${C_DIM}  Check the key in your purchase email, or contact practicum@mpingo.ai${C_RESET}"
+        fi
         echo ""
         return 1
     fi
@@ -290,11 +294,18 @@ validate_license() {
             return 0
         fi
         # Server answered and said no (expired / revoked / not found): drop the cache.
-        if [ "$(_json_str "$body" error)" = "License expired" ]; then
-            _license_expire_locally "$(_json_str "$body" expires_at | cut -c1-10)"
-        else
-            rm -f "$LICENSE_FILE"
-        fi
+        case "$(_json_str "$body" error)" in
+            "License expired")
+                _license_expire_locally "$(_json_str "$body" expires_at | cut -c1-10)"
+                ;;
+            "License revoked")
+                rm -f "$LICENSE_FILE"
+                LICENSE_DENY_REASON="revoked"
+                ;;
+            *)
+                rm -f "$LICENSE_FILE"
+                ;;
+        esac
         return 1
     fi
 
@@ -366,6 +377,9 @@ show_upgrade_prompt() {
             when=$(cat "$LICENSE_EXPIRED_FILE" 2>/dev/null)
             echo -e "  ${C_WHITE}Your Practicum license expired${when:+ on $when}.${C_RESET}"
             echo -e "  ${C_WHITE}Renew your annual license to continue.${C_RESET}"
+            ;;
+        revoked)
+            echo -e "  ${C_WHITE}Your classroom seat was removed. Contact your instructor.${C_RESET}"
             ;;
         entitlement)
             echo -e "  ${C_WHITE}$(get_course_name "$course") is not included in your license.${C_RESET}"

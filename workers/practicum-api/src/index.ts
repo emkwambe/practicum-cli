@@ -95,6 +95,9 @@ interface LicenseRecord {
   revoked: boolean;
   revoked_at: string | null;
   revoked_reason: string | null;
+  // Set by classroom seat provisioning (roster.ts); absent on solo licences.
+  classroom_id?: string;
+  member_id?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -317,6 +320,9 @@ async function handleValidate(request: Request, env: Env): Promise<Response> {
     activated_at: license.activated_at,
     expires_at: expiresAt,
     expires_epoch: expiresEpoch,
+    // Present only on classroom-issued keys; 7C uses these to attribute
+    // progress events without the CLI having to be told where it belongs.
+    ...(license.classroom_id ? { classroom_id: license.classroom_id, member_id: license.member_id } : {}),
   });
 }
 

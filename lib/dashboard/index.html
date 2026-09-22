@@ -32,9 +32,9 @@ h2{font-family:var(--mono);color:var(--w);font-size:1rem;margin:0 0 1rem}
 .auth{max-width:26rem}
 label{display:block;font-family:var(--mono);font-size:.72rem;font-weight:600;letter-spacing:.12em;
   text-transform:uppercase;color:var(--td);margin-bottom:.45rem}
-input[type=email]{width:100%;padding:.7rem .8rem;background:var(--bg3);color:var(--w);
+input[type=email],input[type=text]{width:100%;padding:.7rem .8rem;background:var(--bg3);color:var(--w);
   border:1px solid var(--br);border-radius:6px;font-family:var(--mono);font-size:.9rem}
-input[type=email]:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid var(--g);outline-offset:2px}
+input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid var(--g);outline-offset:2px}
 button{font-family:var(--mono);font-size:.9rem;font-weight:600;padding:.85rem 2rem;background:var(--g);
   color:var(--bg);border:none;border-radius:6px;cursor:pointer;transition:background .2s}
 button:hover{background:var(--gd)}
@@ -62,6 +62,35 @@ dd{margin:0;color:var(--t);overflow-wrap:anywhere}
 .msg.err{color:var(--red);border-color:currentColor}
 .soon{font-size:.85rem;color:var(--td)}
 .soon li{margin:.3rem 0}
+.seatbar{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1rem}
+.seatbar .count{font-family:var(--mono);font-size:.85rem;color:var(--t);font-variant-numeric:tabular-nums}
+.toolbar{display:flex;gap:.6rem;flex-wrap:wrap;align-items:flex-end}
+.toolbar .field{flex:1 1 12rem;min-width:0}
+select{width:100%;padding:.7rem .8rem;background:var(--bg3);color:var(--w);border:1px solid var(--br);
+  border-radius:6px;font-family:var(--mono);font-size:.85rem}
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:.88rem;min-width:34rem}
+th{font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--td);
+  text-align:left;padding:.55rem .6rem;border-bottom:1px solid var(--br);white-space:nowrap}
+td{padding:.6rem;border-bottom:1px solid var(--br);vertical-align:top}
+tr:last-child td{border-bottom:none}
+td.who{min-width:11rem}
+td.who .nm{color:var(--w)}
+td.who .em{font-size:.8rem;color:var(--td);overflow-wrap:anywhere}
+td.acts{white-space:nowrap;text-align:right}
+td.acts button{padding:.35rem .7rem;font-size:.75rem;margin-left:.3rem}
+.badge{display:inline-block;font-family:var(--mono);font-size:.68rem;font-weight:700;letter-spacing:.05em;
+  text-transform:uppercase;padding:.15rem .5rem;border-radius:4px;border:1px solid currentColor;white-space:nowrap}
+.badge.active{color:var(--g)}
+.badge.invited{color:var(--cy)}
+.badge.revoked{color:var(--red)}
+.badge.failed{color:var(--amber)}
+.muted{color:var(--td);font-size:.8rem}
+.rowmsg{font-size:.8rem;margin-top:.35rem}
+.rowmsg.err{color:var(--red)}
+.rowmsg.good{color:var(--g)}
+.empty{padding:2rem 1rem;text-align:center;color:var(--td);font-size:.9rem}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 footer{color:var(--td);font-size:.8rem;border-top:1px solid var(--br);margin-top:3rem}
 footer .wrap{padding-block:1.25rem}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -135,10 +164,61 @@ footer .wrap{padding-block:1.25rem}
         <dt>Telegram group</dt><dd id="room-telegram">Not set yet</dd>
       </dl>
       <ul class="soon">
-        <li>Roster, invites and CSV import — next release</li>
         <li>Assignments and the cohort progress matrix — next release</li>
       </ul>
     </div>
+
+    <div class="card stack" style="margin-top:1rem">
+      <div class="seatbar">
+        <h2 style="margin:0">Roster</h2>
+        <span class="count" id="seat-count">&nbsp;</span>
+      </div>
+
+      <form class="toolbar" id="invite-form" novalidate>
+        <div class="field">
+          <label for="inv-email">Email</label>
+          <input type="email" id="inv-email" name="email" autocomplete="off" spellcheck="false"
+                 placeholder="learner@school.edu" required>
+        </div>
+        <div class="field">
+          <label for="inv-name">Name <span class="muted">(optional)</span></label>
+          <input type="text" id="inv-name" name="display_name" autocomplete="off" spellcheck="false"
+                 placeholder="Ada Lovelace">
+        </div>
+        <div class="field" style="flex:0 1 10rem">
+          <label for="inv-role">Role</label>
+          <select id="inv-role" name="role">
+            <option value="learner">Learner</option>
+            <option value="instructor">Instructor</option>
+          </select>
+        </div>
+        <div><button type="submit" id="inv-submit">Invite</button></div>
+      </form>
+      <p class="rowmsg" id="invite-msg" hidden></p>
+
+      <div class="toolbar" style="align-items:center">
+        <div><button type="button" class="btn-quiet" id="import-pick">Import CSV…</button></div>
+        <div><button type="button" class="btn-quiet" id="csv-template">Download template</button></div>
+        <span class="muted">email,display_name — up to 100 rows</span>
+        <input type="file" id="import-file" accept=".csv,text/csv" hidden>
+      </div>
+      <div id="import-results" hidden></div>
+
+      <div class="tablewrap">
+        <table id="roster-table">
+          <caption class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">
+            Classroom roster
+          </caption>
+          <thead><tr>
+            <th scope="col">Member</th><th scope="col">Role</th><th scope="col">Status</th>
+            <th scope="col">Invite</th><th scope="col">Last seen</th><th scope="col"><span class="sr-only">Actions</span></th>
+          </tr></thead>
+          <tbody id="roster-body"></tbody>
+        </table>
+      </div>
+      <p class="empty" id="roster-empty" hidden>No one on the roster yet. Invite your first learner above.</p>
+    </div>
+
     <p class="msg err" id="home-error" hidden style="margin-top:1rem"></p>
   </section>
 </main>
@@ -199,9 +279,223 @@ async function loadHome() {
     $('room-telegram').replaceChildren(a);
   }
 
+  $('seat-count').textContent =
+    `${seats.learners.used} of ${seats.learners.limit} learner seats · ` +
+    `${seats.instructors.used} of ${seats.instructors.limit} instructor`;
+
   show('home');
+  await loadRoster();
   return true;
 }
+
+// --- roster ----------------------------------------------------------------
+
+const STATUS_LABEL = { invited: 'Invited', active: 'Active', revoked: 'Revoked' };
+const fmtDate = (v) => {
+  if (!v) return '—';
+  const d = new Date(String(v).replace(' ', 'T') + (String(v).endsWith('Z') ? '' : 'Z'));
+  return Number.isNaN(d.valueOf()) ? '—' : d.toISOString().slice(0, 10);
+};
+
+function badge(text, cls) {
+  const el = document.createElement('span');
+  el.className = 'badge ' + cls;
+  el.textContent = text;
+  return el;
+}
+
+function rosterRow(m) {
+  const tr = document.createElement('tr');
+
+  const who = document.createElement('td');
+  who.className = 'who';
+  const nm = document.createElement('div');
+  nm.className = 'nm';
+  nm.textContent = m.display_name || m.email;
+  const em = document.createElement('div');
+  em.className = 'em';
+  em.textContent = m.display_name ? m.email : (m.license_key_prefix ? m.license_key_prefix + '…' : '');
+  who.append(nm, em);
+
+  const role = document.createElement('td');
+  role.textContent = m.role === 'instructor' ? 'Instructor' : 'Learner';
+
+  const status = document.createElement('td');
+  status.append(badge(STATUS_LABEL[m.status] || m.status, m.status));
+
+  const invite = document.createElement('td');
+  if (m.email_status === 'failed') {
+    invite.append(badge('Email failed', 'failed'));
+  } else {
+    invite.textContent = fmtDate(m.invited_at);
+  }
+
+  const seen = document.createElement('td');
+  seen.textContent = fmtDate(m.last_seen_at || m.activated_at);
+
+  const acts = document.createElement('td');
+  acts.className = 'acts';
+  if (m.status !== 'revoked') {
+    const resend = document.createElement('button');
+    resend.type = 'button';
+    resend.className = 'btn-quiet';
+    resend.textContent = 'Resend';
+    resend.title = 'Issue a new key and email it. The current key stops working.';
+    resend.addEventListener('click', () => memberAction(resend,
+      `Send ${m.email} a new key? Their current key stops working immediately.`,
+      `/v1/classroom/members/${m.id}/resend`, 'POST'));
+
+    const revoke = document.createElement('button');
+    revoke.type = 'button';
+    revoke.className = 'btn-quiet';
+    revoke.textContent = 'Revoke';
+    revoke.title = 'Remove this seat. Their key stops working.';
+    revoke.addEventListener('click', () => memberAction(revoke,
+      `Remove ${m.email} from this classroom? Their key stops working and the seat is freed.`,
+      `/v1/classroom/members/${m.id}`, 'DELETE'));
+
+    acts.append(resend, revoke);
+  } else {
+    const note = document.createElement('span');
+    note.className = 'muted';
+    note.textContent = 'seat freed';
+    acts.append(note);
+  }
+
+  tr.append(who, role, status, invite, seen, acts);
+  return tr;
+}
+
+async function memberAction(button, confirmText, path, method) {
+  if (!confirm(confirmText)) return;
+  button.disabled = true;
+  try {
+    const res = await api(path, { method });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      note($('invite-msg'), body.error || 'That did not work. Try again.', false);
+    }
+  } finally {
+    button.disabled = false;
+    await loadHome();
+  }
+}
+
+async function loadRoster() {
+  const res = await api('/v1/classroom/members');
+  if (!res.ok) return;
+  const { members } = await res.json();
+  const body = $('roster-body');
+  body.replaceChildren(...members.map(rosterRow));
+  $('roster-empty').hidden = members.length > 0;
+  $('roster-table').hidden = members.length === 0;
+}
+
+function note(el, message, good) {
+  el.textContent = message;
+  el.className = 'rowmsg ' + (good ? 'good' : 'err');
+  el.hidden = false;
+}
+
+$('invite-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = $('inv-email').value.trim();
+  const msg = $('invite-msg');
+  msg.hidden = true;
+  if (!email) { note(msg, 'Enter an email address to invite.', false); return; }
+
+  const button = $('inv-submit');
+  button.disabled = true;
+  try {
+    const res = await api('/v1/classroom/members', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        email,
+        display_name: $('inv-name').value.trim(),
+        role: $('inv-role').value,
+      }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (res.ok) {
+      note(msg, body.email_status === 'failed'
+        ? `Seat created for ${email}, but the invite email did not send. Use Resend.`
+        : `Invited ${email}.`, body.email_status !== 'failed');
+      $('inv-email').value = '';
+      $('inv-name').value = '';
+      await loadHome();
+    } else {
+      note(msg, body.error || 'That invite did not go through.', false);
+    }
+  } catch {
+    note(msg, 'Could not reach the classroom service.', false);
+  } finally {
+    button.disabled = false;
+  }
+});
+
+$('csv-template').addEventListener('click', () => {
+  const blob = new Blob(['email,display_name\nlearner@school.edu,Ada Lovelace\n'], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'practicum-roster-template.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+$('import-pick').addEventListener('click', () => $('import-file').click());
+
+$('import-file').addEventListener('change', async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  const out = $('import-results');
+  out.replaceChildren();
+  out.hidden = false;
+  out.textContent = 'Importing…';
+
+  try {
+    const res = await api('/v1/classroom/members/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/csv' },
+      body: await file.text(),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) { out.textContent = body.error || 'Import failed.'; return; }
+
+    const LABEL = {
+      created: 'Invited', created_email_failed: 'Seat created, email failed',
+      duplicate: 'Already on the roster', invalid: 'Not a valid email',
+      over_capacity: 'No seats left', over_row_limit: 'Past the 100-row limit',
+      failed: 'Failed',
+    };
+    const heading = document.createElement('p');
+    heading.className = 'muted';
+    heading.textContent = Object.entries(body.summary || {})
+      .map(([k, n]) => `${n} ${LABEL[k] || k}`).join(' · ');
+
+    const table = document.createElement('table');
+    table.innerHTML = '<thead><tr><th scope="col">Row</th><th scope="col">Email</th><th scope="col">Result</th></tr></thead>';
+    const tb = document.createElement('tbody');
+    for (const r of body.results || []) {
+      const tr = document.createElement('tr');
+      const c1 = document.createElement('td'); c1.textContent = r.row;
+      const c2 = document.createElement('td'); c2.textContent = r.email || '—';
+      const c3 = document.createElement('td'); c3.textContent = LABEL[r.outcome] || r.outcome;
+      tr.append(c1, c2, c3);
+      tb.append(tr);
+    }
+    table.append(tb);
+    const wrap = document.createElement('div');
+    wrap.className = 'tablewrap';
+    wrap.append(table);
+    out.replaceChildren(heading, wrap);
+    await loadHome();
+  } catch {
+    out.textContent = 'Could not reach the classroom service.';
+  } finally {
+    e.target.value = '';
+  }
+});
 
 $('login-form').addEventListener('submit', async (e) => {
   e.preventDefault();

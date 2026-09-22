@@ -21,6 +21,12 @@ cleanup() {
     if [ -s "$ISSUED_KEYS" ]; then
         echo ""
         echo "== revoking keys issued by this run"
+        # The suite signs out before exiting, so $JAR is spent by now. Mint a
+        # fresh session rather than leaving keys live.
+        if ! curl -s -b "$JAR" "$API/v1/classroom" 2>/dev/null | grep -q '"classroom"'; then
+            ctok=$(magic_token "$EMAIL" 2>/dev/null)
+            [ -n "$ctok" ] && curl -s -o /dev/null -c "$JAR" "$API/v1/auth/verify?token=$ctok" 2>/dev/null
+        fi
         while IFS='|' read -r member_id key; do
             [ -n "$member_id" ] || continue
             code=$(curl -s -o /dev/null -w '%{http_code}' -X DELETE -b "$JAR" \
@@ -176,7 +182,105 @@ else
         bad "classroom B not seeded — scoping untested"
     fi
 
-    echo "== logout"
+        echo "== seats: invite, caps, revoke, rotation (7B)"
+    RUN="smoke$(date +%s)"
+    # Every key issued below is recorded for the EXIT trap immediately after the
+    # call that creates it, so an interrupt mid-suite still cleans up.
+    invite() {  # $1 = email, $2 = role → response body
+        curl -s -X POST -b "$JAR" "$API/v1/classroom/members" \
+            -H 'Content-Type: application/x-www-form-urlencoded' \
+            --data-urlencode "email=$1" --data-urlencode "role=${2:-learner}" \
+            --data-urlencode "display_name=Smoke $RUN" 2>/dev/null
+    }
+    jfield() { printf '%s' "$1" | sed -n "s/.*\"$2\":\"\([^\"]*\)\".*/\1/p" | head -1; }
+
+    body=$(invite "learner-$RUN@example.com")
+    MEM=$(jfield "$body" member_id); KEY=$(jfield "$body" test_key)
+    [ -n "$MEM" ] && echo "$MEM|$KEY" >> "$ISSUED_KEYS"
+    [ -n "$MEM" ] && ok "invite created a member" || bad "invite failed: $(printf '%s' "$body" | cut -c1-90)"
+    [ -n "$KEY" ] && ok "invite issued a licence key" || bad "no key issued"
+
+    if [ -n "$KEY" ]; then
+        vbody=$(curl -s "$API/license/validate?key=$KEY")
+        printf '%s' "$vbody" | grep -q '"valid":true' && ok "learner key validates" || bad "learner key does not validate"
+        printf '%s' "$vbody" | grep -q '"role":"learner"' && ok "key role is learner" || bad "wrong key role"
+        printf '%s' "$vbody" | grep -q '"kubernetes"' && ok "key carries full catalog" || bad "key missing entitlements"
+        printf '%s' "$vbody" | grep -q "\"classroom_id\"\|$ROOM" && ok "key is bound to the classroom" || bad "key not classroom-bound"
+    fi
+
+    echo "== normalisation and duplicates"
+    dup=$(invite "  LEARNER-$RUN@Example.COM  ")
+    printf '%s' "$dup" | grep -q 'already on this roster' && ok "email normalised; duplicate rejected" || bad "duplicate not caught: $(printf '%s' "$dup" | cut -c1-70)"
+
+    echo "== instructor cap (2)"
+    b2=$(invite "instructor2-$RUN@example.com" instructor)
+    M2=$(jfield "$b2" member_id); K2=$(jfield "$b2" test_key)
+    [ -n "$M2" ] && echo "$M2|$K2" >> "$ISSUED_KEYS"
+    [ -n "$M2" ] && ok "2nd instructor seat granted" || bad "2nd instructor rejected: $(printf '%s' "$b2" | cut -c1-70)"
+    [ -n "$K2" ] && curl -s "$API/license/validate?key=$K2" | grep -q '"role":"instructor-admin"' \
+        && ok "2nd instructor key is instructor-admin" || bad "2nd instructor key role wrong"
+    code=$(curl -s -o /dev/null -w '%{http_code}' -X POST -b "$JAR" "$API/v1/classroom/members" \
+        -H 'Content-Type: application/x-www-form-urlencoded' \
+        --data-urlencode "email=instructor3-$RUN@example.com" --data-urlencode "role=instructor")
+    check "3rd instructor → 409" "$code" "409"
+
+    echo "== learner cap (30) via CSV import"
+    csv="email,display_name"$'\n'
+    i=1
+    while [ "$i" -le 31 ]; do csv="${csv}bulk${i}-$RUN@example.com,Bulk $i"$'\n'; i=$((i+1)); done
+    imp=$(curl -s -X POST -b "$JAR" "$API/v1/classroom/members/import" -H 'Content-Type: text/csv' --data-binary "$csv")
+    for m in $(printf '%s' "$imp" | grep -o '"member_id":"[^"]*"' | cut -d'"' -f4); do echo "$m|" >> "$ISSUED_KEYS"; done
+    # Locally the invite email always fails (dummy Resend key), so a created row
+    # reports created_email_failed — the seat is kept either way, which is the
+    # behaviour under test.
+    printf '%s' "$imp" | grep -qE '"created(_email_failed)?"' && ok "import created rows" || bad "import created nothing"
+    printf '%s' "$imp" | grep -q 'over_capacity' && ok "31st learner → over_capacity" || bad "learner cap not enforced"
+    printf '%s' "$imp" | grep -q '"header"' && bad "header row was imported" || ok "header row skipped"
+    # The roster fills the cap, so a further single invite must be refused too.
+    code=$(curl -s -o /dev/null -w '%{http_code}' -X POST -b "$JAR" "$API/v1/classroom/members" \
+        -H 'Content-Type: application/x-www-form-urlencoded' --data-urlencode "email=over-$RUN@example.com")
+    check "invite past the learner cap → 409" "$code" "409"
+
+    echo "== bad rows never block good ones"
+    mixed=$(curl -s -X POST -b "$JAR" "$API/v1/classroom/members/import" -H 'Content-Type: text/csv' \
+        --data-binary "not-an-email,Bad"$'\n'"also bad,Worse")
+    printf '%s' "$mixed" | grep -q '"invalid"' && ok "invalid rows reported per row" || bad "invalid rows not reported"
+
+    echo "== rotation invalidates the old key"
+    if [ -n "$MEM" ] && [ -n "$KEY" ]; then
+        rot=$(curl -s -X POST -b "$JAR" "$API/v1/classroom/members/$MEM/resend")
+        NEWKEY=$(jfield "$rot" test_key)
+        [ -n "$NEWKEY" ] && echo "$MEM|$NEWKEY" >> "$ISSUED_KEYS"
+        [ -n "$NEWKEY" ] && [ "$NEWKEY" != "$KEY" ] && ok "resend rotated the key" || bad "key did not rotate"
+        curl -s "$API/license/validate?key=$NEWKEY" | grep -q '"valid":true' && ok "new key validates" || bad "new key invalid"
+        code=$(curl -s -o /dev/null -w '%{http_code}' "$API/license/validate?key=$KEY")
+        check "old key stops validating" "$code" "403"
+        KEY="$NEWKEY"
+    fi
+
+    echo "== revoke"
+    if [ -n "$MEM" ]; then
+        code=$(curl -s -o /dev/null -w '%{http_code}' -X DELETE -b "$JAR" "$API/v1/classroom/members/$MEM")
+        check "revoke accepted" "$code" "200"
+        rbody=$(curl -s -o "$BODY" -w '%{http_code}' "$API/license/validate?key=$KEY")
+        check "revoked key → 403" "$rbody" "403"
+        grep -q 'License revoked' "$BODY" && ok "revoked key reports 'License revoked'" || bad "wrong revoke error"
+        # lib/license.sh turns exactly that string into the learner-facing line.
+        grep -q 'Your classroom seat was removed' "$HERE/../lib/license.sh" \
+            && ok "CLI has the revoked-seat message" || bad "CLI missing revoked-seat message"
+        curl -s -b "$JAR" "$API/v1/classroom/members" | grep -q '"status":"revoked"' \
+            && ok "roster shows revoked status" || bad "roster missing revoked status"
+    fi
+
+    echo "== solo licences are unaffected"
+    if [ -n "${SMOKE_SOLO_KEY:-}" ]; then
+        curl -s "$API/license/validate?key=$SMOKE_SOLO_KEY" | grep -q '"valid":true' \
+            && ok "existing solo licence still validates" || bad "solo licence broke"
+    else
+        echo "  SKIP  solo licence check — set SMOKE_SOLO_KEY to a known-good non-classroom key"
+    fi
+
+echo "== logout"
     curl -s -o /dev/null -X POST -b "$JAR" -c "$JAR" "$API/v1/auth/logout"
     code=$(curl -s -o /dev/null -w '%{http_code}' -b "$JAR" "$API/v1/classroom")
     check "after logout, summary is 401" "$code" "401"

@@ -12,6 +12,7 @@
 // id from the client is never trusted.
 
 import manifest from "../../../content/manifest.json";
+import { routeRoster, type RosterEnv } from "./roster";
 
 export interface ClassroomEnv {
   CLASSROOM_DB: D1Database;
@@ -368,10 +369,15 @@ export async function routeClassroom(request: Request, env: ClassroomEnv): Promi
   if (path === "/v1/auth/verify" && method === "GET") return handleVerify(request, env);
   if (path === "/v1/auth/logout" && method === "POST") return handleLogout(request, env);
 
-  if (path === "/v1/classroom" && method === "GET") {
+  // Everything below needs a session, and is scoped to that session's classroom.
+  if (path === "/v1/classroom" || path.startsWith("/v1/classroom/")) {
     const session = await getSession(request, env);
     if (!session) return json(request, { error: "Not signed in" }, 401);
-    return handleClassroomSummary(request, env, session);
+
+    if (path === "/v1/classroom" && method === "GET") return handleClassroomSummary(request, env, session);
+
+    const roster = await routeRoster(request, env as ClassroomEnv & RosterEnv, session, path);
+    if (roster) return roster;
   }
 
   return null; // not a classroom route
