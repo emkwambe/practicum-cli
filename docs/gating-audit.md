@@ -22,13 +22,16 @@ menu. Same behaviour for both the hardcoded Linux Foundations menu and the gener
 
 | Product | Price | Sold as | Enforced as (since `practicum-api`) |
 |---|---|---|---|
-| Single Course | $49 | one course | that course only |
-| Data Engineering Track | $99 | Linux + Shell + Data Forging | `linux-foundations shell-mastery data-forging` |
-| Platform Engineering Track | $129 | Linux + Git + Docker + CI/CD + Terraform + K8s | `linux-foundations git-essentials docker-essentials cicd-pipelines terraform-iac kubernetes` |
-| Full Catalog v3 | $199 | all 8 courses | all 8 |
-| Team 5 Seats | $899 | full catalog × 5 learners | all 8; `seats: 5` recorded, **not enforced** |
-| Team 10 Seats | $1,599 | full catalog × 10 learners | all 8; `seats: 10` recorded, **not enforced** |
-| Classroom | $3,499/yr (recurring yearly) | 30 learner + 2 instructor seats | all 8 (`FULL_CATALOG`); `seats: 30`, `role: instructor-admin` recorded, **not enforced**. Entitlements wired server-side (`838c5b1`, product `pdt_0No8Kgf2Z4FOleEA96DEW`), but **CTA changed from buy → waitlist mailto** on the live site: checkout link removed, no purchases possible until the instructor dashboard and cohort features ship (item 7). Tile stays visible with an "in development" note to capture institutional interest. |
+| Single Course (×8) | $49/yr | one course | that course only — `pdt_0No8cX1sZ1XCttHIl5fh3` Linux · `pdt_0No8cX1r3haaAnMDWlW8C` Git · `pdt_0No8cX1sZ1XCttHQ6FwOk` Shell · `pdt_0No8cX1rolhdm8TbGSI91` Data Forging · `pdt_0No8cX1sZQTfyfYqre4BW` Docker · `pdt_0No8cX1tLOc3LaVXpGBPw` CI/CD · `pdt_0No8cX2J2EoRdkmAVkMCE` Terraform · `pdt_0No8cX2OJhVBYHfq4V9cs` Kubernetes |
+| Data Engineering Track | $99/yr | Linux + Shell + Data Forging | `DATA_TRACK` — `pdt_0No8cX2PpLQr3eZTRBjov` |
+| Platform Engineering Track | $129/yr | Linux + Git + Docker + CI/CD + Terraform + K8s | `PLATFORM_TRACK` — `pdt_0No8cX2P3PLJsBYdbVe29` |
+| Full Catalog | $199/yr | all 8 courses | `FULL_CATALOG` — `pdt_0No8cX2NZGEmwrUPoCegF` |
+| Team Data Engineering 5 / 10 | $349 / $599/yr | data track × 5 / 10 learners | `DATA_TRACK`; `seats: 5` / `10` recorded, **not enforced** — `pdt_0No8cX2WdUc6FfZmRq6no` / `pdt_0No8cX2kDV38Olhehkf7o` |
+| Team Platform Engineering 5 / 10 | $499 / $899/yr | platform track × 5 / 10 learners | `PLATFORM_TRACK`; `seats: 5` / `10`, **not enforced** — `pdt_0No8cX2zJK81FG3NaA0st` / `pdt_0No8cX2tGb8qRo7UOMUqr` |
+| Team Full Catalog 5 / 10 | $899 / $1,599/yr | full catalog × 5 / 10 learners | `FULL_CATALOG`; `seats: 5` / `10`, **not enforced** — `pdt_0No8cX2zJK81FG3VFNdPD` / `pdt_0No8cX2xnVQggiN3WPjoA` |
+| Classroom | $3,499/yr | 30 learner + 2 instructor seats | `FULL_CATALOG`; `seats: 30`, `role: instructor-admin`, **not enforced** — `pdt_0No8Kgf2Z4FOleEA96DEW`. Site CTA is a waitlist mailto (no purchases) until the instructor dashboard ships (item 7). |
+
+All 17 products are **recurring yearly** on Dodo (replacing the one-time `pdt_0No7um*` set, retired 2026-09-22; keys already minted keep their stored entitlements). Team licenses are sold for full tracks and the complete catalog only — individual course selection is not available for teams, and the site says so explicitly. **Cancellation policy** (site license-terms block): access continues to the end of the current license year; no prorated refunds for unused months. **Telegram (Phase 1):** every team purchase (`seats > 1`) gets a private Telegram group provisioned manually within 24 h; the license email tells the admin to expect a separate invite. No automation exists for this yet.
 
 Entitlements are decided server-side: `workers/practicum-api/src/index.ts`
 `PRODUCT_ENTITLEMENTS` maps each Dodo `product_id` to course slugs (matching
@@ -87,6 +90,7 @@ Ordered by severity.
 4. Move premium course content out of the public repo (fetch on activation, or ship encrypted and decrypt with a server-issued key) — the only real fix for 1 and 2.
 
 **Changelog:**
+- 2026-09-22 — 17 recurring-yearly Dodo products replace the one-time set (`pdt_0No7um*` removed from repo); 6 team-track products added to the entitlement map; 3-zone pricing page (Learn independently / Develop your team / Run a cohort) with seat selectors; cancellation policy and team disclaimer on site; Telegram Phase 1 note in team license emails.
 - Classroom CTA switched from Dodo checkout to `mailto:practicum@mpingo.ai` waitlist; checkout link removed from the live page pending item 7 (dashboard build). API entitlements for the product remain in place.
 - `838c5b1` — Classroom tier wired: `pdt_0No8Kgf2Z4FOleEA96DEW`, 30 seats, `role: instructor-admin`, tile live on site (deploy `3ca26917`).
 - 2026-09-22 — items 4, 6, 8 resolved in `ce90d8a`.

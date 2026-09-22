@@ -30,7 +30,7 @@ sign_and_post() {  # $1 = body
 }
 
 ORDER="pay_e2e_$(date +%s)"
-PAYMENT='{"type":"payment.succeeded","data":{"payment_id":"'"$ORDER"'","customer":{"email":"e2e@example.com"},"product_cart":[{"product_id":"pdt_0No7umL7kMaekaV8OezhO"}]}}'
+PAYMENT='{"type":"payment.succeeded","data":{"payment_id":"'"$ORDER"'","customer":{"email":"e2e@example.com"},"product_cart":[{"product_id":"pdt_0No8cX2PpLQr3eZTRBjov"}]}}'
 
 echo "== 1. unsigned webhook is rejected"
 code=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$API/webhooks/dodo" -d "$PAYMENT")

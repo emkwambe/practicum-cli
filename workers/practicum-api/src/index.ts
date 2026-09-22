@@ -20,14 +20,14 @@ export interface Env {
 // ---------------------------------------------------------------------------
 
 const SINGLE: Record<string, string> = {
-  pdt_0No7umC6gaGIE4EXLu2Gu: "linux-foundations",
-  pdt_0No7umEyEyApMgJMBRwHI: "git-essentials",
-  pdt_0No7umGHodyphlPy7kVuw: "shell-mastery",
-  pdt_0No7umI46jJ6QFGzDz9Wn: "data-forging",
-  pdt_0No7umIT3vq6wQTDTLitA: "docker-essentials",
-  pdt_0No7umIuzv3LovBDw9mJs: "cicd-pipelines",
-  pdt_0No7umJqQBlWvxZErrHqv: "terraform-iac",
-  pdt_0No7umKG7Jh3e57OeTvC6: "kubernetes",
+  pdt_0No8cX1sZ1XCttHIl5fh3: "linux-foundations",
+  pdt_0No8cX1r3haaAnMDWlW8C: "git-essentials",
+  pdt_0No8cX1sZ1XCttHQ6FwOk: "shell-mastery",
+  pdt_0No8cX1rolhdm8TbGSI91: "data-forging",
+  pdt_0No8cX1sZQTfyfYqre4BW: "docker-essentials",
+  pdt_0No8cX1tLOc3LaVXpGBPw: "cicd-pipelines",
+  pdt_0No8cX2J2EoRdkmAVkMCE: "terraform-iac",
+  pdt_0No8cX2OJhVBYHfq4V9cs: "kubernetes",
 };
 
 const DATA_TRACK = ["linux-foundations", "shell-mastery", "data-forging"];
@@ -40,26 +40,39 @@ const FULL_CATALOG = [
   "docker-essentials", "cicd-pipelines", "terraform-iac", "kubernetes",
 ];
 
+// All products are recurring yearly (Dodo). Seats > 1 marks a team product.
 export const PRODUCT_ENTITLEMENTS: Record<string, string[]> = {
   ...Object.fromEntries(Object.entries(SINGLE).map(([id, slug]) => [id, [slug]])),
-  pdt_0No7umL7kMaekaV8OezhO: DATA_TRACK,       // Data Engineering Track  $99
-  pdt_0No7umM8Suwb4dLat0K8G: PLATFORM_TRACK,   // Platform Engineering    $129
-  pdt_0No7umMgQG48JrJhqRVkc: FULL_CATALOG,     // Full Catalog v3         $199
-  pdt_0No7umNCBCxwKBAZALtnS: FULL_CATALOG,     // Team 5 seats            $899
-  pdt_0No7umOh6PEBDCQTfXWzm: FULL_CATALOG,     // Team 10 seats           $1,599
-  pdt_0No8Kgf2Z4FOleEA96DEW: FULL_CATALOG,     // Classroom (30+2 seats)   $3,499
+  // Individual tracks
+  pdt_0No8cX2PpLQr3eZTRBjov: DATA_TRACK,       // Data Engineering Track   $99/yr
+  pdt_0No8cX2P3PLJsBYdbVe29: PLATFORM_TRACK,   // Platform Engineering     $129/yr
+  pdt_0No8cX2NZGEmwrUPoCegF: FULL_CATALOG,     // Full Catalog             $199/yr
+  // Team tracks
+  pdt_0No8cX2WdUc6FfZmRq6no: DATA_TRACK,       // Team Data Eng 5 seats    $349/yr
+  pdt_0No8cX2kDV38Olhehkf7o: DATA_TRACK,       // Team Data Eng 10 seats   $599/yr
+  pdt_0No8cX2zJK81FG3NaA0st: PLATFORM_TRACK,   // Team Platform 5 seats    $499/yr
+  pdt_0No8cX2tGb8qRo7UOMUqr: PLATFORM_TRACK,   // Team Platform 10 seats   $899/yr
+  pdt_0No8cX2zJK81FG3VFNdPD: FULL_CATALOG,     // Team Full 5 seats        $899/yr
+  pdt_0No8cX2xnVQggiN3WPjoA: FULL_CATALOG,     // Team Full 10 seats       $1,599/yr
+  // Cohort
+  pdt_0No8Kgf2Z4FOleEA96DEW: FULL_CATALOG,     // Classroom 30+2 seats     $3,499/yr
 };
 
 const PRODUCT_SEATS: Record<string, number> = {
-  pdt_0No7umNCBCxwKBAZALtnS: 5,
-  pdt_0No7umOh6PEBDCQTfXWzm: 10,
-  pdt_0No8Kgf2Z4FOleEA96DEW: 30,
+  pdt_0No8cX2WdUc6FfZmRq6no: 5,    // Team Data Eng 5
+  pdt_0No8cX2kDV38Olhehkf7o: 10,   // Team Data Eng 10
+  pdt_0No8cX2zJK81FG3NaA0st: 5,    // Team Platform 5
+  pdt_0No8cX2tGb8qRo7UOMUqr: 10,   // Team Platform 10
+  pdt_0No8cX2zJK81FG3VFNdPD: 5,    // Team Full 5
+  pdt_0No8cX2xnVQggiN3WPjoA: 10,   // Team Full 10
+  pdt_0No8Kgf2Z4FOleEA96DEW: 30,   // Classroom
 };
 
 const CLASSROOM_PRODUCT = "pdt_0No8Kgf2Z4FOleEA96DEW";
 type Role = "learner" | "instructor-admin";
 const PRODUCT_ROLE: Record<string, Role> = {
   [CLASSROOM_PRODUCT]: "instructor-admin",
+  // all others default to "learner"
 };
 
 const LICENSE_TERM_DAYS = 365;
@@ -147,12 +160,18 @@ export async function verifyDodoSignature(request: Request, body: string, secret
 // Email
 // ---------------------------------------------------------------------------
 
-async function sendLicenseEmail(env: Env, email: string, key: string, entitlements: string[], expiresAt: string): Promise<boolean> {
+async function sendLicenseEmail(env: Env, email: string, key: string, entitlements: string[], expiresAt: string, seats: number): Promise<boolean> {
   if (!env.RESEND_API_KEY) {
     console.error(`RESEND_API_KEY not set — license ${key} for ${email} NOT emailed`);
     return false;
   }
   const courseList = entitlements.map((e) => `  • ${e}`).join("\n");
+  // Telegram Phase 1: team groups are provisioned manually within 24h.
+  const telegramNote = seats > 1
+    ? `---\nYour private Telegram group will be set up within 24 hours of purchase.\n` +
+      `You will receive a separate email at this address with the invite link.\n` +
+      `As the team admin you can invite your engineers directly from the group.\n\n`
+    : "";
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
@@ -164,6 +183,7 @@ async function sendLicenseEmail(env: Env, email: string, key: string, entitlemen
         `Your Practicum CLI license key:\n\n${key}\n\n` +
         `Activate with:\n  practicum activate ${key}\n\n` +
         `Courses unlocked:\n${courseList}\n\n` +
+        telegramNote +
         `Valid until ${expiresAt.slice(0, 10)}. Annual license, no autorenewal.\n\n` +
         `Practicum CLI — Precision tools that last.\nhttps://practicum-cli.dev`,
     }),
@@ -259,7 +279,7 @@ async function handleDodoWebhook(request: Request, env: Env): Promise<Response> 
   await env.LICENSES.put(key, JSON.stringify(record));
   await env.ORDERS.put(orderId, key);
 
-  await sendLicenseEmail(env, email, key, entitlements, record.expires_at);
+  await sendLicenseEmail(env, email, key, entitlements, record.expires_at, record.seats);
   return new Response("OK");
 }
 
