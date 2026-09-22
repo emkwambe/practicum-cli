@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_from": "courses/",
+  "generated_from": "content/ids.lock.json",
   "counts": {
     "courses": 9,
     "lessons": 296,
@@ -17,22 +17,22 @@
           "title": "Day 1 — The Terminal: Commands, Flags & The Manual",
           "lessons": [
             {
-              "id": "00-cli-immersion/day1/lesson/shell_terminal_os",
+              "id": "00-cli-immersion/lesson/shell_terminal_os",
               "title": "The Shell vs The Terminal vs The OS",
               "file": "courses/00-cli-immersion/day1/lesson1_shell_terminal_os.txt"
             },
             {
-              "id": "00-cli-immersion/day1/lesson/anatomy_of_command",
+              "id": "00-cli-immersion/lesson/anatomy_of_command",
               "title": "Anatomy of a Command — The Grammar of CLI",
               "file": "courses/00-cli-immersion/day1/lesson2_anatomy_of_command.txt"
             },
             {
-              "id": "00-cli-immersion/day1/lesson/flags_options_arguments",
+              "id": "00-cli-immersion/lesson/flags_options_arguments",
               "title": "Flags, Options & Arguments — The Full Grammar",
               "file": "courses/00-cli-immersion/day1/lesson3_flags_options_arguments.txt"
             },
             {
-              "id": "00-cli-immersion/day1/lesson/getting_help",
+              "id": "00-cli-immersion/lesson/getting_help",
               "title": "Getting Help — Reading the Manual",
               "file": "courses/00-cli-immersion/day1/lesson4_getting_help.txt"
             }
@@ -44,22 +44,22 @@
           "title": "Day 2 — Input, Output & The Pipeline Philosophy",
           "lessons": [
             {
-              "id": "00-cli-immersion/day2/lesson/standard_streams",
+              "id": "00-cli-immersion/lesson/standard_streams",
               "title": "Standard Streams — stdin, stdout, stderr",
               "file": "courses/00-cli-immersion/day2/lesson1_standard_streams.txt"
             },
             {
-              "id": "00-cli-immersion/day2/lesson/redirection",
+              "id": "00-cli-immersion/lesson/redirection",
               "title": "Redirection — Controlling Where Output Goes",
               "file": "courses/00-cli-immersion/day2/lesson2_redirection.txt"
             },
             {
-              "id": "00-cli-immersion/day2/lesson/pipes",
+              "id": "00-cli-immersion/lesson/pipes",
               "title": "Pipes — The Unix Superpower",
               "file": "courses/00-cli-immersion/day2/lesson3_pipes.txt"
             },
             {
-              "id": "00-cli-immersion/day2/lesson/exit_codes",
+              "id": "00-cli-immersion/lesson/exit_codes",
               "title": "Exit Codes — How Commands Report Success or Failure",
               "file": "courses/00-cli-immersion/day2/lesson4_exit_codes.txt"
             }
@@ -71,22 +71,22 @@
           "title": "Day 3 — The Environment: Paths, PATH & Permissions",
           "lessons": [
             {
-              "id": "00-cli-immersion/day3/lesson/filesystem_interface",
+              "id": "00-cli-immersion/lesson/filesystem_interface",
               "title": "The Filesystem as an Interface",
               "file": "courses/00-cli-immersion/day3/lesson1_filesystem_interface.txt"
             },
             {
-              "id": "00-cli-immersion/day3/lesson/path_resolution",
+              "id": "00-cli-immersion/lesson/path_resolution",
               "title": "PATH — How the Shell Finds Commands",
               "file": "courses/00-cli-immersion/day3/lesson2_path_resolution.txt"
             },
             {
-              "id": "00-cli-immersion/day3/lesson/environment_variables",
+              "id": "00-cli-immersion/lesson/environment_variables",
               "title": "Environment Variables — Configuration Without Files",
               "file": "courses/00-cli-immersion/day3/lesson3_environment_variables.txt"
             },
             {
-              "id": "00-cli-immersion/day3/lesson/permissions_execution",
+              "id": "00-cli-immersion/lesson/permissions_execution",
               "title": "Permissions & Execution — Who Can Run What",
               "file": "courses/00-cli-immersion/day3/lesson4_permissions_execution.txt"
             }
@@ -98,22 +98,22 @@
           "title": "Day 4 — Working Like an Engineer",
           "lessons": [
             {
-              "id": "00-cli-immersion/day4/lesson/keyboard_efficiency",
+              "id": "00-cli-immersion/lesson/keyboard_efficiency",
               "title": "Keyboard Efficiency — Speed Without a Mouse",
               "file": "courses/00-cli-immersion/day4/lesson1_keyboard_efficiency.txt"
             },
             {
-              "id": "00-cli-immersion/day4/lesson/globbing_quoting",
+              "id": "00-cli-immersion/lesson/globbing_quoting",
               "title": "Patterns & Globbing — Let the Shell Do the Work",
               "file": "courses/00-cli-immersion/day4/lesson2_globbing_quoting.txt"
             },
             {
-              "id": "00-cli-immersion/day4/lesson/substitution_chaining",
+              "id": "00-cli-immersion/lesson/substitution_chaining",
               "title": "Command Substitution & Chaining — Composing Solutions",
               "file": "courses/00-cli-immersion/day4/lesson3_substitution_chaining.txt"
             },
             {
-              "id": "00-cli-immersion/day4/lesson/capstone",
+              "id": "00-cli-immersion/lesson/capstone",
               "title": "Capstone — Build a CLI Toolkit Script",
               "file": "courses/00-cli-immersion/day4/lesson4_capstone.txt"
             }
@@ -132,17 +132,17 @@
           "title": "Day 1 — CI/CD Concepts & Pipeline Anatomy",
           "lessons": [
             {
-              "id": "cicd-pipelines/day1/lesson/what_is_cicd",
+              "id": "cicd-pipelines/lesson/what_is_cicd",
               "title": "What is CI/CD — The Pipeline That Changed Software",
               "file": "courses/cicd-pipelines/day1/lesson1_what_is_cicd.txt"
             },
             {
-              "id": "cicd-pipelines/day1/lesson/triggers",
+              "id": "cicd-pipelines/lesson/triggers",
               "title": "Pipeline Triggers — When Does the Pipeline Run?",
               "file": "courses/cicd-pipelines/day1/lesson2_triggers.txt"
             },
             {
-              "id": "cicd-pipelines/day1/lesson/platforms",
+              "id": "cicd-pipelines/lesson/platforms",
               "title": "CI/CD Platforms — Choosing the Right Tool",
               "file": "courses/cicd-pipelines/day1/lesson3_platforms.txt"
             }
@@ -154,17 +154,17 @@
           "title": "Day 2 — GitHub Actions Fundamentals",
           "lessons": [
             {
-              "id": "cicd-pipelines/day2/lesson/first_workflow",
+              "id": "cicd-pipelines/lesson/first_workflow",
               "title": "Your First GitHub Actions Workflow",
               "file": "courses/cicd-pipelines/day2/lesson1_first_workflow.txt"
             },
             {
-              "id": "cicd-pipelines/day2/lesson/jobs_steps",
+              "id": "cicd-pipelines/lesson/jobs_steps",
               "title": "Jobs, Steps, and Runners — Pipeline Architecture",
               "file": "courses/cicd-pipelines/day2/lesson2_jobs_steps.txt"
             },
             {
-              "id": "cicd-pipelines/day2/lesson/actions_caching",
+              "id": "cicd-pipelines/lesson/actions_caching",
               "title": "Marketplace Actions & Caching — Don't Reinvent the Wheel",
               "file": "courses/cicd-pipelines/day2/lesson3_actions_caching.txt"
             }
@@ -176,12 +176,12 @@
           "title": "Day 3 — Build & Test Automation",
           "lessons": [
             {
-              "id": "cicd-pipelines/day3/lesson/linting",
+              "id": "cicd-pipelines/lesson/linting",
               "title": "Linting in CI — Catch Bugs Before They Run",
               "file": "courses/cicd-pipelines/day3/lesson1_linting.txt"
             },
             {
-              "id": "cicd-pipelines/day3/lesson/testing",
+              "id": "cicd-pipelines/lesson/testing",
               "title": "Automated Testing — Your Safety Net",
               "file": "courses/cicd-pipelines/day3/lesson2_testing.txt"
             }
@@ -193,12 +193,12 @@
           "title": "Day 4 — Docker in CI (Build, Tag, Push)",
           "lessons": [
             {
-              "id": "cicd-pipelines/day4/lesson/docker_build",
+              "id": "cicd-pipelines/lesson/docker_build",
               "title": "Docker Build in CI — From Code to Container Automatically",
               "file": "courses/cicd-pipelines/day4/lesson1_docker_build.txt"
             },
             {
-              "id": "cicd-pipelines/day4/lesson/registries",
+              "id": "cicd-pipelines/lesson/registries",
               "title": "Container Registries — Store, Version, and Deploy Images",
               "file": "courses/cicd-pipelines/day4/lesson2_registries.txt"
             }
@@ -210,7 +210,7 @@
           "title": "Day 5 — Assessment 1 (Complete CI Pipeline)",
           "lessons": [
             {
-              "id": "cicd-pipelines/day5/lesson/assessment",
+              "id": "cicd-pipelines/lesson/assessment",
               "title": "Assessment 1: Build a Complete CI Pipeline",
               "file": "courses/cicd-pipelines/day5/lesson1_assessment.txt"
             }
@@ -222,12 +222,12 @@
           "title": "Day 6 — Deployment Strategies & Rollbacks",
           "lessons": [
             {
-              "id": "cicd-pipelines/day6/lesson/deploy_strategies",
+              "id": "cicd-pipelines/lesson/deploy_strategies",
               "title": "Deployment Strategies — Ship Without Breaking Production",
               "file": "courses/cicd-pipelines/day6/lesson1_deploy_strategies.txt"
             },
             {
-              "id": "cicd-pipelines/day6/lesson/staging_cd",
+              "id": "cicd-pipelines/lesson/staging_cd",
               "title": "Staging Environments & CD Workflows",
               "file": "courses/cicd-pipelines/day6/lesson2_staging_cd.txt"
             }
@@ -239,12 +239,12 @@
           "title": "Day 7 — Secrets, Environments & Multi-Stage",
           "lessons": [
             {
-              "id": "cicd-pipelines/day7/lesson/secrets",
+              "id": "cicd-pipelines/lesson/secrets",
               "title": "Secrets Management — Never Put Keys in Code",
               "file": "courses/cicd-pipelines/day7/lesson1_secrets.txt"
             },
             {
-              "id": "cicd-pipelines/day7/lesson/reusable",
+              "id": "cicd-pipelines/lesson/reusable",
               "title": "Multi-Stage Pipelines & Reusable Workflows",
               "file": "courses/cicd-pipelines/day7/lesson2_reusable.txt"
             }
@@ -256,12 +256,12 @@
           "title": "Day 8 — Capstone: Full CI/CD Pipeline",
           "lessons": [
             {
-              "id": "cicd-pipelines/day8/lesson/review",
+              "id": "cicd-pipelines/lesson/review",
               "title": "CI/CD Pipeline Design Review — Before the Capstone",
               "file": "courses/cicd-pipelines/day8/lesson1_review.txt"
             },
             {
-              "id": "cicd-pipelines/day8/lesson/capstone",
+              "id": "cicd-pipelines/lesson/capstone",
               "title": "Final Capstone: Production Release Simulation",
               "file": "courses/cicd-pipelines/day8/lesson2_capstone.txt"
             }
@@ -280,42 +280,42 @@
           "title": "Day 1 — Pipes & Text Tools (Fast Review)",
           "lessons": [
             {
-              "id": "data-forging/day1/lesson/pipeline_design",
+              "id": "data-forging/lesson/pipeline_design",
               "title": "The Unix Data Pipeline — Thinking in Streams",
               "file": "courses/data-forging/day1/lesson1_pipeline_design.txt"
             },
             {
-              "id": "data-forging/day1/lesson/advanced_grep",
+              "id": "data-forging/lesson/advanced_grep",
               "title": "Advanced grep — Extract Patterns, Not Just Lines",
               "file": "courses/data-forging/day1/lesson2_advanced_grep.txt"
             },
             {
-              "id": "data-forging/day1/lesson/awk_queries",
+              "id": "data-forging/lesson/awk_queries",
               "title": "awk as a Data Query Language",
               "file": "courses/data-forging/day1/lesson3_awk_queries.txt"
             },
             {
-              "id": "data-forging/day1/lesson/sed_transform",
+              "id": "data-forging/lesson/sed_transform",
               "title": "sed for Data Transformation",
               "file": "courses/data-forging/day1/lesson4_sed_transform.txt"
             },
             {
-              "id": "data-forging/day1/lesson/regex",
+              "id": "data-forging/lesson/regex",
               "title": "Regex Fundamentals — The Pattern Language",
               "file": "courses/data-forging/day1/lesson5_regex.txt"
             },
             {
-              "id": "data-forging/day1/lesson/perl_regex",
+              "id": "data-forging/lesson/perl_regex",
               "title": "grep -P and Lookaround — Surgical Extraction",
               "file": "courses/data-forging/day1/lesson6_perl_regex.txt"
             },
             {
-              "id": "data-forging/day1/lesson/sed_advanced",
+              "id": "data-forging/lesson/sed_advanced",
               "title": "sed Advanced — Backreferences, Suppress, and Scripts",
               "file": "courses/data-forging/day1/lesson7_sed_advanced.txt"
             },
             {
-              "id": "data-forging/day1/lesson/awk_advanced",
+              "id": "data-forging/lesson/awk_advanced",
               "title": "awk Advanced — Formatting, String Functions, and Loops",
               "file": "courses/data-forging/day1/lesson8_awk_advanced.txt"
             }
@@ -327,22 +327,22 @@
           "title": "Day 2 — jq: JSON from the Terminal",
           "lessons": [
             {
-              "id": "data-forging/day2/lesson/jq_basics",
+              "id": "data-forging/lesson/jq_basics",
               "title": "jq Basics — Parse JSON from the Terminal",
               "file": "courses/data-forging/day2/lesson1_jq_basics.txt"
             },
             {
-              "id": "data-forging/day2/lesson/jq_filtering",
+              "id": "data-forging/lesson/jq_filtering",
               "title": "jq Filtering — select, map, and Conditions",
               "file": "courses/data-forging/day2/lesson2_jq_filtering.txt"
             },
             {
-              "id": "data-forging/day2/lesson/jq_output",
+              "id": "data-forging/lesson/jq_output",
               "title": "jq Output — CSV, TSV, and Custom Formats",
               "file": "courses/data-forging/day2/lesson3_jq_output.txt"
             },
             {
-              "id": "data-forging/day2/lesson/jq_advanced",
+              "id": "data-forging/lesson/jq_advanced",
               "title": "jq Advanced — Keys, Delete, Slurp, and Multi-File",
               "file": "courses/data-forging/day2/lesson4_jq_advanced.txt"
             }
@@ -354,17 +354,17 @@
           "title": "Day 3 — CSV at Scale (csvkit, xsv)",
           "lessons": [
             {
-              "id": "data-forging/day3/lesson/csvkit",
+              "id": "data-forging/lesson/csvkit",
               "title": "csvkit — The CSV Swiss Army Knife",
               "file": "courses/data-forging/day3/lesson1_csvkit.txt"
             },
             {
-              "id": "data-forging/day3/lesson/xsv",
+              "id": "data-forging/lesson/xsv",
               "title": "xsv — Blazing Fast CSV Processing",
               "file": "courses/data-forging/day3/lesson2_xsv.txt"
             },
             {
-              "id": "data-forging/day3/lesson/csvsql",
+              "id": "data-forging/lesson/csvsql",
               "title": "csvsql — Run SQL on CSV Files",
               "file": "courses/data-forging/day3/lesson3_csvsql.txt"
             }
@@ -376,12 +376,12 @@
           "title": "Day 4 — sqlite3: Databases Without Servers",
           "lessons": [
             {
-              "id": "data-forging/day4/lesson/sqlite3_basics",
+              "id": "data-forging/lesson/sqlite3_basics",
               "title": "sqlite3 — A Full Database in a Single File",
               "file": "courses/data-forging/day4/lesson1_sqlite3_basics.txt"
             },
             {
-              "id": "data-forging/day4/lesson/sqlite3_advanced",
+              "id": "data-forging/lesson/sqlite3_advanced",
               "title": "sqlite3 Advanced — Joins, Views, and ETL Staging",
               "file": "courses/data-forging/day4/lesson2_sqlite3_advanced.txt"
             }
@@ -393,7 +393,7 @@
           "title": "Day 5 — Assessment 1 (Transform a Dataset)",
           "lessons": [
             {
-              "id": "data-forging/day5/lesson/assessment1",
+              "id": "data-forging/lesson/assessment1",
               "title": "Assessment 1: Transform a Messy Dataset",
               "file": "courses/data-forging/day5/lesson1_assessment1.txt"
             }
@@ -405,12 +405,12 @@
           "title": "Day 6 — curl + jq: API Data Pipelines",
           "lessons": [
             {
-              "id": "data-forging/day6/lesson/curl",
+              "id": "data-forging/lesson/curl",
               "title": "curl — Fetch Data from Any API",
               "file": "courses/data-forging/day6/lesson1_curl.txt"
             },
             {
-              "id": "data-forging/day6/lesson/api_pipelines",
+              "id": "data-forging/lesson/api_pipelines",
               "title": "API Data Pipelines — curl + jq + sqlite3",
               "file": "courses/data-forging/day6/lesson2_api_pipelines.txt"
             }
@@ -422,7 +422,7 @@
           "title": "Day 7 — Real-Time Streams & Monitoring",
           "lessons": [
             {
-              "id": "data-forging/day7/lesson/streams",
+              "id": "data-forging/lesson/streams",
               "title": "Real-Time Streams — Watch, Filter, Act",
               "file": "courses/data-forging/day7/lesson1_streams.txt"
             }
@@ -434,17 +434,17 @@
           "title": "Day 8 — Capstone: Full ETL Pipeline",
           "lessons": [
             {
-              "id": "data-forging/day8/lesson/etl_review",
+              "id": "data-forging/lesson/etl_review",
               "title": "The ETL Lifecycle — Review Before the Capstone",
               "file": "courses/data-forging/day8/lesson1_etl_review.txt"
             },
             {
-              "id": "data-forging/day8/lesson/capstone",
+              "id": "data-forging/lesson/capstone",
               "title": "Final Capstone: The Data Investigation",
               "file": "courses/data-forging/day8/lesson2_capstone.txt"
             },
             {
-              "id": "data-forging/day8/lesson/pipeline_tools",
+              "id": "data-forging/lesson/pipeline_tools",
               "title": "Pipeline Power Tools — join, paste, xargs, and Process Substitution",
               "file": "courses/data-forging/day8/lesson3_pipeline_tools.txt"
             }
@@ -463,32 +463,32 @@
           "title": "Day 1 — Container Fundamentals",
           "lessons": [
             {
-              "id": "docker-essentials/day1/lesson/run",
+              "id": "docker-essentials/lesson/run",
               "title": "docker run — Start a Container",
               "file": "courses/docker-essentials/day1/lesson1_run.txt"
             },
             {
-              "id": "docker-essentials/day1/lesson/ps",
+              "id": "docker-essentials/lesson/ps",
               "title": "docker ps — See What's Running",
               "file": "courses/docker-essentials/day1/lesson2_ps.txt"
             },
             {
-              "id": "docker-essentials/day1/lesson/logs",
+              "id": "docker-essentials/lesson/logs",
               "title": "docker logs — Read Container Output",
               "file": "courses/docker-essentials/day1/lesson3_logs.txt"
             },
             {
-              "id": "docker-essentials/day1/lesson/exec",
+              "id": "docker-essentials/lesson/exec",
               "title": "docker exec — Run Commands Inside a Running Container",
               "file": "courses/docker-essentials/day1/lesson4_exec.txt"
             },
             {
-              "id": "docker-essentials/day1/lesson/lifecycle",
+              "id": "docker-essentials/lesson/lifecycle",
               "title": "Lifecycle — stop, start, restart, rm",
               "file": "courses/docker-essentials/day1/lesson5_lifecycle.txt"
             },
             {
-              "id": "docker-essentials/day1/lesson/inspect",
+              "id": "docker-essentials/lesson/inspect",
               "title": "docker inspect — The Deep Debugger",
               "file": "courses/docker-essentials/day1/lesson6_inspect.txt"
             }
@@ -500,32 +500,32 @@
           "title": "Day 2 — Building Images with Dockerfile",
           "lessons": [
             {
-              "id": "docker-essentials/day2/lesson/dockerfile",
+              "id": "docker-essentials/lesson/dockerfile",
               "title": "Dockerfile — Declare How to Build an Image",
               "file": "courses/docker-essentials/day2/lesson1_dockerfile.txt"
             },
             {
-              "id": "docker-essentials/day2/lesson/build",
+              "id": "docker-essentials/lesson/build",
               "title": "docker build — Turn Dockerfile into an Image",
               "file": "courses/docker-essentials/day2/lesson2_build.txt"
             },
             {
-              "id": "docker-essentials/day2/lesson/layers",
+              "id": "docker-essentials/lesson/layers",
               "title": "Layers & Caching — The Secret to Fast Builds",
               "file": "courses/docker-essentials/day2/lesson3_layers.txt"
             },
             {
-              "id": "docker-essentials/day2/lesson/multistage",
+              "id": "docker-essentials/lesson/multistage",
               "title": "Multi-Stage Builds — Tiny Production Images",
               "file": "courses/docker-essentials/day2/lesson4_multistage.txt"
             },
             {
-              "id": "docker-essentials/day2/lesson/tagging",
+              "id": "docker-essentials/lesson/tagging",
               "title": "Tagging — Version Your Images Properly",
               "file": "courses/docker-essentials/day2/lesson5_tagging.txt"
             },
             {
-              "id": "docker-essentials/day2/lesson/best_practices",
+              "id": "docker-essentials/lesson/best_practices",
               "title": "Dockerfile Best Practices — Production Quality",
               "file": "courses/docker-essentials/day2/lesson6_best_practices.txt"
             }
@@ -537,32 +537,32 @@
           "title": "Day 3 — Volumes, Networks & Ports",
           "lessons": [
             {
-              "id": "docker-essentials/day3/lesson/volumes",
+              "id": "docker-essentials/lesson/volumes",
               "title": "Volumes — Persistent Data for Containers",
               "file": "courses/docker-essentials/day3/lesson1_volumes.txt"
             },
             {
-              "id": "docker-essentials/day3/lesson/networks",
+              "id": "docker-essentials/lesson/networks",
               "title": "Container Networks — How Containers Talk",
               "file": "courses/docker-essentials/day3/lesson2_networks.txt"
             },
             {
-              "id": "docker-essentials/day3/lesson/ports",
+              "id": "docker-essentials/lesson/ports",
               "title": "Port Mapping — Make Containers Reachable from the Host",
               "file": "courses/docker-essentials/day3/lesson3_ports.txt"
             },
             {
-              "id": "docker-essentials/day3/lesson/env",
+              "id": "docker-essentials/lesson/env",
               "title": "Environment Variables — Configure Containers Without Rebuilding",
               "file": "courses/docker-essentials/day3/lesson4_env.txt"
             },
             {
-              "id": "docker-essentials/day3/lesson/limits",
+              "id": "docker-essentials/lesson/limits",
               "title": "Resource Limits — CPU and Memory Constraints",
               "file": "courses/docker-essentials/day3/lesson5_limits.txt"
             },
             {
-              "id": "docker-essentials/day3/lesson/healthcheck",
+              "id": "docker-essentials/lesson/healthcheck",
               "title": "Restart Policies & Healthchecks — Self-Healing Containers",
               "file": "courses/docker-essentials/day3/lesson6_healthcheck.txt"
             }
@@ -574,32 +574,32 @@
           "title": "Day 4 — Docker Compose (Multi-Service Apps)",
           "lessons": [
             {
-              "id": "docker-essentials/day4/lesson/compose_intro",
+              "id": "docker-essentials/lesson/compose_intro",
               "title": "Docker Compose — Multi-Container Apps in One File",
               "file": "courses/docker-essentials/day4/lesson1_compose_intro.txt"
             },
             {
-              "id": "docker-essentials/day4/lesson/services",
+              "id": "docker-essentials/lesson/services",
               "title": "Defining Services — The Heart of Compose",
               "file": "courses/docker-essentials/day4/lesson2_services.txt"
             },
             {
-              "id": "docker-essentials/day4/lesson/lifecycle",
+              "id": "docker-essentials/lesson/compose_lifecycle",
               "title": "Compose Lifecycle — up, down, logs, restart",
-              "file": "courses/docker-essentials/day4/lesson3_lifecycle.txt"
+              "file": "courses/docker-essentials/day4/lesson3_compose_lifecycle.txt"
             },
             {
-              "id": "docker-essentials/day4/lesson/compose_networks",
+              "id": "docker-essentials/lesson/compose_networks",
               "title": "Networks in Compose — Service Discovery",
               "file": "courses/docker-essentials/day4/lesson4_compose_networks.txt"
             },
             {
-              "id": "docker-essentials/day4/lesson/compose_volumes",
+              "id": "docker-essentials/lesson/compose_volumes",
               "title": "Volumes in Compose — Persistent Data and Bind Mounts",
               "file": "courses/docker-essentials/day4/lesson5_compose_volumes.txt"
             },
             {
-              "id": "docker-essentials/day4/lesson/full_stack",
+              "id": "docker-essentials/lesson/full_stack",
               "title": "A Real Compose Stack — Web + API + Database + Cache",
               "file": "courses/docker-essentials/day4/lesson6_full_stack.txt"
             }
@@ -611,14 +611,14 @@
           "title": "Day 5 — Assessment 1 (Midpoint)",
           "lessons": [
             {
-              "id": "docker-essentials/day5/lesson/assessment1_intro",
+              "id": "docker-essentials/lesson/assessment1_intro",
               "title": "Assessment 1: Containerize a Real Application",
               "file": "courses/docker-essentials/day5/lesson1_assessment1_intro.txt"
             }
           ],
           "labs": [
             {
-              "id": "docker-essentials/day5/lab/capstone",
+              "id": "docker-essentials/lab/capstone",
               "title": "Capstone",
               "file": "courses/docker-essentials/day5/capstone_test.sh"
             }
@@ -629,32 +629,32 @@
           "title": "Day 6 — Registries & Image Distribution",
           "lessons": [
             {
-              "id": "docker-essentials/day6/lesson/registries",
+              "id": "docker-essentials/lesson/registries",
               "title": "Docker Registries — Where Images Live",
               "file": "courses/docker-essentials/day6/lesson1_registries.txt"
             },
             {
-              "id": "docker-essentials/day6/lesson/tagging_strategies",
+              "id": "docker-essentials/lesson/tagging_strategies",
               "title": "Tagging Strategies for CI/CD",
               "file": "courses/docker-essentials/day6/lesson2_tagging_strategies.txt"
             },
             {
-              "id": "docker-essentials/day6/lesson/private_registries",
+              "id": "docker-essentials/lesson/private_registries",
               "title": "Private Registries — GitHub, AWS, GitLab",
               "file": "courses/docker-essentials/day6/lesson3_private_registries.txt"
             },
             {
-              "id": "docker-essentials/day6/lesson/image_management",
+              "id": "docker-essentials/lesson/image_management",
               "title": "Image Management — Pull, Inspect, Clean Up",
               "file": "courses/docker-essentials/day6/lesson4_image_management.txt"
             },
             {
-              "id": "docker-essentials/day6/lesson/scanning",
+              "id": "docker-essentials/lesson/scanning",
               "title": "Image Scanning — Find Vulnerabilities Before Production",
               "file": "courses/docker-essentials/day6/lesson5_scanning.txt"
             },
             {
-              "id": "docker-essentials/day6/lesson/automation",
+              "id": "docker-essentials/lesson/automation",
               "title": "Automating Image Builds with CI/CD",
               "file": "courses/docker-essentials/day6/lesson6_automation.txt"
             }
@@ -666,32 +666,32 @@
           "title": "Day 7 — Security & Production Hardening",
           "lessons": [
             {
-              "id": "docker-essentials/day7/lesson/nonroot",
+              "id": "docker-essentials/lesson/nonroot",
               "title": "Run as Non-Root — The #1 Container Security Win",
               "file": "courses/docker-essentials/day7/lesson1_nonroot.txt"
             },
             {
-              "id": "docker-essentials/day7/lesson/secrets",
+              "id": "docker-essentials/lesson/secrets",
               "title": "Secrets — Don't Put Passwords in Environment Variables",
               "file": "courses/docker-essentials/day7/lesson2_secrets.txt"
             },
             {
-              "id": "docker-essentials/day7/lesson/capabilities",
+              "id": "docker-essentials/lesson/capabilities",
               "title": "Capabilities — Drop What You Don't Need",
               "file": "courses/docker-essentials/day7/lesson3_capabilities.txt"
             },
             {
-              "id": "docker-essentials/day7/lesson/signing",
+              "id": "docker-essentials/lesson/signing",
               "title": "Image Signing — Verify Image Integrity",
               "file": "courses/docker-essentials/day7/lesson4_signing.txt"
             },
             {
-              "id": "docker-essentials/day7/lesson/hardening",
+              "id": "docker-essentials/lesson/hardening",
               "title": "Runtime Hardening — The Production Container Profile",
               "file": "courses/docker-essentials/day7/lesson5_hardening.txt"
             },
             {
-              "id": "docker-essentials/day7/lesson/security_checklist",
+              "id": "docker-essentials/lesson/security_checklist",
               "title": "Production Container Security Checklist",
               "file": "courses/docker-essentials/day7/lesson6_security_checklist.txt"
             }
@@ -703,32 +703,32 @@
           "title": "Day 8 — Docker Swarm Orchestration",
           "lessons": [
             {
-              "id": "docker-essentials/day8/lesson/swarm_intro",
+              "id": "docker-essentials/lesson/swarm_intro",
               "title": "Docker Swarm — Orchestration in Docker",
               "file": "courses/docker-essentials/day8/lesson1_swarm_intro.txt"
             },
             {
-              "id": "docker-essentials/day8/lesson/services",
+              "id": "docker-essentials/lesson/swarm_services",
               "title": "Services — Replicated Containers Across the Swarm",
-              "file": "courses/docker-essentials/day8/lesson2_services.txt"
+              "file": "courses/docker-essentials/day8/lesson2_swarm_services.txt"
             },
             {
-              "id": "docker-essentials/day8/lesson/rolling_updates",
+              "id": "docker-essentials/lesson/rolling_updates",
               "title": "Rolling Updates — Zero-Downtime Deploys",
               "file": "courses/docker-essentials/day8/lesson3_rolling_updates.txt"
             },
             {
-              "id": "docker-essentials/day8/lesson/secrets_configs",
+              "id": "docker-essentials/lesson/secrets_configs",
               "title": "Swarm Secrets & Configs — Distribute Sensitive Data Safely",
               "file": "courses/docker-essentials/day8/lesson4_secrets_configs.txt"
             },
             {
-              "id": "docker-essentials/day8/lesson/stacks",
+              "id": "docker-essentials/lesson/stacks",
               "title": "Stacks — Deploy Multi-Service Apps to Swarm",
               "file": "courses/docker-essentials/day8/lesson5_stacks.txt"
             },
             {
-              "id": "docker-essentials/day8/lesson/node_management",
+              "id": "docker-essentials/lesson/node_management",
               "title": "Node Management & Swarm Troubleshooting",
               "file": "courses/docker-essentials/day8/lesson6_node_management.txt"
             }
@@ -740,14 +740,14 @@
           "title": "Day 9 — Assessment 2 (Production Deployment)",
           "lessons": [
             {
-              "id": "docker-essentials/day9/lesson/assessment2_intro",
+              "id": "docker-essentials/lesson/assessment2_intro",
               "title": "Assessment 2: Production Deployment",
               "file": "courses/docker-essentials/day9/lesson1_assessment2_intro.txt"
             }
           ],
           "labs": [
             {
-              "id": "docker-essentials/day9/lab/assessment-2",
+              "id": "docker-essentials/lab/assessment-2",
               "title": "Assessment 2",
               "file": "courses/docker-essentials/day9/assess2_test.sh"
             }
@@ -758,19 +758,19 @@
           "title": "Day 10 — Final Review & Capstone",
           "lessons": [
             {
-              "id": "docker-essentials/day10/lesson/review",
+              "id": "docker-essentials/lesson/review",
               "title": "Docker Course Final Review",
               "file": "courses/docker-essentials/day10/lesson1_review.txt"
             },
             {
-              "id": "docker-essentials/day10/lesson/final_capstone",
+              "id": "docker-essentials/lesson/final_capstone",
               "title": "Final Capstone: The Migration Crisis",
               "file": "courses/docker-essentials/day10/lesson2_final_capstone.txt"
             }
           ],
           "labs": [
             {
-              "id": "docker-essentials/day10/lab/final-capstone",
+              "id": "docker-essentials/lab/final-capstone",
               "title": "Final Capstone",
               "file": "courses/docker-essentials/day10/final_capstone_test.sh"
             }
@@ -788,32 +788,32 @@
           "title": "Day 1 — First Commits",
           "lessons": [
             {
-              "id": "git-essentials/day1/lesson/init",
+              "id": "git-essentials/lesson/init",
               "title": "git init — Start Tracking a Project",
               "file": "courses/git-essentials/day1/lesson1_init.txt"
             },
             {
-              "id": "git-essentials/day1/lesson/status",
+              "id": "git-essentials/lesson/status",
               "title": "git status — See What Changed",
               "file": "courses/git-essentials/day1/lesson2_status.txt"
             },
             {
-              "id": "git-essentials/day1/lesson/add",
+              "id": "git-essentials/lesson/add",
               "title": "git add — Stage Changes for Commit",
               "file": "courses/git-essentials/day1/lesson3_add.txt"
             },
             {
-              "id": "git-essentials/day1/lesson/commit",
+              "id": "git-essentials/lesson/commit",
               "title": "git commit — Save a Snapshot",
               "file": "courses/git-essentials/day1/lesson4_commit.txt"
             },
             {
-              "id": "git-essentials/day1/lesson/log",
+              "id": "git-essentials/lesson/log",
               "title": "git log — View Commit History",
               "file": "courses/git-essentials/day1/lesson5_log.txt"
             },
             {
-              "id": "git-essentials/day1/lesson/diff",
+              "id": "git-essentials/lesson/diff",
               "title": "git diff — See Exactly What Changed",
               "file": "courses/git-essentials/day1/lesson6_diff.txt"
             }
@@ -825,32 +825,32 @@
           "title": "Day 2 — Branches & Merging",
           "lessons": [
             {
-              "id": "git-essentials/day2/lesson/branch",
+              "id": "git-essentials/lesson/branch",
               "title": "git branch — Create Parallel Workstreams",
               "file": "courses/git-essentials/day2/lesson1_branch.txt"
             },
             {
-              "id": "git-essentials/day2/lesson/switch",
+              "id": "git-essentials/lesson/switch",
               "title": "git switch — Move Between Branches",
               "file": "courses/git-essentials/day2/lesson2_switch.txt"
             },
             {
-              "id": "git-essentials/day2/lesson/merge",
+              "id": "git-essentials/lesson/merge",
               "title": "git merge — Combine Branches Together",
               "file": "courses/git-essentials/day2/lesson3_merge.txt"
             },
             {
-              "id": "git-essentials/day2/lesson/conflicts",
+              "id": "git-essentials/lesson/conflicts",
               "title": "Merge Conflicts — When Two People Change the Same Line",
               "file": "courses/git-essentials/day2/lesson4_conflicts.txt"
             },
             {
-              "id": "git-essentials/day2/lesson/branch_strategies",
+              "id": "git-essentials/lesson/branch_strategies",
               "title": "Branch Strategies — How Teams Organize Work",
               "file": "courses/git-essentials/day2/lesson5_branch_strategies.txt"
             },
             {
-              "id": "git-essentials/day2/lesson/delete_branches",
+              "id": "git-essentials/lesson/delete_branches",
               "title": "Deleting Branches — Clean Up After Merging",
               "file": "courses/git-essentials/day2/lesson6_delete_branches.txt"
             }
@@ -862,32 +862,32 @@
           "title": "Day 3 — Remotes & Collaboration",
           "lessons": [
             {
-              "id": "git-essentials/day3/lesson/clone",
+              "id": "git-essentials/lesson/clone",
               "title": "git clone — Download an Existing Repository",
               "file": "courses/git-essentials/day3/lesson1_clone.txt"
             },
             {
-              "id": "git-essentials/day3/lesson/remote",
+              "id": "git-essentials/lesson/remote",
               "title": "git remote — Manage Connections to Servers",
               "file": "courses/git-essentials/day3/lesson2_remote.txt"
             },
             {
-              "id": "git-essentials/day3/lesson/push",
+              "id": "git-essentials/lesson/push",
               "title": "git push — Send Your Commits to the Server",
               "file": "courses/git-essentials/day3/lesson3_push.txt"
             },
             {
-              "id": "git-essentials/day3/lesson/pull_fetch",
+              "id": "git-essentials/lesson/pull_fetch",
               "title": "git pull & git fetch — Get Changes From the Server",
               "file": "courses/git-essentials/day3/lesson4_pull_fetch.txt"
             },
             {
-              "id": "git-essentials/day3/lesson/gitignore",
+              "id": "git-essentials/lesson/gitignore",
               "title": ".gitignore — Keep Files Out of the Repository",
               "file": "courses/git-essentials/day3/lesson5_gitignore.txt"
             },
             {
-              "id": "git-essentials/day3/lesson/daily_workflow",
+              "id": "git-essentials/lesson/daily_workflow",
               "title": "The Daily Git Workflow — Putting It All Together",
               "file": "courses/git-essentials/day3/lesson6_daily_workflow.txt"
             }
@@ -899,32 +899,32 @@
           "title": "Day 4 — Pull Requests & Open Source",
           "lessons": [
             {
-              "id": "git-essentials/day4/lesson/forks",
+              "id": "git-essentials/lesson/forks",
               "title": "Forks — Your Own Copy of Someone Else's Project",
               "file": "courses/git-essentials/day4/lesson1_forks.txt"
             },
             {
-              "id": "git-essentials/day4/lesson/pull_requests",
+              "id": "git-essentials/lesson/pull_requests",
               "title": "Pull Requests — Propose Changes for Review",
               "file": "courses/git-essentials/day4/lesson2_pull_requests.txt"
             },
             {
-              "id": "git-essentials/day4/lesson/code_review",
+              "id": "git-essentials/lesson/code_review",
               "title": "Code Review — Giving and Receiving Feedback",
               "file": "courses/git-essentials/day4/lesson3_code_review.txt"
             },
             {
-              "id": "git-essentials/day4/lesson/pr_conflicts",
+              "id": "git-essentials/lesson/pr_conflicts",
               "title": "Resolving PR Conflicts — When Main Changed Under You",
               "file": "courses/git-essentials/day4/lesson4_pr_conflicts.txt"
             },
             {
-              "id": "git-essentials/day4/lesson/issues",
+              "id": "git-essentials/lesson/issues",
               "title": "GitHub Issues — Track Bugs and Tasks",
               "file": "courses/git-essentials/day4/lesson5_issues.txt"
             },
             {
-              "id": "git-essentials/day4/lesson/open_source",
+              "id": "git-essentials/lesson/open_source",
               "title": "Contributing to Open Source — The Complete Flow",
               "file": "courses/git-essentials/day4/lesson6_open_source.txt"
             }
@@ -936,14 +936,14 @@
           "title": "Day 5 — Assessment 1 (Midpoint)",
           "lessons": [
             {
-              "id": "git-essentials/day5/lesson/assessment1_intro",
+              "id": "git-essentials/lesson/assessment1_intro",
               "title": "Assessment 1: Git Collaboration Skills",
               "file": "courses/git-essentials/day5/lesson1_assessment1_intro.txt"
             }
           ],
           "labs": [
             {
-              "id": "git-essentials/day5/lab/capstone",
+              "id": "git-essentials/lab/capstone",
               "title": "Capstone",
               "file": "courses/git-essentials/day5/capstone_test.sh"
             }
@@ -954,32 +954,32 @@
           "title": "Day 6 — Advanced Git (Stash, Rebase, Bisect)",
           "lessons": [
             {
-              "id": "git-essentials/day6/lesson/stash",
+              "id": "git-essentials/lesson/stash",
               "title": "git stash — Save Work Without Committing",
               "file": "courses/git-essentials/day6/lesson1_stash.txt"
             },
             {
-              "id": "git-essentials/day6/lesson/rebase",
+              "id": "git-essentials/lesson/rebase",
               "title": "git rebase — Rewrite History for a Clean Timeline",
               "file": "courses/git-essentials/day6/lesson2_rebase.txt"
             },
             {
-              "id": "git-essentials/day6/lesson/cherry_pick",
+              "id": "git-essentials/lesson/cherry_pick",
               "title": "git cherry-pick — Copy a Specific Commit",
               "file": "courses/git-essentials/day6/lesson3_cherry_pick.txt"
             },
             {
-              "id": "git-essentials/day6/lesson/bisect",
+              "id": "git-essentials/lesson/bisect",
               "title": "git bisect — Find the Commit That Broke Everything",
               "file": "courses/git-essentials/day6/lesson4_bisect.txt"
             },
             {
-              "id": "git-essentials/day6/lesson/reflog",
+              "id": "git-essentials/lesson/reflog",
               "title": "git reflog — Recover Lost Commits",
               "file": "courses/git-essentials/day6/lesson5_reflog.txt"
             },
             {
-              "id": "git-essentials/day6/lesson/amend",
+              "id": "git-essentials/lesson/amend",
               "title": "git commit --amend — Fix Your Last Commit",
               "file": "courses/git-essentials/day6/lesson6_amend.txt"
             }
@@ -991,32 +991,32 @@
           "title": "Day 7 — GitHub Workflows & Actions",
           "lessons": [
             {
-              "id": "git-essentials/day7/lesson/tags",
+              "id": "git-essentials/lesson/tags",
               "title": "git tag — Mark Important Commits (Releases)",
               "file": "courses/git-essentials/day7/lesson1_tags.txt"
             },
             {
-              "id": "git-essentials/day7/lesson/releases",
+              "id": "git-essentials/lesson/releases",
               "title": "GitHub Releases — Publish Your Tags as Releases",
               "file": "courses/git-essentials/day7/lesson2_releases.txt"
             },
             {
-              "id": "git-essentials/day7/lesson/actions_intro",
+              "id": "git-essentials/lesson/actions_intro",
               "title": "GitHub Actions — Automate Everything Around Your Code",
               "file": "courses/git-essentials/day7/lesson3_actions_intro.txt"
             },
             {
-              "id": "git-essentials/day7/lesson/actions_workflows",
+              "id": "git-essentials/lesson/actions_workflows",
               "title": "GitHub Actions — Real Production Workflows",
               "file": "courses/git-essentials/day7/lesson4_actions_workflows.txt"
             },
             {
-              "id": "git-essentials/day7/lesson/github_pages",
+              "id": "git-essentials/lesson/github_pages",
               "title": "GitHub Pages — Free Hosting for Your Docs and Site",
               "file": "courses/git-essentials/day7/lesson5_github_pages.txt"
             },
             {
-              "id": "git-essentials/day7/lesson/secrets",
+              "id": "git-essentials/lesson/secrets",
               "title": "Secrets & Environments — Safe API Keys in CI",
               "file": "courses/git-essentials/day7/lesson6_secrets.txt"
             }
@@ -1028,32 +1028,32 @@
           "title": "Day 8 — Repository Administration",
           "lessons": [
             {
-              "id": "git-essentials/day8/lesson/gitignore_deep",
+              "id": "git-essentials/lesson/gitignore_deep",
               "title": "Advanced .gitignore — Patterns and Scoping",
               "file": "courses/git-essentials/day8/lesson1_gitignore_deep.txt"
             },
             {
-              "id": "git-essentials/day8/lesson/branch_protection",
+              "id": "git-essentials/lesson/branch_protection",
               "title": "Branch Protection — Lock Main From Bad Commits",
               "file": "courses/git-essentials/day8/lesson2_branch_protection.txt"
             },
             {
-              "id": "git-essentials/day8/lesson/projects",
+              "id": "git-essentials/lesson/projects",
               "title": "GitHub Projects — Kanban Boards for Your Repo",
               "file": "courses/git-essentials/day8/lesson3_projects.txt"
             },
             {
-              "id": "git-essentials/day8/lesson/signed_commits",
+              "id": "git-essentials/lesson/signed_commits",
               "title": "Signed Commits — Prove You Authored the Code",
               "file": "courses/git-essentials/day8/lesson4_signed_commits.txt"
             },
             {
-              "id": "git-essentials/day8/lesson/git_hooks",
+              "id": "git-essentials/lesson/git_hooks",
               "title": "Git Hooks — Run Scripts on Git Events",
               "file": "courses/git-essentials/day8/lesson5_git_hooks.txt"
             },
             {
-              "id": "git-essentials/day8/lesson/professional_repo",
+              "id": "git-essentials/lesson/professional_repo",
               "title": "Professional Repo Standards — The Complete Checklist",
               "file": "courses/git-essentials/day8/lesson6_professional_repo.txt"
             }
@@ -1065,14 +1065,14 @@
           "title": "Day 9 — Assessment 2 (Advanced)",
           "lessons": [
             {
-              "id": "git-essentials/day9/lesson/assessment2_intro",
+              "id": "git-essentials/lesson/assessment2_intro",
               "title": "Assessment 2: Advanced Git Workflows",
               "file": "courses/git-essentials/day9/lesson1_assessment2_intro.txt"
             }
           ],
           "labs": [
             {
-              "id": "git-essentials/day9/lab/assessment-2",
+              "id": "git-essentials/lab/assessment-2",
               "title": "Assessment 2",
               "file": "courses/git-essentials/day9/assess2_test.sh"
             }
@@ -1083,19 +1083,19 @@
           "title": "Day 10 — Final Review & Capstone",
           "lessons": [
             {
-              "id": "git-essentials/day10/lesson/review",
+              "id": "git-essentials/lesson/review",
               "title": "Day 10 — Final Review: Everything You've Learned",
               "file": "courses/git-essentials/day10/lesson1_review.txt"
             },
             {
-              "id": "git-essentials/day10/lesson/final_capstone",
+              "id": "git-essentials/lesson/final_capstone",
               "title": "Final Capstone: The Release Crisis",
               "file": "courses/git-essentials/day10/lesson2_final_capstone.txt"
             }
           ],
           "labs": [
             {
-              "id": "git-essentials/day10/lab/final-capstone",
+              "id": "git-essentials/lab/final-capstone",
               "title": "Final Capstone",
               "file": "courses/git-essentials/day10/final_capstone_test.sh"
             }
@@ -1113,17 +1113,17 @@
           "title": "Day 1: Why Kubernetes — Architecture & kubectl",
           "lessons": [
             {
-              "id": "kubernetes/day1/lesson/containers_at_scale",
+              "id": "kubernetes/lesson/containers_at_scale",
               "title": "The Problem Docker Can't Solve Alone",
               "file": "courses/kubernetes/day1/lesson1_containers_at_scale.txt"
             },
             {
-              "id": "kubernetes/day1/lesson/k8s_architecture",
+              "id": "kubernetes/lesson/k8s_architecture",
               "title": "Kubernetes Architecture — Control Plane & Nodes",
               "file": "courses/kubernetes/day1/lesson2_k8s_architecture.txt"
             },
             {
-              "id": "kubernetes/day1/lesson/kubectl_basics",
+              "id": "kubernetes/lesson/kubectl_basics",
               "title": "kubectl — Your Command Center",
               "file": "courses/kubernetes/day1/lesson3_kubectl_basics.txt"
             }
@@ -1135,17 +1135,17 @@
           "title": "Day 2: Pods, Deployments & Scaling",
           "lessons": [
             {
-              "id": "kubernetes/day2/lesson/pods",
+              "id": "kubernetes/lesson/pods",
               "title": "Pods — The Smallest Deployable Unit",
               "file": "courses/kubernetes/day2/lesson1_pods.txt"
             },
             {
-              "id": "kubernetes/day2/lesson/deployments",
+              "id": "kubernetes/lesson/deployments",
               "title": "Deployments & ReplicaSets — Self-Healing Applications",
               "file": "courses/kubernetes/day2/lesson2_deployments.txt"
             },
             {
-              "id": "kubernetes/day2/lesson/scaling",
+              "id": "kubernetes/lesson/scaling",
               "title": "Scaling — Manual & Automatic",
               "file": "courses/kubernetes/day2/lesson3_scaling.txt"
             }
@@ -1157,12 +1157,12 @@
           "title": "Day 3: Jobs, CronJobs & DaemonSets",
           "lessons": [
             {
-              "id": "kubernetes/day3/lesson/jobs_cronjobs",
+              "id": "kubernetes/lesson/jobs_cronjobs",
               "title": "Jobs & CronJobs — Run-to-Completion Workloads",
               "file": "courses/kubernetes/day3/lesson1_jobs_cronjobs.txt"
             },
             {
-              "id": "kubernetes/day3/lesson/daemonsets",
+              "id": "kubernetes/lesson/daemonsets",
               "title": "DaemonSets — One Pod Per Node",
               "file": "courses/kubernetes/day3/lesson2_daemonsets.txt"
             }
@@ -1174,12 +1174,12 @@
           "title": "Day 4: Scheduling — Affinity, Taints & Tolerations",
           "lessons": [
             {
-              "id": "kubernetes/day4/lesson/scheduling_basics",
+              "id": "kubernetes/lesson/scheduling_basics",
               "title": "Pod Scheduling — nodeSelector, Affinity & Anti-Affinity",
               "file": "courses/kubernetes/day4/lesson1_scheduling_basics.txt"
             },
             {
-              "id": "kubernetes/day4/lesson/taints_tolerations",
+              "id": "kubernetes/lesson/taints_tolerations",
               "title": "Taints & Tolerations — Repelling Pods from Nodes",
               "file": "courses/kubernetes/day4/lesson2_taints_tolerations.txt"
             }
@@ -1191,12 +1191,12 @@
           "title": "Day 5: Configuration — ConfigMaps, Secrets & Probes",
           "lessons": [
             {
-              "id": "kubernetes/day5/lesson/configmaps_secrets",
+              "id": "kubernetes/lesson/configmaps_secrets",
               "title": "ConfigMaps & Secrets — Externalizing Configuration",
               "file": "courses/kubernetes/day5/lesson1_configmaps_secrets.txt"
             },
             {
-              "id": "kubernetes/day5/lesson/resource_limits",
+              "id": "kubernetes/lesson/resource_limits",
               "title": "Resource Limits, Requests & Health Probes",
               "file": "courses/kubernetes/day5/lesson2_resource_limits.txt"
             }
@@ -1208,12 +1208,12 @@
           "title": "Day 6: RBAC — Role-Based Access Control",
           "lessons": [
             {
-              "id": "kubernetes/day6/lesson/rbac_fundamentals",
+              "id": "kubernetes/lesson/rbac_fundamentals",
               "title": "RBAC Fundamentals — Roles, Bindings & ServiceAccounts",
               "file": "courses/kubernetes/day6/lesson1_rbac_fundamentals.txt"
             },
             {
-              "id": "kubernetes/day6/lesson/rbac_patterns",
+              "id": "kubernetes/lesson/rbac_patterns",
               "title": "RBAC Patterns — Production Access Control Design",
               "file": "courses/kubernetes/day6/lesson2_rbac_patterns.txt"
             }
@@ -1225,12 +1225,12 @@
           "title": "Day 7: Services, Ingress & Gateway API",
           "lessons": [
             {
-              "id": "kubernetes/day7/lesson/services",
+              "id": "kubernetes/lesson/services",
               "title": "Services — Stable Endpoints for Moving Pods",
               "file": "courses/kubernetes/day7/lesson1_services.txt"
             },
             {
-              "id": "kubernetes/day7/lesson/ingress",
+              "id": "kubernetes/lesson/ingress",
               "title": "Ingress — HTTP Routing & TLS Termination",
               "file": "courses/kubernetes/day7/lesson2_ingress.txt"
             }
@@ -1242,12 +1242,12 @@
           "title": "Day 8: NetworkPolicies & DNS Debugging",
           "lessons": [
             {
-              "id": "kubernetes/day8/lesson/network_policies",
+              "id": "kubernetes/lesson/network_policies",
               "title": "NetworkPolicies — Zero-Trust Pod Networking",
               "file": "courses/kubernetes/day8/lesson1_network_policies.txt"
             },
             {
-              "id": "kubernetes/day8/lesson/coredns_debugging",
+              "id": "kubernetes/lesson/coredns_debugging",
               "title": "CoreDNS & Network Debugging",
               "file": "courses/kubernetes/day8/lesson2_coredns_debugging.txt"
             }
@@ -1259,7 +1259,7 @@
           "title": "Day 9: Assessment 1 — Foundations Review",
           "lessons": [
             {
-              "id": "kubernetes/day9/lesson/assessment1",
+              "id": "kubernetes/lesson/assessment1",
               "title": "Assessment 1: Deploy a Multi-Service Application",
               "file": "courses/kubernetes/day9/lesson1_assessment1.txt"
             }
@@ -1271,12 +1271,12 @@
           "title": "Day 10: Storage — Volumes, PVCs & StatefulSets",
           "lessons": [
             {
-              "id": "kubernetes/day10/lesson/volumes_pvc",
+              "id": "kubernetes/lesson/volumes_pvc",
               "title": "Persistent Storage — Volumes & PVCs",
               "file": "courses/kubernetes/day10/lesson1_volumes_pvc.txt"
             },
             {
-              "id": "kubernetes/day10/lesson/statefulsets",
+              "id": "kubernetes/lesson/statefulsets",
               "title": "StatefulSets — Databases and Ordered Workloads",
               "file": "courses/kubernetes/day10/lesson2_statefulsets.txt"
             }
@@ -1288,12 +1288,12 @@
           "title": "Day 11: Cluster Operations — kubeadm & etcd",
           "lessons": [
             {
-              "id": "kubernetes/day11/lesson/kubeadm",
+              "id": "kubernetes/lesson/kubeadm",
               "title": "kubeadm — Install, Configure & Upgrade Clusters",
               "file": "courses/kubernetes/day11/lesson1_kubeadm.txt"
             },
             {
-              "id": "kubernetes/day11/lesson/etcd_backup",
+              "id": "kubernetes/lesson/etcd_backup",
               "title": "etcd Backup & Restore — Protecting Cluster State",
               "file": "courses/kubernetes/day11/lesson2_etcd_backup.txt"
             }
@@ -1305,12 +1305,12 @@
           "title": "Day 12: Extending Kubernetes — CRDs, Helm & Kustomize",
           "lessons": [
             {
-              "id": "kubernetes/day12/lesson/crds_operators",
+              "id": "kubernetes/lesson/crds_operators",
               "title": "CRDs & Operators — Extending Kubernetes",
               "file": "courses/kubernetes/day12/lesson1_crds_operators.txt"
             },
             {
-              "id": "kubernetes/day12/lesson/helm_kustomize",
+              "id": "kubernetes/lesson/helm_kustomize",
               "title": "Helm & Kustomize — Managing Kubernetes Manifests at Scale",
               "file": "courses/kubernetes/day12/lesson2_helm_kustomize.txt"
             }
@@ -1322,12 +1322,12 @@
           "title": "Day 13: Troubleshooting — Applications & Cluster Components",
           "lessons": [
             {
-              "id": "kubernetes/day13/lesson/troubleshoot_apps",
+              "id": "kubernetes/lesson/troubleshoot_apps",
               "title": "Troubleshooting Applications — Pods, Deployments & Services",
               "file": "courses/kubernetes/day13/lesson1_troubleshoot_apps.txt"
             },
             {
-              "id": "kubernetes/day13/lesson/troubleshoot_cluster",
+              "id": "kubernetes/lesson/troubleshoot_cluster",
               "title": "Troubleshooting Cluster Components — Control Plane & Nodes",
               "file": "courses/kubernetes/day13/lesson2_troubleshoot_cluster.txt"
             }
@@ -1339,17 +1339,17 @@
           "title": "Day 14: Troubleshooting Networking, Review & Capstone",
           "lessons": [
             {
-              "id": "kubernetes/day14/lesson/review",
+              "id": "kubernetes/lesson/review",
               "title": "Kubernetes Mastery Review — Before the Capstone",
               "file": "courses/kubernetes/day14/lesson1_review.txt"
             },
             {
-              "id": "kubernetes/day14/lesson/troubleshoot_networking",
+              "id": "kubernetes/lesson/troubleshoot_networking",
               "title": "Troubleshooting Networking — DNS, Services & Connectivity",
               "file": "courses/kubernetes/day14/lesson2_troubleshoot_networking.txt"
             },
             {
-              "id": "kubernetes/day14/lesson/capstone",
+              "id": "kubernetes/lesson/capstone",
               "title": "Final Capstone: The Cluster Crisis",
               "file": "courses/kubernetes/day14/lesson3_capstone.txt"
             }
@@ -1368,32 +1368,32 @@
           "title": "Day 1 — Navigation & Files",
           "lessons": [
             {
-              "id": "linux-foundations/day1/lesson/pwd",
+              "id": "linux-foundations/lesson/pwd",
               "title": "pwd — Print Working Directory",
               "file": "courses/linux-foundations/day1/lesson1_pwd.txt"
             },
             {
-              "id": "linux-foundations/day1/lesson/ls",
+              "id": "linux-foundations/lesson/ls",
               "title": "ls — List Directory Contents",
               "file": "courses/linux-foundations/day1/lesson2_ls.txt"
             },
             {
-              "id": "linux-foundations/day1/lesson/cd",
+              "id": "linux-foundations/lesson/cd",
               "title": "cd — Change Directory",
               "file": "courses/linux-foundations/day1/lesson3_cd.txt"
             },
             {
-              "id": "linux-foundations/day1/lesson/mkdir",
+              "id": "linux-foundations/lesson/mkdir",
               "title": "mkdir — Make Directory",
               "file": "courses/linux-foundations/day1/lesson4_mkdir.txt"
             },
             {
-              "id": "linux-foundations/day1/lesson/touch",
+              "id": "linux-foundations/lesson/touch",
               "title": "touch — Create Empty Files",
               "file": "courses/linux-foundations/day1/lesson5_touch.txt"
             },
             {
-              "id": "linux-foundations/day1/lesson/rm",
+              "id": "linux-foundations/lesson/rm",
               "title": "rm — Remove Files (Safely)",
               "file": "courses/linux-foundations/day1/lesson6_rm.txt"
             }
@@ -1405,42 +1405,42 @@
           "title": "Day 2 — Text Processing & Pipes",
           "lessons": [
             {
-              "id": "linux-foundations/day2/lesson/grep",
+              "id": "linux-foundations/lesson/grep",
               "title": "grep — Search Inside Files",
               "file": "courses/linux-foundations/day2/lesson1_grep.txt"
             },
             {
-              "id": "linux-foundations/day2/lesson/cut",
+              "id": "linux-foundations/lesson/cut",
               "title": "cut — Extract Columns From Text",
               "file": "courses/linux-foundations/day2/lesson2_cut.txt"
             },
             {
-              "id": "linux-foundations/day2/lesson/sort",
+              "id": "linux-foundations/lesson/sort",
               "title": "sort — Order Lines Alphabetically or Numerically",
               "file": "courses/linux-foundations/day2/lesson3_sort.txt"
             },
             {
-              "id": "linux-foundations/day2/lesson/uniq",
+              "id": "linux-foundations/lesson/uniq",
               "title": "uniq — Remove or Count Duplicate Lines",
               "file": "courses/linux-foundations/day2/lesson4_uniq.txt"
             },
             {
-              "id": "linux-foundations/day2/lesson/wc",
+              "id": "linux-foundations/lesson/wc",
               "title": "wc — Count Lines, Words, and Characters",
               "file": "courses/linux-foundations/day2/lesson5_wc.txt"
             },
             {
-              "id": "linux-foundations/day2/lesson/pipes",
+              "id": "linux-foundations/lesson/pipes",
               "title": "Pipes — Chaining Commands Together",
               "file": "courses/linux-foundations/day2/lesson6_pipes.txt"
             },
             {
-              "id": "linux-foundations/day2/lesson/sed",
+              "id": "linux-foundations/lesson/sed",
               "title": "sed — Find and Replace Text in Files",
               "file": "courses/linux-foundations/day2/lesson7_sed.txt"
             },
             {
-              "id": "linux-foundations/day2/lesson/head_tail",
+              "id": "linux-foundations/lesson/head_tail",
               "title": "head and tail — View the Start or End of Files",
               "file": "courses/linux-foundations/day2/lesson8_head_tail.txt"
             }
@@ -1452,32 +1452,32 @@
           "title": "Day 3 — Scripting Basics",
           "lessons": [
             {
-              "id": "linux-foundations/day3/lesson/variables",
+              "id": "linux-foundations/lesson/variables",
               "title": "Variables — Storing and Reusing Data",
               "file": "courses/linux-foundations/day3/lesson1_variables.txt"
             },
             {
-              "id": "linux-foundations/day3/lesson/conditionals",
+              "id": "linux-foundations/lesson/conditionals",
               "title": "Conditionals — Making Decisions in Scripts",
               "file": "courses/linux-foundations/day3/lesson2_conditionals.txt"
             },
             {
-              "id": "linux-foundations/day3/lesson/loops_for",
+              "id": "linux-foundations/lesson/loops_for",
               "title": "for Loops — Doing Something for Each Item",
               "file": "courses/linux-foundations/day3/lesson3_loops_for.txt"
             },
             {
-              "id": "linux-foundations/day3/lesson/loops_while",
+              "id": "linux-foundations/lesson/loops_while",
               "title": "while Loops — Repeat Until a Condition Changes",
               "file": "courses/linux-foundations/day3/lesson4_loops_while.txt"
             },
             {
-              "id": "linux-foundations/day3/lesson/functions",
+              "id": "linux-foundations/lesson/functions",
               "title": "Functions — Reusable Code Blocks",
               "file": "courses/linux-foundations/day3/lesson5_functions.txt"
             },
             {
-              "id": "linux-foundations/day3/lesson/exit_codes",
+              "id": "linux-foundations/lesson/exit_codes",
               "title": "Exit Codes — Reporting Success or Failure",
               "file": "courses/linux-foundations/day3/lesson6_exit_codes.txt"
             }
@@ -1489,42 +1489,42 @@
           "title": "Day 4 — Process & Environment",
           "lessons": [
             {
-              "id": "linux-foundations/day4/lesson/ps",
+              "id": "linux-foundations/lesson/ps",
               "title": "ps — View Running Processes",
               "file": "courses/linux-foundations/day4/lesson1_ps.txt"
             },
             {
-              "id": "linux-foundations/day4/lesson/kill",
+              "id": "linux-foundations/lesson/kill",
               "title": "kill — Terminate Processes",
               "file": "courses/linux-foundations/day4/lesson2_kill.txt"
             },
             {
-              "id": "linux-foundations/day4/lesson/jobs",
+              "id": "linux-foundations/lesson/jobs",
               "title": "jobs, bg, fg — Background and Foreground Control",
               "file": "courses/linux-foundations/day4/lesson3_jobs.txt"
             },
             {
-              "id": "linux-foundations/day4/lesson/env",
+              "id": "linux-foundations/lesson/env",
               "title": "env and export — Environment Variables",
               "file": "courses/linux-foundations/day4/lesson4_env.txt"
             },
             {
-              "id": "linux-foundations/day4/lesson/alias",
+              "id": "linux-foundations/lesson/alias",
               "title": "alias — Create Command Shortcuts",
               "file": "courses/linux-foundations/day4/lesson5_alias.txt"
             },
             {
-              "id": "linux-foundations/day4/lesson/path",
+              "id": "linux-foundations/lesson/path",
               "title": "PATH — Where the Shell Finds Commands",
               "file": "courses/linux-foundations/day4/lesson6_path.txt"
             },
             {
-              "id": "linux-foundations/day4/lesson/find",
+              "id": "linux-foundations/lesson/find",
               "title": "find — Search for Files by Name, Size, or Date",
               "file": "courses/linux-foundations/day4/lesson7_find.txt"
             },
             {
-              "id": "linux-foundations/day4/lesson/du_df",
+              "id": "linux-foundations/lesson/du_df",
               "title": "du and df — Check Disk Usage and Free Space",
               "file": "courses/linux-foundations/day4/lesson8_du_df.txt"
             }
@@ -1536,14 +1536,14 @@
           "title": "Day 5 — Assessment 1 (Midpoint)",
           "lessons": [
             {
-              "id": "linux-foundations/day5/lesson/capstone_intro",
+              "id": "linux-foundations/lesson/capstone_intro",
               "title": "Final Assessment — Build a System Monitor",
               "file": "courses/linux-foundations/day5/lesson1_capstone_intro.txt"
             }
           ],
           "labs": [
             {
-              "id": "linux-foundations/day5/lab/capstone",
+              "id": "linux-foundations/lab/capstone",
               "title": "Capstone",
               "file": "courses/linux-foundations/day5/capstone_test.sh"
             }
@@ -1554,42 +1554,42 @@
           "title": "Day 6 — Permissions & Security",
           "lessons": [
             {
-              "id": "linux-foundations/day6/lesson/chmod",
+              "id": "linux-foundations/lesson/chmod",
               "title": "chmod — Control File Permissions",
               "file": "courses/linux-foundations/day6/lesson1_chmod.txt"
             },
             {
-              "id": "linux-foundations/day6/lesson/chown",
+              "id": "linux-foundations/lesson/chown",
               "title": "chown — Change File Ownership",
               "file": "courses/linux-foundations/day6/lesson2_chown.txt"
             },
             {
-              "id": "linux-foundations/day6/lesson/permission_numbers",
+              "id": "linux-foundations/lesson/permission_numbers",
               "title": "Permission Numbers — What 755 Actually Means",
               "file": "courses/linux-foundations/day6/lesson3_permission_numbers.txt"
             },
             {
-              "id": "linux-foundations/day6/lesson/useradd",
+              "id": "linux-foundations/lesson/useradd",
               "title": "useradd & usermod — Manage User Accounts",
               "file": "courses/linux-foundations/day6/lesson4_useradd.txt"
             },
             {
-              "id": "linux-foundations/day6/lesson/groups",
+              "id": "linux-foundations/lesson/groups",
               "title": "Groups — Shared Access for Teams",
               "file": "courses/linux-foundations/day6/lesson5_groups.txt"
             },
             {
-              "id": "linux-foundations/day6/lesson/sudo",
+              "id": "linux-foundations/lesson/sudo",
               "title": "sudo — Temporary Root Powers",
               "file": "courses/linux-foundations/day6/lesson6_sudo.txt"
             },
             {
-              "id": "linux-foundations/day6/lesson/special_permissions",
+              "id": "linux-foundations/lesson/special_permissions",
               "title": "Special Permissions — setuid, setgid, sticky bit",
               "file": "courses/linux-foundations/day6/lesson7_special_permissions.txt"
             },
             {
-              "id": "linux-foundations/day6/lesson/security_audit",
+              "id": "linux-foundations/lesson/security_audit",
               "title": "Security Audit — Who Has Access to What?",
               "file": "courses/linux-foundations/day6/lesson8_security_audit.txt"
             }
@@ -1601,42 +1601,42 @@
           "title": "Day 7 — Networking, SSH & Packages",
           "lessons": [
             {
-              "id": "linux-foundations/day7/lesson/ip",
+              "id": "linux-foundations/lesson/ip",
               "title": "ip — Check Network Configuration",
               "file": "courses/linux-foundations/day7/lesson1_ip.txt"
             },
             {
-              "id": "linux-foundations/day7/lesson/ping_curl",
+              "id": "linux-foundations/lesson/ping_curl",
               "title": "ping & curl — Test Connectivity",
               "file": "courses/linux-foundations/day7/lesson2_ping_curl.txt"
             },
             {
-              "id": "linux-foundations/day7/lesson/ss",
+              "id": "linux-foundations/lesson/ss",
               "title": "ss — What Services Are Listening?",
               "file": "courses/linux-foundations/day7/lesson3_ss.txt"
             },
             {
-              "id": "linux-foundations/day7/lesson/ssh",
+              "id": "linux-foundations/lesson/ssh",
               "title": "ssh — Remote Access to Servers",
               "file": "courses/linux-foundations/day7/lesson4_ssh.txt"
             },
             {
-              "id": "linux-foundations/day7/lesson/scp_rsync",
+              "id": "linux-foundations/lesson/scp_rsync",
               "title": "scp & rsync — Transfer Files Between Machines",
               "file": "courses/linux-foundations/day7/lesson5_scp_rsync.txt"
             },
             {
-              "id": "linux-foundations/day7/lesson/apt",
+              "id": "linux-foundations/lesson/apt",
               "title": "apt/yum — Install & Update Software",
               "file": "courses/linux-foundations/day7/lesson6_apt.txt"
             },
             {
-              "id": "linux-foundations/day7/lesson/tar",
+              "id": "linux-foundations/lesson/tar",
               "title": "tar & gzip — Archive and Compress Files",
               "file": "courses/linux-foundations/day7/lesson7_tar.txt"
             },
             {
-              "id": "linux-foundations/day7/lesson/network_troubleshooting",
+              "id": "linux-foundations/lesson/network_troubleshooting",
               "title": "Network Troubleshooting — The Diagnostic Pipeline",
               "file": "courses/linux-foundations/day7/lesson8_network_troubleshooting.txt"
             }
@@ -1648,42 +1648,42 @@
           "title": "Day 8 — Services, Scheduling & Editors",
           "lessons": [
             {
-              "id": "linux-foundations/day8/lesson/systemctl",
+              "id": "linux-foundations/lesson/systemctl",
               "title": "systemctl — Manage Services",
               "file": "courses/linux-foundations/day8/lesson1_systemctl.txt"
             },
             {
-              "id": "linux-foundations/day8/lesson/journalctl",
+              "id": "linux-foundations/lesson/journalctl",
               "title": "journalctl — Read System Logs",
               "file": "courses/linux-foundations/day8/lesson2_journalctl.txt"
             },
             {
-              "id": "linux-foundations/day8/lesson/cron",
+              "id": "linux-foundations/lesson/cron",
               "title": "cron & crontab — Schedule Recurring Tasks",
               "file": "courses/linux-foundations/day8/lesson3_cron.txt"
             },
             {
-              "id": "linux-foundations/day8/lesson/vim",
+              "id": "linux-foundations/lesson/vim",
               "title": "vim — Edit Files on Any Server",
               "file": "courses/linux-foundations/day8/lesson4_vim.txt"
             },
             {
-              "id": "linux-foundations/day8/lesson/nano",
+              "id": "linux-foundations/lesson/nano",
               "title": "nano — The Friendly Editor",
               "file": "courses/linux-foundations/day8/lesson5_nano.txt"
             },
             {
-              "id": "linux-foundations/day8/lesson/awk",
+              "id": "linux-foundations/lesson/awk",
               "title": "awk — Pattern Scanning and Data Extraction",
               "file": "courses/linux-foundations/day8/lesson6_awk.txt"
             },
             {
-              "id": "linux-foundations/day8/lesson/log_management",
+              "id": "linux-foundations/lesson/log_management",
               "title": "Log Management — Keep Logs Under Control",
               "file": "courses/linux-foundations/day8/lesson7_log_management.txt"
             },
             {
-              "id": "linux-foundations/day8/lesson/daily_routine",
+              "id": "linux-foundations/lesson/daily_routine",
               "title": "The Sysadmin Daily Routine — Putting It All Together",
               "file": "courses/linux-foundations/day8/lesson8_daily_routine.txt"
             }
@@ -1695,14 +1695,14 @@
           "title": "Day 9 — Assessment 2 (Advanced)",
           "lessons": [
             {
-              "id": "linux-foundations/day9/lesson/assessment2_intro",
+              "id": "linux-foundations/lesson/assessment2_intro",
               "title": "Assessment 2: Advanced Linux Administration",
               "file": "courses/linux-foundations/day9/lesson1_assessment2_intro.txt"
             }
           ],
           "labs": [
             {
-              "id": "linux-foundations/day9/lab/assessment-2",
+              "id": "linux-foundations/lab/assessment-2",
               "title": "Assessment 2",
               "file": "courses/linux-foundations/day9/assess2_test.sh"
             }
@@ -1713,19 +1713,19 @@
           "title": "Day 10 — Final Review & Capstone",
           "lessons": [
             {
-              "id": "linux-foundations/day10/lesson/review",
+              "id": "linux-foundations/lesson/review",
               "title": "Final Review: Everything You've Learned",
               "file": "courses/linux-foundations/day10/lesson1_review.txt"
             },
             {
-              "id": "linux-foundations/day10/lesson/final_capstone",
+              "id": "linux-foundations/lesson/final_capstone",
               "title": "Final Capstone: The Server Crisis",
               "file": "courses/linux-foundations/day10/lesson2_final_capstone.txt"
             }
           ],
           "labs": [
             {
-              "id": "linux-foundations/day10/lab/final-capstone",
+              "id": "linux-foundations/lab/final-capstone",
               "title": "Final Capstone",
               "file": "courses/linux-foundations/day10/final_capstone_test.sh"
             }
@@ -1743,32 +1743,32 @@
           "title": "Day 1 — Script Fundamentals & Variables",
           "lessons": [
             {
-              "id": "shell-mastery/day1/lesson/shebang",
+              "id": "shell-mastery/lesson/shebang",
               "title": "The Shebang — Every Script Starts Here",
               "file": "courses/shell-mastery/day1/lesson1_shebang.txt"
             },
             {
-              "id": "shell-mastery/day1/lesson/variables",
+              "id": "shell-mastery/lesson/variables",
               "title": "Variables — Store and Reuse Values",
               "file": "courses/shell-mastery/day1/lesson2_variables.txt"
             },
             {
-              "id": "shell-mastery/day1/lesson/quoting",
+              "id": "shell-mastery/lesson/quoting",
               "title": "Quoting — The Source of 90% of Script Bugs",
               "file": "courses/shell-mastery/day1/lesson3_quoting.txt"
             },
             {
-              "id": "shell-mastery/day1/lesson/arguments",
+              "id": "shell-mastery/lesson/arguments",
               "title": "Script Arguments & Special Variables",
               "file": "courses/shell-mastery/day1/lesson4_arguments.txt"
             },
             {
-              "id": "shell-mastery/day1/lesson/input",
+              "id": "shell-mastery/lesson/input",
               "title": "User Input with read",
               "file": "courses/shell-mastery/day1/lesson5_input.txt"
             },
             {
-              "id": "shell-mastery/day1/lesson/exit_codes",
+              "id": "shell-mastery/lesson/exit_codes",
               "title": "Exit Codes — How Scripts Communicate Success or Failure",
               "file": "courses/shell-mastery/day1/lesson6_exit_codes.txt"
             }
@@ -1780,32 +1780,32 @@
           "title": "Day 2 — Conditionals & Decision Logic",
           "lessons": [
             {
-              "id": "shell-mastery/day2/lesson/if_then",
+              "id": "shell-mastery/lesson/if_then",
               "title": "if/then/else — Make Decisions in Scripts",
               "file": "courses/shell-mastery/day2/lesson1_if_then.txt"
             },
             {
-              "id": "shell-mastery/day2/lesson/test_operators",
+              "id": "shell-mastery/lesson/test_operators",
               "title": "Test Operators — The Full Toolkit",
               "file": "courses/shell-mastery/day2/lesson2_test_operators.txt"
             },
             {
-              "id": "shell-mastery/day2/lesson/case",
+              "id": "shell-mastery/lesson/case",
               "title": "case — Clean Multi-Way Branching",
               "file": "courses/shell-mastery/day2/lesson3_case.txt"
             },
             {
-              "id": "shell-mastery/day2/lesson/arithmetic",
+              "id": "shell-mastery/lesson/arithmetic",
               "title": "Arithmetic — Math in Bash",
               "file": "courses/shell-mastery/day2/lesson4_arithmetic.txt"
             },
             {
-              "id": "shell-mastery/day2/lesson/strings",
+              "id": "shell-mastery/lesson/strings",
               "title": "String Comparisons & Pattern Matching",
               "file": "courses/shell-mastery/day2/lesson5_strings.txt"
             },
             {
-              "id": "shell-mastery/day2/lesson/practical",
+              "id": "shell-mastery/lesson/practical",
               "title": "Practical — Build an Input Validator",
               "file": "courses/shell-mastery/day2/lesson6_practical.txt"
             }
@@ -1817,22 +1817,22 @@
           "title": "Day 3 — Loops, Arrays & Iteration",
           "lessons": [
             {
-              "id": "shell-mastery/day3/lesson/for_loops",
+              "id": "shell-mastery/lesson/for_loops",
               "title": "for Loops — Iterate Over Lists",
               "file": "courses/shell-mastery/day3/lesson1_for_loops.txt"
             },
             {
-              "id": "shell-mastery/day3/lesson/while_until",
+              "id": "shell-mastery/lesson/while_until",
               "title": "while & until — Loop Until a Condition Changes",
               "file": "courses/shell-mastery/day3/lesson2_while_until.txt"
             },
             {
-              "id": "shell-mastery/day3/lesson/arrays",
+              "id": "shell-mastery/lesson/arrays",
               "title": "Arrays — Store Multiple Values",
               "file": "courses/shell-mastery/day3/lesson3_arrays.txt"
             },
             {
-              "id": "shell-mastery/day3/lesson/loop_control",
+              "id": "shell-mastery/lesson/loop_control",
               "title": "Loop Control — break, continue, select",
               "file": "courses/shell-mastery/day3/lesson4_loop_control.txt"
             }
@@ -1844,22 +1844,22 @@
           "title": "Day 4 — Functions & Modular Scripts",
           "lessons": [
             {
-              "id": "shell-mastery/day4/lesson/functions",
+              "id": "shell-mastery/lesson/functions",
               "title": "Functions — Reusable Code Blocks",
               "file": "courses/shell-mastery/day4/lesson1_functions.txt"
             },
             {
-              "id": "shell-mastery/day4/lesson/scope",
+              "id": "shell-mastery/lesson/scope",
               "title": "Scope — local vs Global Variables",
               "file": "courses/shell-mastery/day4/lesson2_scope.txt"
             },
             {
-              "id": "shell-mastery/day4/lesson/source",
+              "id": "shell-mastery/lesson/source",
               "title": "Source & Libraries — Share Code Between Scripts",
               "file": "courses/shell-mastery/day4/lesson3_source.txt"
             },
             {
-              "id": "shell-mastery/day4/lesson/production",
+              "id": "shell-mastery/lesson/production",
               "title": "Production Patterns — Logging, Locking, Config",
               "file": "courses/shell-mastery/day4/lesson4_production.txt"
             }
@@ -1871,14 +1871,14 @@
           "title": "Day 5 — Assessment 1 (Monitoring Tool)",
           "lessons": [
             {
-              "id": "shell-mastery/day5/lesson/assessment1",
+              "id": "shell-mastery/lesson/assessment1",
               "title": "Assessment 1: Build a System Monitoring Tool",
               "file": "courses/shell-mastery/day5/lesson1_assessment1.txt"
             }
           ],
           "labs": [
             {
-              "id": "shell-mastery/day5/lab/capstone",
+              "id": "shell-mastery/lab/capstone",
               "title": "Capstone",
               "file": "courses/shell-mastery/day5/capstone_test.sh"
             }
@@ -1889,22 +1889,22 @@
           "title": "Day 6 — Text Processing (awk, sed, regex)",
           "lessons": [
             {
-              "id": "shell-mastery/day6/lesson/awk",
+              "id": "shell-mastery/lesson/awk",
               "title": "awk — The Text Processing Powerhouse",
               "file": "courses/shell-mastery/day6/lesson1_awk.txt"
             },
             {
-              "id": "shell-mastery/day6/lesson/sed",
+              "id": "shell-mastery/lesson/sed",
               "title": "sed — Stream Editor for Search & Replace",
               "file": "courses/shell-mastery/day6/lesson2_sed.txt"
             },
             {
-              "id": "shell-mastery/day6/lesson/regex",
+              "id": "shell-mastery/lesson/regex",
               "title": "Regular Expressions — Pattern Matching Language",
               "file": "courses/shell-mastery/day6/lesson3_regex.txt"
             },
             {
-              "id": "shell-mastery/day6/lesson/log_parser",
+              "id": "shell-mastery/lesson/log_parser",
               "title": "Practical — Build a Log Analyzer",
               "file": "courses/shell-mastery/day6/lesson4_log_parser.txt"
             }
@@ -1916,24 +1916,24 @@
           "title": "Day 7 — Error Handling, Traps & Debugging",
           "lessons": [
             {
-              "id": "shell-mastery/day7/lesson/traps",
+              "id": "shell-mastery/lesson/traps",
               "title": "trap — Catch Signals and Clean Up",
               "file": "courses/shell-mastery/day7/lesson1_traps.txt"
             },
             {
-              "id": "shell-mastery/day7/lesson/validation",
+              "id": "shell-mastery/lesson/validation",
               "title": "Defensive Scripting — Validate Everything",
               "file": "courses/shell-mastery/day7/lesson2_validation.txt"
             },
             {
-              "id": "shell-mastery/day7/lesson/debugging",
+              "id": "shell-mastery/lesson/debugging",
               "title": "Debugging — Find and Fix Script Bugs",
               "file": "courses/shell-mastery/day7/lesson3_debugging.txt"
             },
             {
-              "id": "shell-mastery/day7/lesson/practical",
+              "id": "shell-mastery/lesson/practical_scripts",
               "title": "Practical — Error-Resilient Backup Script",
-              "file": "courses/shell-mastery/day7/lesson4_practical.txt"
+              "file": "courses/shell-mastery/day7/lesson4_practical_scripts.txt"
             }
           ],
           "labs": []
@@ -1943,21 +1943,21 @@
           "title": "Day 8 — Final Capstone (Server Health Report)",
           "lessons": [
             {
-              "id": "shell-mastery/day8/lesson/review",
+              "id": "shell-mastery/lesson/review",
               "title": "Shell Scripting — Final Review",
               "file": "courses/shell-mastery/day8/lesson1_review.txt"
             },
             {
-              "id": "shell-mastery/day8/lesson/capstone",
+              "id": "shell-mastery/lesson/capstone",
               "title": "Final Capstone: The Automation Contract",
               "file": "courses/shell-mastery/day8/lesson2_capstone.txt"
             }
           ],
           "labs": [
             {
-              "id": "shell-mastery/day8/lab/capstone",
-              "title": "Capstone",
-              "file": "courses/shell-mastery/day8/capstone_test.sh"
+              "id": "shell-mastery/lab/final-capstone",
+              "title": "Final Capstone",
+              "file": "courses/shell-mastery/day8/capstone_final_test.sh"
             }
           ]
         }
@@ -1973,17 +1973,17 @@
           "title": "Day 1 — IaC Concepts & Why Manual Infrastructure Fails",
           "lessons": [
             {
-              "id": "terraform-iac/day1/lesson/what_is_iac",
+              "id": "terraform-iac/lesson/what_is_iac",
               "title": "Infrastructure as Code — The End of Click-Ops",
               "file": "courses/terraform-iac/day1/lesson1_what_is_iac.txt"
             },
             {
-              "id": "terraform-iac/day1/lesson/drift_and_snowflakes",
+              "id": "terraform-iac/lesson/drift_and_snowflakes",
               "title": "Configuration Drift & Snowflake Servers",
               "file": "courses/terraform-iac/day1/lesson2_drift_and_snowflakes.txt"
             },
             {
-              "id": "terraform-iac/day1/lesson/iac_tools",
+              "id": "terraform-iac/lesson/iac_tools",
               "title": "IaC Tool Landscape — Choosing the Right Tool",
               "file": "courses/terraform-iac/day1/lesson3_iac_tools.txt"
             }
@@ -1995,17 +1995,17 @@
           "title": "Day 2 — Terraform Fundamentals (init, plan, apply)",
           "lessons": [
             {
-              "id": "terraform-iac/day2/lesson/install_init",
+              "id": "terraform-iac/lesson/install_init",
               "title": "Installing Terraform & Your First Init",
               "file": "courses/terraform-iac/day2/lesson1_install_init.txt"
             },
             {
-              "id": "terraform-iac/day2/lesson/providers_resources",
+              "id": "terraform-iac/lesson/providers_resources",
               "title": "Providers & Resources — The Building Blocks",
               "file": "courses/terraform-iac/day2/lesson2_providers_resources.txt"
             },
             {
-              "id": "terraform-iac/day2/lesson/plan_apply_destroy",
+              "id": "terraform-iac/lesson/plan_apply_destroy",
               "title": "Plan, Apply, Destroy — The Terraform Workflow",
               "file": "courses/terraform-iac/day2/lesson3_plan_apply_destroy.txt"
             }
@@ -2017,12 +2017,12 @@
           "title": "Day 3 — Multiple Providers & Provider Versioning",
           "lessons": [
             {
-              "id": "terraform-iac/day3/lesson/multiple_providers",
+              "id": "terraform-iac/lesson/multiple_providers",
               "title": "Multiple Providers — Multi-Cloud & Multi-Region",
               "file": "courses/terraform-iac/day3/lesson1_multiple_providers.txt"
             },
             {
-              "id": "terraform-iac/day3/lesson/provider_versioning",
+              "id": "terraform-iac/lesson/provider_versioning",
               "title": "Provider Versioning & the Dependency Lock File",
               "file": "courses/terraform-iac/day3/lesson2_provider_versioning.txt"
             }
@@ -2034,12 +2034,12 @@
           "title": "Day 4 — Variables, Outputs & Data Sources",
           "lessons": [
             {
-              "id": "terraform-iac/day4/lesson/variables_types",
+              "id": "terraform-iac/lesson/variables_types",
               "title": "Variables & the Type System",
               "file": "courses/terraform-iac/day4/lesson1_variables_types.txt"
             },
             {
-              "id": "terraform-iac/day4/lesson/outputs_data",
+              "id": "terraform-iac/lesson/outputs_data",
               "title": "Outputs & Data Sources — Getting Information Out",
               "file": "courses/terraform-iac/day4/lesson2_outputs_data.txt"
             }
@@ -2051,12 +2051,12 @@
           "title": "Day 5 — Validate, Format, Dependencies & Lifecycle",
           "lessons": [
             {
-              "id": "terraform-iac/day5/lesson/validate_fmt",
+              "id": "terraform-iac/lesson/validate_fmt",
               "title": "terraform validate & terraform fmt — Config Quality",
               "file": "courses/terraform-iac/day5/lesson1_validate_fmt.txt"
             },
             {
-              "id": "terraform-iac/day5/lesson/dependencies_lifecycle",
+              "id": "terraform-iac/lesson/dependencies_lifecycle",
               "title": "Resource Dependencies & Lifecycle Rules",
               "file": "courses/terraform-iac/day5/lesson2_dependencies_lifecycle.txt"
             }
@@ -2068,12 +2068,12 @@
           "title": "Day 6 — Complex Types, Expressions & Functions",
           "lessons": [
             {
-              "id": "terraform-iac/day6/lesson/complex_types",
+              "id": "terraform-iac/lesson/complex_types",
               "title": "Complex Types — Lists, Maps, Objects & Sets",
               "file": "courses/terraform-iac/day6/lesson1_complex_types.txt"
             },
             {
-              "id": "terraform-iac/day6/lesson/expressions_functions",
+              "id": "terraform-iac/lesson/expressions_functions",
               "title": "Expressions & Functions — Dynamic Configuration",
               "file": "courses/terraform-iac/day6/lesson2_expressions_functions.txt"
             }
@@ -2085,12 +2085,12 @@
           "title": "Day 7 — Custom Conditions & Sensitive Data Management",
           "lessons": [
             {
-              "id": "terraform-iac/day7/lesson/custom_conditions",
+              "id": "terraform-iac/lesson/custom_conditions",
               "title": "Custom Conditions — Validation & Checks",
               "file": "courses/terraform-iac/day7/lesson1_custom_conditions.txt"
             },
             {
-              "id": "terraform-iac/day7/lesson/sensitive_data",
+              "id": "terraform-iac/lesson/sensitive_data",
               "title": "Sensitive Data & Secrets Management",
               "file": "courses/terraform-iac/day7/lesson2_sensitive_data.txt"
             }
@@ -2102,7 +2102,7 @@
           "title": "Day 8 — Assessment 1 (Provision a VPC + Server)",
           "lessons": [
             {
-              "id": "terraform-iac/day8/lesson/assessment1",
+              "id": "terraform-iac/lesson/assessment1",
               "title": "Assessment 1: Provision a Network + Server from Scratch",
               "file": "courses/terraform-iac/day8/lesson1_assessment1.txt"
             }
@@ -2114,12 +2114,12 @@
           "title": "Day 9 — Modules & Reusable Infrastructure",
           "lessons": [
             {
-              "id": "terraform-iac/day9/lesson/modules_basics",
+              "id": "terraform-iac/lesson/modules_basics",
               "title": "Terraform Modules — DRY Infrastructure",
               "file": "courses/terraform-iac/day9/lesson1_modules_basics.txt"
             },
             {
-              "id": "terraform-iac/day9/lesson/module_registry",
+              "id": "terraform-iac/lesson/module_registry",
               "title": "The Terraform Module Registry — Standing on Shoulders",
               "file": "courses/terraform-iac/day9/lesson2_module_registry.txt"
             }
@@ -2131,12 +2131,12 @@
           "title": "Day 10 — State Management & Remote Backends",
           "lessons": [
             {
-              "id": "terraform-iac/day10/lesson/state_file",
+              "id": "terraform-iac/lesson/state_file",
               "title": "The State File — Terraform's Memory",
               "file": "courses/terraform-iac/day10/lesson1_state_file.txt"
             },
             {
-              "id": "terraform-iac/day10/lesson/remote_backends",
+              "id": "terraform-iac/lesson/remote_backends",
               "title": "Remote Backends — Sharing State Safely",
               "file": "courses/terraform-iac/day10/lesson2_remote_backends.txt"
             }
@@ -2148,12 +2148,12 @@
           "title": "Day 11 — State CLI, Import, Drift & Refresh",
           "lessons": [
             {
-              "id": "terraform-iac/day11/lesson/state_cli",
+              "id": "terraform-iac/lesson/state_cli",
               "title": "State CLI — Inspect, Move, Remove & Import",
               "file": "courses/terraform-iac/day11/lesson1_state_cli.txt"
             },
             {
-              "id": "terraform-iac/day11/lesson/drift_refresh",
+              "id": "terraform-iac/lesson/drift_refresh",
               "title": "Resource Drift & Refresh — Detecting Reality vs Config",
               "file": "courses/terraform-iac/day11/lesson2_drift_refresh.txt"
             }
@@ -2165,12 +2165,12 @@
           "title": "Day 12 — HCP Terraform (Cloud) — Collaboration & Governance",
           "lessons": [
             {
-              "id": "terraform-iac/day12/lesson/hcp_terraform_basics",
+              "id": "terraform-iac/lesson/hcp_terraform_basics",
               "title": "HCP Terraform — Remote Operations & State Management",
               "file": "courses/terraform-iac/day12/lesson1_hcp_terraform_basics.txt"
             },
             {
-              "id": "terraform-iac/day12/lesson/hcp_collaboration",
+              "id": "terraform-iac/lesson/hcp_collaboration",
               "title": "HCP Terraform — Collaboration, Governance & Policy",
               "file": "courses/terraform-iac/day12/lesson2_hcp_collaboration.txt"
             }
@@ -2182,17 +2182,17 @@
           "title": "Day 13 — Logging, Debugging & CI/CD Pipelines",
           "lessons": [
             {
-              "id": "terraform-iac/day13/lesson/logging_debugging",
+              "id": "terraform-iac/lesson/logging_debugging",
               "title": "Terraform Logging & Debugging",
               "file": "courses/terraform-iac/day13/lesson1_logging_debugging.txt"
             },
             {
-              "id": "terraform-iac/day13/lesson/cicd_workspaces",
+              "id": "terraform-iac/lesson/cicd_workspaces",
               "title": "Terraform in CI/CD — GitOps for Infrastructure",
               "file": "courses/terraform-iac/day13/lesson2_cicd_workspaces.txt"
             },
             {
-              "id": "terraform-iac/day13/lesson/b_workspaces",
+              "id": "terraform-iac/lesson/b_workspaces",
               "title": "Workspaces & Multi-Environment Infrastructure",
               "file": "courses/terraform-iac/day13/lesson2b_workspaces.txt"
             }
@@ -2204,12 +2204,12 @@
           "title": "Day 14 — Capstone: NimbusMed Multi-Environment Stack",
           "lessons": [
             {
-              "id": "terraform-iac/day14/lesson/review",
+              "id": "terraform-iac/lesson/review",
               "title": "Terraform Mastery Review — Before the Capstone",
               "file": "courses/terraform-iac/day14/lesson1_review.txt"
             },
             {
-              "id": "terraform-iac/day14/lesson/capstone",
+              "id": "terraform-iac/lesson/capstone",
               "title": "Final Capstone: The Infrastructure Rescue",
               "file": "courses/terraform-iac/day14/lesson2_capstone.txt"
             }

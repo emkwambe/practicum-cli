@@ -23,7 +23,7 @@ source|production
 awk|sed
 sed|regex
 regex|log_parser
-# Day 7: traps, validation, debugging, practical
+# Day 7: traps, validation, debugging, practical_scripts
 traps|validation
 validation|debugging
-debugging|practical
+debugging|practical_scripts

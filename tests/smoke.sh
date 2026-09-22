@@ -29,6 +29,11 @@ run() {  # $1 = label, $2 = script path
 echo "API:  $API"
 echo "SITE: $SITE"
 
+# Repo-level lints first: they need no network and catch the two classes of
+# mistake that are expensive once deployed.
+run "lint: unlock chains" "$HERE/lint_unlock_chains.sh"
+run "lint: asset allow-list" "$HERE/lint_assets.sh"
+
 run "classroom (sprint 7A)" "$HERE/smoke_classroom.sh"
 
 # The license suite mints keys by signing fake Dodo webhooks, so it only runs

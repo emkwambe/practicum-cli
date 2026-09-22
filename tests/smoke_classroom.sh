@@ -42,8 +42,9 @@ echo "== content manifest"
 code=$(curl -s -o "$BODY" -w '%{http_code}' "$API/v1/content/manifest")
 check "manifest returns 200" "$code" "200"
 grep -q '"version": *1' "$BODY" && ok "manifest has version" || bad "manifest missing version"
-grep -q 'linux-foundations/day1/lesson/pwd' "$BODY" && ok "stable lesson id present" || bad "lesson id missing"
-grep -q 'linux-foundations/day5/lab/capstone' "$BODY" && ok "stable lab id present" || bad "lab id missing"
+grep -q 'linux-foundations/lesson/pwd' "$BODY" && ok "stable lesson id present" || bad "lesson id missing"
+grep -q 'linux-foundations/lab/capstone' "$BODY" && ok "stable lab id present" || bad "lab id missing"
+grep -q 'generated_from.*ids.lock.json' "$BODY" && ok "manifest built from the id lock" || bad "manifest not lock-derived"
 
 echo "== magic link: no account enumeration"
 for addr in "nobody-$(date +%s)@example.com" "$EMAIL"; do

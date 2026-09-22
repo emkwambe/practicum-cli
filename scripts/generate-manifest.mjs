@@ -74,6 +74,8 @@ const dayTitles = (courseDir) => {
 
 const LAB_KINDS = [
   { match: /^final_capstone_test\.sh$/, slug: "final-capstone", title: "Final Capstone" },
+  // shell-mastery ends at day 8, so its closing lab is capstone_final_test.sh.
+  { match: /^capstone_final_test\.sh$/, slug: "final-capstone", title: "Final Capstone" },
   { match: /^capstone_test\.sh$/, slug: "capstone", title: "Capstone" },
   { match: /^assess2_test\.sh$/, slug: "assessment-2", title: "Assessment 2" },
   { match: /^assess(?:ment)?1?_test\.sh$/, slug: "assessment-1", title: "Assessment 1" },

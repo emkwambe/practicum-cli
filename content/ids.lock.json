@@ -1,0 +1,1848 @@
+{
+  "version": 1,
+  "note": "id -> path. IDs are permanent; never edit or delete an entry by hand.",
+  "ids": {
+    "00-cli-immersion/lesson/shell_terminal_os": {
+      "path": "courses/00-cli-immersion/day1/lesson1_shell_terminal_os.txt",
+      "type": "lesson",
+      "course": "00-cli-immersion",
+      "first_seen": "2026-09-22"
+    },
+    "00-cli-immersion/lesson/anatomy_of_command": {
+      "path": "courses/00-cli-immersion/day1/lesson2_anatomy_of_command.txt",
+      "type": "lesson",
+      "course": "00-cli-immersion",
+      "first_seen": "2026-09-22"
+    },
+    "00-cli-immersion/lesson/flags_options_arguments": {
+      "path": "courses/00-cli-immersion/day1/lesson3_flags_options_arguments.txt",
+      "type": "lesson",
+      "course": "00-cli-immersion",
+      "first_seen": "2026-09-22"
+    },
+    "00-cli-immersion/lesson/getting_help": {
+      "path": "courses/00-cli-immersion/day1/lesson4_getting_help.txt",
+      "type": "lesson",
+      "course": "00-cli-immersion",
+      "first_seen": "2026-09-22"
+    },
+    "00-cli-immersion/lesson/standard_streams": {
+      "path": "courses/00-cli-immersion/day2/lesson1_standard_streams.txt",
+      "type": "lesson",
+      "course": "00-cli-immersion",
+      "first_seen": "2026-09-22"
+    },
+    "00-cli-immersion/lesson/redirection": {
+      "path": "courses/00-cli-immersion/day2/lesson2_redirection.txt",
+      "type": "lesson",
+      "course": "00-cli-immersion",
+      "first_seen": "2026-09-22"
+    },
+    "00-cli-immersion/lesson/pipes": {
+      "path": "courses/00-cli-immersion/day2/lesson3_pipes.txt",
+      "type": "lesson",
+      "course": "00-cli-immersion",
+      "first_seen": "2026-09-22"
+    },
+    "00-cli-immersion/lesson/exit_codes": {
+      "path": "courses/00-cli-immersion/day2/lesson4_exit_codes.txt",
+      "type": "lesson",
+      "course": "00-cli-immersion",
+      "first_seen": "2026-09-22"
+    },
+    "00-cli-immersion/lesson/filesystem_interface": {
+      "path": "courses/00-cli-immersion/day3/lesson1_filesystem_interface.txt",
+      "type": "lesson",
+      "course": "00-cli-immersion",
+      "first_seen": "2026-09-22"
+    },
+    "00-cli-immersion/lesson/path_resolution": {
+      "path": "courses/00-cli-immersion/day3/lesson2_path_resolution.txt",
+      "type": "lesson",
+      "course": "00-cli-immersion",
+      "first_seen": "2026-09-22"
+    },
+    "00-cli-immersion/lesson/environment_variables": {
+      "path": "courses/00-cli-immersion/day3/lesson3_environment_variables.txt",
+      "type": "lesson",
+      "course": "00-cli-immersion",
+      "first_seen": "2026-09-22"
+    },
+    "00-cli-immersion/lesson/permissions_execution": {
+      "path": "courses/00-cli-immersion/day3/lesson4_permissions_execution.txt",
+      "type": "lesson",
+      "course": "00-cli-immersion",
+      "first_seen": "2026-09-22"
+    },
+    "00-cli-immersion/lesson/keyboard_efficiency": {
+      "path": "courses/00-cli-immersion/day4/lesson1_keyboard_efficiency.txt",
+      "type": "lesson",
+      "course": "00-cli-immersion",
+      "first_seen": "2026-09-22"
+    },
+    "00-cli-immersion/lesson/globbing_quoting": {
+      "path": "courses/00-cli-immersion/day4/lesson2_globbing_quoting.txt",
+      "type": "lesson",
+      "course": "00-cli-immersion",
+      "first_seen": "2026-09-22"
+    },
+    "00-cli-immersion/lesson/substitution_chaining": {
+      "path": "courses/00-cli-immersion/day4/lesson3_substitution_chaining.txt",
+      "type": "lesson",
+      "course": "00-cli-immersion",
+      "first_seen": "2026-09-22"
+    },
+    "00-cli-immersion/lesson/capstone": {
+      "path": "courses/00-cli-immersion/day4/lesson4_capstone.txt",
+      "type": "lesson",
+      "course": "00-cli-immersion",
+      "first_seen": "2026-09-22"
+    },
+    "cicd-pipelines/lesson/what_is_cicd": {
+      "path": "courses/cicd-pipelines/day1/lesson1_what_is_cicd.txt",
+      "type": "lesson",
+      "course": "cicd-pipelines",
+      "first_seen": "2026-09-22"
+    },
+    "cicd-pipelines/lesson/triggers": {
+      "path": "courses/cicd-pipelines/day1/lesson2_triggers.txt",
+      "type": "lesson",
+      "course": "cicd-pipelines",
+      "first_seen": "2026-09-22"
+    },
+    "cicd-pipelines/lesson/platforms": {
+      "path": "courses/cicd-pipelines/day1/lesson3_platforms.txt",
+      "type": "lesson",
+      "course": "cicd-pipelines",
+      "first_seen": "2026-09-22"
+    },
+    "cicd-pipelines/lesson/first_workflow": {
+      "path": "courses/cicd-pipelines/day2/lesson1_first_workflow.txt",
+      "type": "lesson",
+      "course": "cicd-pipelines",
+      "first_seen": "2026-09-22"
+    },
+    "cicd-pipelines/lesson/jobs_steps": {
+      "path": "courses/cicd-pipelines/day2/lesson2_jobs_steps.txt",
+      "type": "lesson",
+      "course": "cicd-pipelines",
+      "first_seen": "2026-09-22"
+    },
+    "cicd-pipelines/lesson/actions_caching": {
+      "path": "courses/cicd-pipelines/day2/lesson3_actions_caching.txt",
+      "type": "lesson",
+      "course": "cicd-pipelines",
+      "first_seen": "2026-09-22"
+    },
+    "cicd-pipelines/lesson/linting": {
+      "path": "courses/cicd-pipelines/day3/lesson1_linting.txt",
+      "type": "lesson",
+      "course": "cicd-pipelines",
+      "first_seen": "2026-09-22"
+    },
+    "cicd-pipelines/lesson/testing": {
+      "path": "courses/cicd-pipelines/day3/lesson2_testing.txt",
+      "type": "lesson",
+      "course": "cicd-pipelines",
+      "first_seen": "2026-09-22"
+    },
+    "cicd-pipelines/lesson/docker_build": {
+      "path": "courses/cicd-pipelines/day4/lesson1_docker_build.txt",
+      "type": "lesson",
+      "course": "cicd-pipelines",
+      "first_seen": "2026-09-22"
+    },
+    "cicd-pipelines/lesson/registries": {
+      "path": "courses/cicd-pipelines/day4/lesson2_registries.txt",
+      "type": "lesson",
+      "course": "cicd-pipelines",
+      "first_seen": "2026-09-22"
+    },
+    "cicd-pipelines/lesson/assessment": {
+      "path": "courses/cicd-pipelines/day5/lesson1_assessment.txt",
+      "type": "lesson",
+      "course": "cicd-pipelines",
+      "first_seen": "2026-09-22"
+    },
+    "cicd-pipelines/lesson/deploy_strategies": {
+      "path": "courses/cicd-pipelines/day6/lesson1_deploy_strategies.txt",
+      "type": "lesson",
+      "course": "cicd-pipelines",
+      "first_seen": "2026-09-22"
+    },
+    "cicd-pipelines/lesson/staging_cd": {
+      "path": "courses/cicd-pipelines/day6/lesson2_staging_cd.txt",
+      "type": "lesson",
+      "course": "cicd-pipelines",
+      "first_seen": "2026-09-22"
+    },
+    "cicd-pipelines/lesson/secrets": {
+      "path": "courses/cicd-pipelines/day7/lesson1_secrets.txt",
+      "type": "lesson",
+      "course": "cicd-pipelines",
+      "first_seen": "2026-09-22"
+    },
+    "cicd-pipelines/lesson/reusable": {
+      "path": "courses/cicd-pipelines/day7/lesson2_reusable.txt",
+      "type": "lesson",
+      "course": "cicd-pipelines",
+      "first_seen": "2026-09-22"
+    },
+    "cicd-pipelines/lesson/review": {
+      "path": "courses/cicd-pipelines/day8/lesson1_review.txt",
+      "type": "lesson",
+      "course": "cicd-pipelines",
+      "first_seen": "2026-09-22"
+    },
+    "cicd-pipelines/lesson/capstone": {
+      "path": "courses/cicd-pipelines/day8/lesson2_capstone.txt",
+      "type": "lesson",
+      "course": "cicd-pipelines",
+      "first_seen": "2026-09-22"
+    },
+    "data-forging/lesson/pipeline_design": {
+      "path": "courses/data-forging/day1/lesson1_pipeline_design.txt",
+      "type": "lesson",
+      "course": "data-forging",
+      "first_seen": "2026-09-22"
+    },
+    "data-forging/lesson/advanced_grep": {
+      "path": "courses/data-forging/day1/lesson2_advanced_grep.txt",
+      "type": "lesson",
+      "course": "data-forging",
+      "first_seen": "2026-09-22"
+    },
+    "data-forging/lesson/awk_queries": {
+      "path": "courses/data-forging/day1/lesson3_awk_queries.txt",
+      "type": "lesson",
+      "course": "data-forging",
+      "first_seen": "2026-09-22"
+    },
+    "data-forging/lesson/sed_transform": {
+      "path": "courses/data-forging/day1/lesson4_sed_transform.txt",
+      "type": "lesson",
+      "course": "data-forging",
+      "first_seen": "2026-09-22"
+    },
+    "data-forging/lesson/regex": {
+      "path": "courses/data-forging/day1/lesson5_regex.txt",
+      "type": "lesson",
+      "course": "data-forging",
+      "first_seen": "2026-09-22"
+    },
+    "data-forging/lesson/perl_regex": {
+      "path": "courses/data-forging/day1/lesson6_perl_regex.txt",
+      "type": "lesson",
+      "course": "data-forging",
+      "first_seen": "2026-09-22"
+    },
+    "data-forging/lesson/sed_advanced": {
+      "path": "courses/data-forging/day1/lesson7_sed_advanced.txt",
+      "type": "lesson",
+      "course": "data-forging",
+      "first_seen": "2026-09-22"
+    },
+    "data-forging/lesson/awk_advanced": {
+      "path": "courses/data-forging/day1/lesson8_awk_advanced.txt",
+      "type": "lesson",
+      "course": "data-forging",
+      "first_seen": "2026-09-22"
+    },
+    "data-forging/lesson/jq_basics": {
+      "path": "courses/data-forging/day2/lesson1_jq_basics.txt",
+      "type": "lesson",
+      "course": "data-forging",
+      "first_seen": "2026-09-22"
+    },
+    "data-forging/lesson/jq_filtering": {
+      "path": "courses/data-forging/day2/lesson2_jq_filtering.txt",
+      "type": "lesson",
+      "course": "data-forging",
+      "first_seen": "2026-09-22"
+    },
+    "data-forging/lesson/jq_output": {
+      "path": "courses/data-forging/day2/lesson3_jq_output.txt",
+      "type": "lesson",
+      "course": "data-forging",
+      "first_seen": "2026-09-22"
+    },
+    "data-forging/lesson/jq_advanced": {
+      "path": "courses/data-forging/day2/lesson4_jq_advanced.txt",
+      "type": "lesson",
+      "course": "data-forging",
+      "first_seen": "2026-09-22"
+    },
+    "data-forging/lesson/csvkit": {
+      "path": "courses/data-forging/day3/lesson1_csvkit.txt",
+      "type": "lesson",
+      "course": "data-forging",
+      "first_seen": "2026-09-22"
+    },
+    "data-forging/lesson/xsv": {
+      "path": "courses/data-forging/day3/lesson2_xsv.txt",
+      "type": "lesson",
+      "course": "data-forging",
+      "first_seen": "2026-09-22"
+    },
+    "data-forging/lesson/csvsql": {
+      "path": "courses/data-forging/day3/lesson3_csvsql.txt",
+      "type": "lesson",
+      "course": "data-forging",
+      "first_seen": "2026-09-22"
+    },
+    "data-forging/lesson/sqlite3_basics": {
+      "path": "courses/data-forging/day4/lesson1_sqlite3_basics.txt",
+      "type": "lesson",
+      "course": "data-forging",
+      "first_seen": "2026-09-22"
+    },
+    "data-forging/lesson/sqlite3_advanced": {
+      "path": "courses/data-forging/day4/lesson2_sqlite3_advanced.txt",
+      "type": "lesson",
+      "course": "data-forging",
+      "first_seen": "2026-09-22"
+    },
+    "data-forging/lesson/assessment1": {
+      "path": "courses/data-forging/day5/lesson1_assessment1.txt",
+      "type": "lesson",
+      "course": "data-forging",
+      "first_seen": "2026-09-22"
+    },
+    "data-forging/lesson/curl": {
+      "path": "courses/data-forging/day6/lesson1_curl.txt",
+      "type": "lesson",
+      "course": "data-forging",
+      "first_seen": "2026-09-22"
+    },
+    "data-forging/lesson/api_pipelines": {
+      "path": "courses/data-forging/day6/lesson2_api_pipelines.txt",
+      "type": "lesson",
+      "course": "data-forging",
+      "first_seen": "2026-09-22"
+    },
+    "data-forging/lesson/streams": {
+      "path": "courses/data-forging/day7/lesson1_streams.txt",
+      "type": "lesson",
+      "course": "data-forging",
+      "first_seen": "2026-09-22"
+    },
+    "data-forging/lesson/etl_review": {
+      "path": "courses/data-forging/day8/lesson1_etl_review.txt",
+      "type": "lesson",
+      "course": "data-forging",
+      "first_seen": "2026-09-22"
+    },
+    "data-forging/lesson/capstone": {
+      "path": "courses/data-forging/day8/lesson2_capstone.txt",
+      "type": "lesson",
+      "course": "data-forging",
+      "first_seen": "2026-09-22"
+    },
+    "data-forging/lesson/pipeline_tools": {
+      "path": "courses/data-forging/day8/lesson3_pipeline_tools.txt",
+      "type": "lesson",
+      "course": "data-forging",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/run": {
+      "path": "courses/docker-essentials/day1/lesson1_run.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/ps": {
+      "path": "courses/docker-essentials/day1/lesson2_ps.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/logs": {
+      "path": "courses/docker-essentials/day1/lesson3_logs.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/exec": {
+      "path": "courses/docker-essentials/day1/lesson4_exec.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/lifecycle": {
+      "path": "courses/docker-essentials/day1/lesson5_lifecycle.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/inspect": {
+      "path": "courses/docker-essentials/day1/lesson6_inspect.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/dockerfile": {
+      "path": "courses/docker-essentials/day2/lesson1_dockerfile.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/build": {
+      "path": "courses/docker-essentials/day2/lesson2_build.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/layers": {
+      "path": "courses/docker-essentials/day2/lesson3_layers.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/multistage": {
+      "path": "courses/docker-essentials/day2/lesson4_multistage.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/tagging": {
+      "path": "courses/docker-essentials/day2/lesson5_tagging.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/best_practices": {
+      "path": "courses/docker-essentials/day2/lesson6_best_practices.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/volumes": {
+      "path": "courses/docker-essentials/day3/lesson1_volumes.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/networks": {
+      "path": "courses/docker-essentials/day3/lesson2_networks.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/ports": {
+      "path": "courses/docker-essentials/day3/lesson3_ports.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/env": {
+      "path": "courses/docker-essentials/day3/lesson4_env.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/limits": {
+      "path": "courses/docker-essentials/day3/lesson5_limits.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/healthcheck": {
+      "path": "courses/docker-essentials/day3/lesson6_healthcheck.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/compose_intro": {
+      "path": "courses/docker-essentials/day4/lesson1_compose_intro.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/services": {
+      "path": "courses/docker-essentials/day4/lesson2_services.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/compose_lifecycle": {
+      "path": "courses/docker-essentials/day4/lesson3_compose_lifecycle.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/compose_networks": {
+      "path": "courses/docker-essentials/day4/lesson4_compose_networks.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/compose_volumes": {
+      "path": "courses/docker-essentials/day4/lesson5_compose_volumes.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/full_stack": {
+      "path": "courses/docker-essentials/day4/lesson6_full_stack.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/assessment1_intro": {
+      "path": "courses/docker-essentials/day5/lesson1_assessment1_intro.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lab/capstone": {
+      "path": "courses/docker-essentials/day5/capstone_test.sh",
+      "type": "lab",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/registries": {
+      "path": "courses/docker-essentials/day6/lesson1_registries.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/tagging_strategies": {
+      "path": "courses/docker-essentials/day6/lesson2_tagging_strategies.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/private_registries": {
+      "path": "courses/docker-essentials/day6/lesson3_private_registries.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/image_management": {
+      "path": "courses/docker-essentials/day6/lesson4_image_management.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/scanning": {
+      "path": "courses/docker-essentials/day6/lesson5_scanning.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/automation": {
+      "path": "courses/docker-essentials/day6/lesson6_automation.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/nonroot": {
+      "path": "courses/docker-essentials/day7/lesson1_nonroot.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/secrets": {
+      "path": "courses/docker-essentials/day7/lesson2_secrets.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/capabilities": {
+      "path": "courses/docker-essentials/day7/lesson3_capabilities.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/signing": {
+      "path": "courses/docker-essentials/day7/lesson4_signing.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/hardening": {
+      "path": "courses/docker-essentials/day7/lesson5_hardening.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/security_checklist": {
+      "path": "courses/docker-essentials/day7/lesson6_security_checklist.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/swarm_intro": {
+      "path": "courses/docker-essentials/day8/lesson1_swarm_intro.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/swarm_services": {
+      "path": "courses/docker-essentials/day8/lesson2_swarm_services.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/rolling_updates": {
+      "path": "courses/docker-essentials/day8/lesson3_rolling_updates.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/secrets_configs": {
+      "path": "courses/docker-essentials/day8/lesson4_secrets_configs.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/stacks": {
+      "path": "courses/docker-essentials/day8/lesson5_stacks.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/node_management": {
+      "path": "courses/docker-essentials/day8/lesson6_node_management.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/assessment2_intro": {
+      "path": "courses/docker-essentials/day9/lesson1_assessment2_intro.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lab/assessment-2": {
+      "path": "courses/docker-essentials/day9/assess2_test.sh",
+      "type": "lab",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/review": {
+      "path": "courses/docker-essentials/day10/lesson1_review.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lesson/final_capstone": {
+      "path": "courses/docker-essentials/day10/lesson2_final_capstone.txt",
+      "type": "lesson",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "docker-essentials/lab/final-capstone": {
+      "path": "courses/docker-essentials/day10/final_capstone_test.sh",
+      "type": "lab",
+      "course": "docker-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/init": {
+      "path": "courses/git-essentials/day1/lesson1_init.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/status": {
+      "path": "courses/git-essentials/day1/lesson2_status.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/add": {
+      "path": "courses/git-essentials/day1/lesson3_add.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/commit": {
+      "path": "courses/git-essentials/day1/lesson4_commit.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/log": {
+      "path": "courses/git-essentials/day1/lesson5_log.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/diff": {
+      "path": "courses/git-essentials/day1/lesson6_diff.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/branch": {
+      "path": "courses/git-essentials/day2/lesson1_branch.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/switch": {
+      "path": "courses/git-essentials/day2/lesson2_switch.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/merge": {
+      "path": "courses/git-essentials/day2/lesson3_merge.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/conflicts": {
+      "path": "courses/git-essentials/day2/lesson4_conflicts.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/branch_strategies": {
+      "path": "courses/git-essentials/day2/lesson5_branch_strategies.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/delete_branches": {
+      "path": "courses/git-essentials/day2/lesson6_delete_branches.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/clone": {
+      "path": "courses/git-essentials/day3/lesson1_clone.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/remote": {
+      "path": "courses/git-essentials/day3/lesson2_remote.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/push": {
+      "path": "courses/git-essentials/day3/lesson3_push.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/pull_fetch": {
+      "path": "courses/git-essentials/day3/lesson4_pull_fetch.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/gitignore": {
+      "path": "courses/git-essentials/day3/lesson5_gitignore.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/daily_workflow": {
+      "path": "courses/git-essentials/day3/lesson6_daily_workflow.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/forks": {
+      "path": "courses/git-essentials/day4/lesson1_forks.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/pull_requests": {
+      "path": "courses/git-essentials/day4/lesson2_pull_requests.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/code_review": {
+      "path": "courses/git-essentials/day4/lesson3_code_review.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/pr_conflicts": {
+      "path": "courses/git-essentials/day4/lesson4_pr_conflicts.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/issues": {
+      "path": "courses/git-essentials/day4/lesson5_issues.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/open_source": {
+      "path": "courses/git-essentials/day4/lesson6_open_source.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/assessment1_intro": {
+      "path": "courses/git-essentials/day5/lesson1_assessment1_intro.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lab/capstone": {
+      "path": "courses/git-essentials/day5/capstone_test.sh",
+      "type": "lab",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/stash": {
+      "path": "courses/git-essentials/day6/lesson1_stash.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/rebase": {
+      "path": "courses/git-essentials/day6/lesson2_rebase.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/cherry_pick": {
+      "path": "courses/git-essentials/day6/lesson3_cherry_pick.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/bisect": {
+      "path": "courses/git-essentials/day6/lesson4_bisect.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/reflog": {
+      "path": "courses/git-essentials/day6/lesson5_reflog.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/amend": {
+      "path": "courses/git-essentials/day6/lesson6_amend.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/tags": {
+      "path": "courses/git-essentials/day7/lesson1_tags.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/releases": {
+      "path": "courses/git-essentials/day7/lesson2_releases.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/actions_intro": {
+      "path": "courses/git-essentials/day7/lesson3_actions_intro.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/actions_workflows": {
+      "path": "courses/git-essentials/day7/lesson4_actions_workflows.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/github_pages": {
+      "path": "courses/git-essentials/day7/lesson5_github_pages.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/secrets": {
+      "path": "courses/git-essentials/day7/lesson6_secrets.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/gitignore_deep": {
+      "path": "courses/git-essentials/day8/lesson1_gitignore_deep.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/branch_protection": {
+      "path": "courses/git-essentials/day8/lesson2_branch_protection.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/projects": {
+      "path": "courses/git-essentials/day8/lesson3_projects.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/signed_commits": {
+      "path": "courses/git-essentials/day8/lesson4_signed_commits.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/git_hooks": {
+      "path": "courses/git-essentials/day8/lesson5_git_hooks.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/professional_repo": {
+      "path": "courses/git-essentials/day8/lesson6_professional_repo.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/assessment2_intro": {
+      "path": "courses/git-essentials/day9/lesson1_assessment2_intro.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lab/assessment-2": {
+      "path": "courses/git-essentials/day9/assess2_test.sh",
+      "type": "lab",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/review": {
+      "path": "courses/git-essentials/day10/lesson1_review.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lesson/final_capstone": {
+      "path": "courses/git-essentials/day10/lesson2_final_capstone.txt",
+      "type": "lesson",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "git-essentials/lab/final-capstone": {
+      "path": "courses/git-essentials/day10/final_capstone_test.sh",
+      "type": "lab",
+      "course": "git-essentials",
+      "first_seen": "2026-09-22"
+    },
+    "kubernetes/lesson/containers_at_scale": {
+      "path": "courses/kubernetes/day1/lesson1_containers_at_scale.txt",
+      "type": "lesson",
+      "course": "kubernetes",
+      "first_seen": "2026-09-22"
+    },
+    "kubernetes/lesson/k8s_architecture": {
+      "path": "courses/kubernetes/day1/lesson2_k8s_architecture.txt",
+      "type": "lesson",
+      "course": "kubernetes",
+      "first_seen": "2026-09-22"
+    },
+    "kubernetes/lesson/kubectl_basics": {
+      "path": "courses/kubernetes/day1/lesson3_kubectl_basics.txt",
+      "type": "lesson",
+      "course": "kubernetes",
+      "first_seen": "2026-09-22"
+    },
+    "kubernetes/lesson/pods": {
+      "path": "courses/kubernetes/day2/lesson1_pods.txt",
+      "type": "lesson",
+      "course": "kubernetes",
+      "first_seen": "2026-09-22"
+    },
+    "kubernetes/lesson/deployments": {
+      "path": "courses/kubernetes/day2/lesson2_deployments.txt",
+      "type": "lesson",
+      "course": "kubernetes",
+      "first_seen": "2026-09-22"
+    },
+    "kubernetes/lesson/scaling": {
+      "path": "courses/kubernetes/day2/lesson3_scaling.txt",
+      "type": "lesson",
+      "course": "kubernetes",
+      "first_seen": "2026-09-22"
+    },
+    "kubernetes/lesson/jobs_cronjobs": {
+      "path": "courses/kubernetes/day3/lesson1_jobs_cronjobs.txt",
+      "type": "lesson",
+      "course": "kubernetes",
+      "first_seen": "2026-09-22"
+    },
+    "kubernetes/lesson/daemonsets": {
+      "path": "courses/kubernetes/day3/lesson2_daemonsets.txt",
+      "type": "lesson",
+      "course": "kubernetes",
+      "first_seen": "2026-09-22"
+    },
+    "kubernetes/lesson/scheduling_basics": {
+      "path": "courses/kubernetes/day4/lesson1_scheduling_basics.txt",
+      "type": "lesson",
+      "course": "kubernetes",
+      "first_seen": "2026-09-22"
+    },
+    "kubernetes/lesson/taints_tolerations": {
+      "path": "courses/kubernetes/day4/lesson2_taints_tolerations.txt",
+      "type": "lesson",
+      "course": "kubernetes",
+      "first_seen": "2026-09-22"
+    },
+    "kubernetes/lesson/configmaps_secrets": {
+      "path": "courses/kubernetes/day5/lesson1_configmaps_secrets.txt",
+      "type": "lesson",
+      "course": "kubernetes",
+      "first_seen": "2026-09-22"
+    },
+    "kubernetes/lesson/resource_limits": {
+      "path": "courses/kubernetes/day5/lesson2_resource_limits.txt",
+      "type": "lesson",
+      "course": "kubernetes",
+      "first_seen": "2026-09-22"
+    },
+    "kubernetes/lesson/rbac_fundamentals": {
+      "path": "courses/kubernetes/day6/lesson1_rbac_fundamentals.txt",
+      "type": "lesson",
+      "course": "kubernetes",
+      "first_seen": "2026-09-22"
+    },
+    "kubernetes/lesson/rbac_patterns": {
+      "path": "courses/kubernetes/day6/lesson2_rbac_patterns.txt",
+      "type": "lesson",
+      "course": "kubernetes",
+      "first_seen": "2026-09-22"
+    },
+    "kubernetes/lesson/services": {
+      "path": "courses/kubernetes/day7/lesson1_services.txt",
+      "type": "lesson",
+      "course": "kubernetes",
+      "first_seen": "2026-09-22"
+    },
+    "kubernetes/lesson/ingress": {
+      "path": "courses/kubernetes/day7/lesson2_ingress.txt",
+      "type": "lesson",
+      "course": "kubernetes",
+      "first_seen": "2026-09-22"
+    },
+    "kubernetes/lesson/network_policies": {
+      "path": "courses/kubernetes/day8/lesson1_network_policies.txt",
+      "type": "lesson",
+      "course": "kubernetes",
+      "first_seen": "2026-09-22"
+    },
+    "kubernetes/lesson/coredns_debugging": {
+      "path": "courses/kubernetes/day8/lesson2_coredns_debugging.txt",
+      "type": "lesson",
+      "course": "kubernetes",
+      "first_seen": "2026-09-22"
+    },
+    "kubernetes/lesson/assessment1": {
+      "path": "courses/kubernetes/day9/lesson1_assessment1.txt",
+      "type": "lesson",
+      "course": "kubernetes",
+      "first_seen": "2026-09-22"
+    },
+    "kubernetes/lesson/volumes_pvc": {
+      "path": "courses/kubernetes/day10/lesson1_volumes_pvc.txt",
+      "type": "lesson",
+      "course": "kubernetes",
+      "first_seen": "2026-09-22"
+    },
+    "kubernetes/lesson/statefulsets": {
+      "path": "courses/kubernetes/day10/lesson2_statefulsets.txt",
+      "type": "lesson",
+      "course": "kubernetes",
+      "first_seen": "2026-09-22"
+    },
+    "kubernetes/lesson/kubeadm": {
+      "path": "courses/kubernetes/day11/lesson1_kubeadm.txt",
+      "type": "lesson",
+      "course": "kubernetes",
+      "first_seen": "2026-09-22"
+    },
+    "kubernetes/lesson/etcd_backup": {
+      "path": "courses/kubernetes/day11/lesson2_etcd_backup.txt",
+      "type": "lesson",
+      "course": "kubernetes",
+      "first_seen": "2026-09-22"
+    },
+    "kubernetes/lesson/crds_operators": {
+      "path": "courses/kubernetes/day12/lesson1_crds_operators.txt",
+      "type": "lesson",
+      "course": "kubernetes",
+      "first_seen": "2026-09-22"
+    },
+    "kubernetes/lesson/helm_kustomize": {
+      "path": "courses/kubernetes/day12/lesson2_helm_kustomize.txt",
+      "type": "lesson",
+      "course": "kubernetes",
+      "first_seen": "2026-09-22"
+    },
+    "kubernetes/lesson/troubleshoot_apps": {
+      "path": "courses/kubernetes/day13/lesson1_troubleshoot_apps.txt",
+      "type": "lesson",
+      "course": "kubernetes",
+      "first_seen": "2026-09-22"
+    },
+    "kubernetes/lesson/troubleshoot_cluster": {
+      "path": "courses/kubernetes/day13/lesson2_troubleshoot_cluster.txt",
+      "type": "lesson",
+      "course": "kubernetes",
+      "first_seen": "2026-09-22"
+    },
+    "kubernetes/lesson/review": {
+      "path": "courses/kubernetes/day14/lesson1_review.txt",
+      "type": "lesson",
+      "course": "kubernetes",
+      "first_seen": "2026-09-22"
+    },
+    "kubernetes/lesson/troubleshoot_networking": {
+      "path": "courses/kubernetes/day14/lesson2_troubleshoot_networking.txt",
+      "type": "lesson",
+      "course": "kubernetes",
+      "first_seen": "2026-09-22"
+    },
+    "kubernetes/lesson/capstone": {
+      "path": "courses/kubernetes/day14/lesson3_capstone.txt",
+      "type": "lesson",
+      "course": "kubernetes",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/pwd": {
+      "path": "courses/linux-foundations/day1/lesson1_pwd.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/ls": {
+      "path": "courses/linux-foundations/day1/lesson2_ls.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/cd": {
+      "path": "courses/linux-foundations/day1/lesson3_cd.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/mkdir": {
+      "path": "courses/linux-foundations/day1/lesson4_mkdir.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/touch": {
+      "path": "courses/linux-foundations/day1/lesson5_touch.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/rm": {
+      "path": "courses/linux-foundations/day1/lesson6_rm.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/grep": {
+      "path": "courses/linux-foundations/day2/lesson1_grep.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/cut": {
+      "path": "courses/linux-foundations/day2/lesson2_cut.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/sort": {
+      "path": "courses/linux-foundations/day2/lesson3_sort.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/uniq": {
+      "path": "courses/linux-foundations/day2/lesson4_uniq.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/wc": {
+      "path": "courses/linux-foundations/day2/lesson5_wc.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/pipes": {
+      "path": "courses/linux-foundations/day2/lesson6_pipes.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/sed": {
+      "path": "courses/linux-foundations/day2/lesson7_sed.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/head_tail": {
+      "path": "courses/linux-foundations/day2/lesson8_head_tail.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/variables": {
+      "path": "courses/linux-foundations/day3/lesson1_variables.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/conditionals": {
+      "path": "courses/linux-foundations/day3/lesson2_conditionals.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/loops_for": {
+      "path": "courses/linux-foundations/day3/lesson3_loops_for.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/loops_while": {
+      "path": "courses/linux-foundations/day3/lesson4_loops_while.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/functions": {
+      "path": "courses/linux-foundations/day3/lesson5_functions.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/exit_codes": {
+      "path": "courses/linux-foundations/day3/lesson6_exit_codes.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/ps": {
+      "path": "courses/linux-foundations/day4/lesson1_ps.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/kill": {
+      "path": "courses/linux-foundations/day4/lesson2_kill.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/jobs": {
+      "path": "courses/linux-foundations/day4/lesson3_jobs.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/env": {
+      "path": "courses/linux-foundations/day4/lesson4_env.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/alias": {
+      "path": "courses/linux-foundations/day4/lesson5_alias.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/path": {
+      "path": "courses/linux-foundations/day4/lesson6_path.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/find": {
+      "path": "courses/linux-foundations/day4/lesson7_find.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/du_df": {
+      "path": "courses/linux-foundations/day4/lesson8_du_df.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/capstone_intro": {
+      "path": "courses/linux-foundations/day5/lesson1_capstone_intro.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lab/capstone": {
+      "path": "courses/linux-foundations/day5/capstone_test.sh",
+      "type": "lab",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/chmod": {
+      "path": "courses/linux-foundations/day6/lesson1_chmod.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/chown": {
+      "path": "courses/linux-foundations/day6/lesson2_chown.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/permission_numbers": {
+      "path": "courses/linux-foundations/day6/lesson3_permission_numbers.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/useradd": {
+      "path": "courses/linux-foundations/day6/lesson4_useradd.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/groups": {
+      "path": "courses/linux-foundations/day6/lesson5_groups.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/sudo": {
+      "path": "courses/linux-foundations/day6/lesson6_sudo.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/special_permissions": {
+      "path": "courses/linux-foundations/day6/lesson7_special_permissions.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/security_audit": {
+      "path": "courses/linux-foundations/day6/lesson8_security_audit.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/ip": {
+      "path": "courses/linux-foundations/day7/lesson1_ip.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/ping_curl": {
+      "path": "courses/linux-foundations/day7/lesson2_ping_curl.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/ss": {
+      "path": "courses/linux-foundations/day7/lesson3_ss.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/ssh": {
+      "path": "courses/linux-foundations/day7/lesson4_ssh.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/scp_rsync": {
+      "path": "courses/linux-foundations/day7/lesson5_scp_rsync.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/apt": {
+      "path": "courses/linux-foundations/day7/lesson6_apt.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/tar": {
+      "path": "courses/linux-foundations/day7/lesson7_tar.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/network_troubleshooting": {
+      "path": "courses/linux-foundations/day7/lesson8_network_troubleshooting.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/systemctl": {
+      "path": "courses/linux-foundations/day8/lesson1_systemctl.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/journalctl": {
+      "path": "courses/linux-foundations/day8/lesson2_journalctl.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/cron": {
+      "path": "courses/linux-foundations/day8/lesson3_cron.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/vim": {
+      "path": "courses/linux-foundations/day8/lesson4_vim.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/nano": {
+      "path": "courses/linux-foundations/day8/lesson5_nano.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/awk": {
+      "path": "courses/linux-foundations/day8/lesson6_awk.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/log_management": {
+      "path": "courses/linux-foundations/day8/lesson7_log_management.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/daily_routine": {
+      "path": "courses/linux-foundations/day8/lesson8_daily_routine.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/assessment2_intro": {
+      "path": "courses/linux-foundations/day9/lesson1_assessment2_intro.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lab/assessment-2": {
+      "path": "courses/linux-foundations/day9/assess2_test.sh",
+      "type": "lab",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/review": {
+      "path": "courses/linux-foundations/day10/lesson1_review.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lesson/final_capstone": {
+      "path": "courses/linux-foundations/day10/lesson2_final_capstone.txt",
+      "type": "lesson",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "linux-foundations/lab/final-capstone": {
+      "path": "courses/linux-foundations/day10/final_capstone_test.sh",
+      "type": "lab",
+      "course": "linux-foundations",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/shebang": {
+      "path": "courses/shell-mastery/day1/lesson1_shebang.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/variables": {
+      "path": "courses/shell-mastery/day1/lesson2_variables.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/quoting": {
+      "path": "courses/shell-mastery/day1/lesson3_quoting.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/arguments": {
+      "path": "courses/shell-mastery/day1/lesson4_arguments.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/input": {
+      "path": "courses/shell-mastery/day1/lesson5_input.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/exit_codes": {
+      "path": "courses/shell-mastery/day1/lesson6_exit_codes.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/if_then": {
+      "path": "courses/shell-mastery/day2/lesson1_if_then.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/test_operators": {
+      "path": "courses/shell-mastery/day2/lesson2_test_operators.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/case": {
+      "path": "courses/shell-mastery/day2/lesson3_case.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/arithmetic": {
+      "path": "courses/shell-mastery/day2/lesson4_arithmetic.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/strings": {
+      "path": "courses/shell-mastery/day2/lesson5_strings.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/practical": {
+      "path": "courses/shell-mastery/day2/lesson6_practical.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/for_loops": {
+      "path": "courses/shell-mastery/day3/lesson1_for_loops.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/while_until": {
+      "path": "courses/shell-mastery/day3/lesson2_while_until.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/arrays": {
+      "path": "courses/shell-mastery/day3/lesson3_arrays.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/loop_control": {
+      "path": "courses/shell-mastery/day3/lesson4_loop_control.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/functions": {
+      "path": "courses/shell-mastery/day4/lesson1_functions.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/scope": {
+      "path": "courses/shell-mastery/day4/lesson2_scope.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/source": {
+      "path": "courses/shell-mastery/day4/lesson3_source.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/production": {
+      "path": "courses/shell-mastery/day4/lesson4_production.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/assessment1": {
+      "path": "courses/shell-mastery/day5/lesson1_assessment1.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lab/capstone": {
+      "path": "courses/shell-mastery/day5/capstone_test.sh",
+      "type": "lab",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/awk": {
+      "path": "courses/shell-mastery/day6/lesson1_awk.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/sed": {
+      "path": "courses/shell-mastery/day6/lesson2_sed.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/regex": {
+      "path": "courses/shell-mastery/day6/lesson3_regex.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/log_parser": {
+      "path": "courses/shell-mastery/day6/lesson4_log_parser.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/traps": {
+      "path": "courses/shell-mastery/day7/lesson1_traps.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/validation": {
+      "path": "courses/shell-mastery/day7/lesson2_validation.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/debugging": {
+      "path": "courses/shell-mastery/day7/lesson3_debugging.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/practical_scripts": {
+      "path": "courses/shell-mastery/day7/lesson4_practical_scripts.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/review": {
+      "path": "courses/shell-mastery/day8/lesson1_review.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lesson/capstone": {
+      "path": "courses/shell-mastery/day8/lesson2_capstone.txt",
+      "type": "lesson",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "shell-mastery/lab/final-capstone": {
+      "path": "courses/shell-mastery/day8/capstone_final_test.sh",
+      "type": "lab",
+      "course": "shell-mastery",
+      "first_seen": "2026-09-22"
+    },
+    "terraform-iac/lesson/what_is_iac": {
+      "path": "courses/terraform-iac/day1/lesson1_what_is_iac.txt",
+      "type": "lesson",
+      "course": "terraform-iac",
+      "first_seen": "2026-09-22"
+    },
+    "terraform-iac/lesson/drift_and_snowflakes": {
+      "path": "courses/terraform-iac/day1/lesson2_drift_and_snowflakes.txt",
+      "type": "lesson",
+      "course": "terraform-iac",
+      "first_seen": "2026-09-22"
+    },
+    "terraform-iac/lesson/iac_tools": {
+      "path": "courses/terraform-iac/day1/lesson3_iac_tools.txt",
+      "type": "lesson",
+      "course": "terraform-iac",
+      "first_seen": "2026-09-22"
+    },
+    "terraform-iac/lesson/install_init": {
+      "path": "courses/terraform-iac/day2/lesson1_install_init.txt",
+      "type": "lesson",
+      "course": "terraform-iac",
+      "first_seen": "2026-09-22"
+    },
+    "terraform-iac/lesson/providers_resources": {
+      "path": "courses/terraform-iac/day2/lesson2_providers_resources.txt",
+      "type": "lesson",
+      "course": "terraform-iac",
+      "first_seen": "2026-09-22"
+    },
+    "terraform-iac/lesson/plan_apply_destroy": {
+      "path": "courses/terraform-iac/day2/lesson3_plan_apply_destroy.txt",
+      "type": "lesson",
+      "course": "terraform-iac",
+      "first_seen": "2026-09-22"
+    },
+    "terraform-iac/lesson/multiple_providers": {
+      "path": "courses/terraform-iac/day3/lesson1_multiple_providers.txt",
+      "type": "lesson",
+      "course": "terraform-iac",
+      "first_seen": "2026-09-22"
+    },
+    "terraform-iac/lesson/provider_versioning": {
+      "path": "courses/terraform-iac/day3/lesson2_provider_versioning.txt",
+      "type": "lesson",
+      "course": "terraform-iac",
+      "first_seen": "2026-09-22"
+    },
+    "terraform-iac/lesson/variables_types": {
+      "path": "courses/terraform-iac/day4/lesson1_variables_types.txt",
+      "type": "lesson",
+      "course": "terraform-iac",
+      "first_seen": "2026-09-22"
+    },
+    "terraform-iac/lesson/outputs_data": {
+      "path": "courses/terraform-iac/day4/lesson2_outputs_data.txt",
+      "type": "lesson",
+      "course": "terraform-iac",
+      "first_seen": "2026-09-22"
+    },
+    "terraform-iac/lesson/validate_fmt": {
+      "path": "courses/terraform-iac/day5/lesson1_validate_fmt.txt",
+      "type": "lesson",
+      "course": "terraform-iac",
+      "first_seen": "2026-09-22"
+    },
+    "terraform-iac/lesson/dependencies_lifecycle": {
+      "path": "courses/terraform-iac/day5/lesson2_dependencies_lifecycle.txt",
+      "type": "lesson",
+      "course": "terraform-iac",
+      "first_seen": "2026-09-22"
+    },
+    "terraform-iac/lesson/complex_types": {
+      "path": "courses/terraform-iac/day6/lesson1_complex_types.txt",
+      "type": "lesson",
+      "course": "terraform-iac",
+      "first_seen": "2026-09-22"
+    },
+    "terraform-iac/lesson/expressions_functions": {
+      "path": "courses/terraform-iac/day6/lesson2_expressions_functions.txt",
+      "type": "lesson",
+      "course": "terraform-iac",
+      "first_seen": "2026-09-22"
+    },
+    "terraform-iac/lesson/custom_conditions": {
+      "path": "courses/terraform-iac/day7/lesson1_custom_conditions.txt",
+      "type": "lesson",
+      "course": "terraform-iac",
+      "first_seen": "2026-09-22"
+    },
+    "terraform-iac/lesson/sensitive_data": {
+      "path": "courses/terraform-iac/day7/lesson2_sensitive_data.txt",
+      "type": "lesson",
+      "course": "terraform-iac",
+      "first_seen": "2026-09-22"
+    },
+    "terraform-iac/lesson/assessment1": {
+      "path": "courses/terraform-iac/day8/lesson1_assessment1.txt",
+      "type": "lesson",
+      "course": "terraform-iac",
+      "first_seen": "2026-09-22"
+    },
+    "terraform-iac/lesson/modules_basics": {
+      "path": "courses/terraform-iac/day9/lesson1_modules_basics.txt",
+      "type": "lesson",
+      "course": "terraform-iac",
+      "first_seen": "2026-09-22"
+    },
+    "terraform-iac/lesson/module_registry": {
+      "path": "courses/terraform-iac/day9/lesson2_module_registry.txt",
+      "type": "lesson",
+      "course": "terraform-iac",
+      "first_seen": "2026-09-22"
+    },
+    "terraform-iac/lesson/state_file": {
+      "path": "courses/terraform-iac/day10/lesson1_state_file.txt",
+      "type": "lesson",
+      "course": "terraform-iac",
+      "first_seen": "2026-09-22"
+    },
+    "terraform-iac/lesson/remote_backends": {
+      "path": "courses/terraform-iac/day10/lesson2_remote_backends.txt",
+      "type": "lesson",
+      "course": "terraform-iac",
+      "first_seen": "2026-09-22"
+    },
+    "terraform-iac/lesson/state_cli": {
+      "path": "courses/terraform-iac/day11/lesson1_state_cli.txt",
+      "type": "lesson",
+      "course": "terraform-iac",
+      "first_seen": "2026-09-22"
+    },
+    "terraform-iac/lesson/drift_refresh": {
+      "path": "courses/terraform-iac/day11/lesson2_drift_refresh.txt",
+      "type": "lesson",
+      "course": "terraform-iac",
+      "first_seen": "2026-09-22"
+    },
+    "terraform-iac/lesson/hcp_terraform_basics": {
+      "path": "courses/terraform-iac/day12/lesson1_hcp_terraform_basics.txt",
+      "type": "lesson",
+      "course": "terraform-iac",
+      "first_seen": "2026-09-22"
+    },
+    "terraform-iac/lesson/hcp_collaboration": {
+      "path": "courses/terraform-iac/day12/lesson2_hcp_collaboration.txt",
+      "type": "lesson",
+      "course": "terraform-iac",
+      "first_seen": "2026-09-22"
+    },
+    "terraform-iac/lesson/logging_debugging": {
+      "path": "courses/terraform-iac/day13/lesson1_logging_debugging.txt",
+      "type": "lesson",
+      "course": "terraform-iac",
+      "first_seen": "2026-09-22"
+    },
+    "terraform-iac/lesson/cicd_workspaces": {
+      "path": "courses/terraform-iac/day13/lesson2_cicd_workspaces.txt",
+      "type": "lesson",
+      "course": "terraform-iac",
+      "first_seen": "2026-09-22"
+    },
+    "terraform-iac/lesson/b_workspaces": {
+      "path": "courses/terraform-iac/day13/lesson2b_workspaces.txt",
+      "type": "lesson",
+      "course": "terraform-iac",
+      "first_seen": "2026-09-22"
+    },
+    "terraform-iac/lesson/review": {
+      "path": "courses/terraform-iac/day14/lesson1_review.txt",
+      "type": "lesson",
+      "course": "terraform-iac",
+      "first_seen": "2026-09-22"
+    },
+    "terraform-iac/lesson/capstone": {
+      "path": "courses/terraform-iac/day14/lesson2_capstone.txt",
+      "type": "lesson",
+      "course": "terraform-iac",
+      "first_seen": "2026-09-22"
+    }
+  }
+}
