@@ -47,11 +47,19 @@ export const PRODUCT_ENTITLEMENTS: Record<string, string[]> = {
   pdt_0No7umMgQG48JrJhqRVkc: FULL_CATALOG,     // Full Catalog v3         $199
   pdt_0No7umNCBCxwKBAZALtnS: FULL_CATALOG,     // Team 5 seats            $899
   pdt_0No7umOh6PEBDCQTfXWzm: FULL_CATALOG,     // Team 10 seats           $1,599
+  pdt_0No8Kgf2Z4FOleEA96DEW: FULL_CATALOG,     // Classroom (30+2 seats)   $3,499
 };
 
 const PRODUCT_SEATS: Record<string, number> = {
   pdt_0No7umNCBCxwKBAZALtnS: 5,
   pdt_0No7umOh6PEBDCQTfXWzm: 10,
+  pdt_0No8Kgf2Z4FOleEA96DEW: 30,
+};
+
+const CLASSROOM_PRODUCT = "pdt_0No8Kgf2Z4FOleEA96DEW";
+type Role = "learner" | "instructor-admin";
+const PRODUCT_ROLE: Record<string, Role> = {
+  [CLASSROOM_PRODUCT]: "instructor-admin",
 };
 
 const LICENSE_TERM_DAYS = 365;
@@ -64,6 +72,7 @@ interface LicenseRecord {
   entitlements: string[];
   order_id: string;
   seats: number;
+  role: Role;
   created_at: string;
   expires_at: string;   // ISO, created_at + LICENSE_TERM_DAYS
   activated: boolean;
@@ -237,6 +246,7 @@ async function handleDodoWebhook(request: Request, env: Env): Promise<Response> 
     entitlements,
     order_id: orderId,
     seats: PRODUCT_SEATS[productId] ?? 1,
+    role: PRODUCT_ROLE[productId] ?? "learner",
     created_at: new Date(now).toISOString(),
     expires_at: new Date(now + LICENSE_TERM_DAYS * DAY_MS).toISOString(),
     activated: false,
@@ -281,6 +291,7 @@ async function handleValidate(request: Request, env: Env): Promise<Response> {
     product_id: license.product_id,
     entitlements: license.entitlements,
     seats: license.seats,
+    role: license.role ?? "learner",
     activated_at: license.activated_at,
     expires_at: expiresAt,
     expires_epoch: expiresEpoch,
