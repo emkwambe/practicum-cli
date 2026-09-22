@@ -226,11 +226,15 @@ async function handleMagicLink(request: Request, env: ClassroomEnv): Promise<Res
     { expirationTtl: MAGIC_TTL_SEC },
   );
 
-  const base = env.DASHBOARD_ORIGIN ?? ORIGIN;
+  // The link must point at the API worker, which is where /v1/auth/verify
+  // lives — the dashboard origin serves static assets only and would 404.
+  // Taken from the request so local dev links back to the dev server.
+  const base = new URL(request.url).origin;
+  const verifyUrl = `${base}/v1/auth/verify?token=${token}`;
   await sendMagicLinkEmail(
     env,
     email,
-    `${base.replace(/\/$/, "")}/v1/auth/verify?token=${token}`,
+    verifyUrl,
     row.classroom_name,
     row.is_test === 1,
     row.qa_mail_to,
@@ -247,7 +251,10 @@ async function handleMagicLink(request: Request, env: ClassroomEnv): Promise<Res
   // wrong header, right header but a real classroom, or no secret configured
   // at all — gets the byte-identical body an unknown address receives.
   const authorised = row.is_test === 1 && (await secretMatches(request.headers.get("X-Smoke-Secret"), env.SMOKE_TOKEN_SECRET));
-  if (authorised) return json(request, { ...ok, test_token: token });
+  // test_verify_url is the exact link the email carries, so smoke asserts the
+  // real thing rather than a URL it assembled itself — which is how a link
+  // pointing at the wrong host reached production unnoticed.
+  if (authorised) return json(request, { ...ok, test_token: token, test_verify_url: verifyUrl });
   return json(request, ok);
 }
 
@@ -292,7 +299,13 @@ async function handleVerify(request: Request, env: ClassroomEnv): Promise<Respon
 
   return new Response(null, {
     status: 302,
-    headers: { Location: "/dashboard/", "Set-Cookie": sessionCookie(request, sid, SESSION_TTL_SEC) },
+    // Absolute: verify runs on the API host, so a relative Location would send
+    // the instructor to api.practicum-cli.dev/dashboard/, which does not exist.
+    // The cookie's Domain=.practicum-cli.dev covers both hosts.
+    headers: {
+      Location: `${env.DASHBOARD_ORIGIN ?? ORIGIN}/dashboard/`,
+      "Set-Cookie": sessionCookie(request, sid, SESSION_TTL_SEC),
+    },
   });
 }
 

@@ -156,6 +156,32 @@ if [ -z "$TOKEN" ]; then
     bad "no test token returned — is the test classroom seeded?"
 else
     ok "test token issued"
+
+    # Follow the link the email actually carries, not one assembled here: a
+    # link pointing at the static-asset host 404s for the instructor while a
+    # self-built URL still passes. That is exactly how it reached production.
+    LINK=$(printf '%s' "$(magic_link_body "$EMAIL" "$SMOKE_TOKEN_SECRET")" \
+        | sed -n 's/.*"test_verify_url":"\([^"]*\)".*/\1/p' | head -1)
+    if [ -z "$LINK" ]; then
+        bad "no test_verify_url returned — cannot verify the emailed link"
+    else
+        case "$LINK" in
+            "$API"/v1/auth/verify*) ok "emailed link targets the API host" ;;
+            *) bad "emailed link targets the wrong host: ${LINK%%/v1/*}" ;;
+        esac
+        hdrs=$(curl -s -D - -o /dev/null -c "$JAR" "$LINK")
+        printf '%s' "$hdrs" | grep -qi '^HTTP/[0-9.]* 302' && ok "emailed link redirects" || bad "emailed link did not redirect"
+        # Relative Location would land on the API host, which serves no dashboard.
+        loc=$(printf '%s' "$hdrs" | grep -i '^location:' | sed 's/^[Ll]ocation: //' | tr -d '\r')
+        case "$loc" in
+            https://*/dashboard/|http://*/dashboard/) ok "redirect is absolute to the dashboard: $loc" ;;
+            *) bad "redirect Location is not an absolute dashboard URL: '$loc'" ;;
+        esac
+        # That landing page must actually exist.
+        code=$(curl -s -o /dev/null -w '%{http_code}' "$loc")
+        check "redirect target serves the dashboard" "$code" "200"
+    fi
+
     code=$(curl -s -o /dev/null -w '%{http_code}' -c "$JAR" "$API/v1/auth/verify?token=$TOKEN")
     check "verify redirects" "$code" "302"
     grep -q practicum_session "$JAR" && ok "session cookie set" || bad "no session cookie"
