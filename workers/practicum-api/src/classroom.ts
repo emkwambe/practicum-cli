@@ -18,7 +18,15 @@ export interface ClassroomEnv {
   SESSIONS: KVNamespace;
   RESEND_API_KEY?: string;
   DASHBOARD_ORIGIN?: string;
+  // Gates the only sanctioned production test path: the X-Smoke-Secret header
+  // on /v1/auth/magic-link. Unset means no request can ever obtain a token.
+  SMOKE_TOKEN_SECRET?: string;
 }
+
+// Licences issued inside a test classroom are short-lived, so a key that
+// escapes a smoke run cannot be used for long. Used by 7B when it mints
+// learner keys; smoke also revokes every key it issues.
+export const TEST_LICENSE_TTL_HOURS = 24;
 
 const ORIGIN = "https://practicum-cli.dev";
 const MAGIC_TTL_SEC = 15 * 60;
@@ -65,6 +73,18 @@ export async function sha256Hex(value: string): Promise<string> {
   return Array.from(new Uint8Array(digest))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
+}
+
+// Compares SHA-256 digests rather than the strings themselves: equal-length
+// inputs, so neither the comparison nor an early length check leaks anything
+// about the configured secret.
+async function secretMatches(provided: string | null, expected: string | undefined): Promise<boolean> {
+  if (!expected || !provided) return false;
+  const a = await sha256Hex(provided.trim());
+  const b = await sha256Hex(expected.trim());
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
 }
 
 const normaliseEmail = (raw: string) => raw.trim().toLowerCase();
@@ -216,8 +236,12 @@ async function handleMagicLink(request: Request, env: ClassroomEnv): Promise<Res
     .bind(row.classroom_id, row.member_id, email)
     .run();
 
-  // Test classrooms hand the token back so smoke tests need no mailbox.
-  if (row.is_test === 1) return json(request, { ...ok, test_token: token });
+  // The token is handed back only to a caller that proves it holds the smoke
+  // secret, and only for a test classroom. Every other caller — no header,
+  // wrong header, right header but a real classroom, or no secret configured
+  // at all — gets the byte-identical body an unknown address receives.
+  const authorised = row.is_test === 1 && (await secretMatches(request.headers.get("X-Smoke-Secret"), env.SMOKE_TOKEN_SECRET));
+  if (authorised) return json(request, { ...ok, test_token: token });
   return json(request, ok);
 }
 

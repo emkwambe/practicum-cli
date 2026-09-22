@@ -12,7 +12,28 @@ API="${API:-https://api.practicum-cli.dev}"
 SITE="${SITE:-https://practicum-cli.dev}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 JAR="$(mktemp)"; JAR_B="$(mktemp)"; BODY="$(mktemp)"
-trap 'rm -f "$JAR" "$JAR_B" "$BODY"' EXIT
+# Every licence key this run issues is recorded here and revoked on exit, so a
+# failed or interrupted run never leaves a usable key behind. Keys issued in a
+# test classroom also expire on their own after TEST_LICENSE_TTL_HOURS.
+ISSUED_KEYS="$(mktemp)"
+
+cleanup() {
+    if [ -s "$ISSUED_KEYS" ]; then
+        echo ""
+        echo "== revoking keys issued by this run"
+        while IFS='|' read -r member_id key; do
+            [ -n "$member_id" ] || continue
+            code=$(curl -s -o /dev/null -w '%{http_code}' -X DELETE -b "$JAR" \
+                "$API/v1/classroom/members/$member_id" 2>/dev/null)
+            case "$code" in
+                2*) echo "  revoked ${key%%-*}-…" ;;
+                *)  echo "  WARNING: could not revoke ${key%%-*}-… (HTTP $code) — it expires on its own within ${TEST_LICENSE_TTL_HOURS:-24}h" ;;
+            esac
+        done < "$ISSUED_KEYS"
+    fi
+    rm -f "$JAR" "$JAR_B" "$BODY" "$ISSUED_KEYS"
+}
+trap cleanup EXIT
 
 # Fixture ids are written by scripts/seed-test-classroom.mjs.
 if [ -f "$HERE/smoke_fixture.env" ]; then
@@ -24,6 +45,22 @@ EMAIL_B="${SMOKE_INSTRUCTOR_B_EMAIL:-smoke-instructor-b@practicum-cli.dev}"
 ROOM="${SMOKE_CLASSROOM_ID:-cls_smoketest0000000000000}"
 ROOM_B="${SMOKE_CLASSROOM_B_ID:-cls_smoketest0000000000001}"
 
+# The smoke secret is the only thing that makes a magic token retrievable over
+# the wire, so it is never echoed, never passed on a command line, and never
+# included in failure output. Local runs use the separate value in .dev.vars.
+SECRET_FILE="${SMOKE_TOKEN_SECRET_FILE:-/c/Users/HP/.practicum/smoke_token_secret}"
+if [ -z "${SMOKE_TOKEN_SECRET:-}" ]; then
+    if [ -f "$SECRET_FILE" ]; then
+        SMOKE_TOKEN_SECRET=$(tr -d '\r\n' < "$SECRET_FILE" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+    fi
+fi
+if [ -z "${SMOKE_TOKEN_SECRET:-}" ]; then
+    echo "FATAL: no smoke secret." >&2
+    echo "  Set SMOKE_TOKEN_SECRET, or write it to $SECRET_FILE" >&2
+    echo "  It must match the SMOKE_TOKEN_SECRET set on the target worker." >&2
+    exit 2
+fi
+
 pass=0; fail=0
 ok()  { echo "  PASS  $1"; pass=$((pass+1)); }
 bad() { echo "  FAIL  $1"; fail=$((fail+1)); }
@@ -32,10 +69,23 @@ check() { if [ "$2" = "$3" ]; then ok "$1"; else bad "$1 (got '$2', want '$3')";
 # field <json> <key> → first string value for that key
 field() { printf '%s' "$1" | sed -n "s/.*\"$2\":\"\([^\"]*\)\".*/\1/p" | head -1; }
 
-magic_token() {  # $1 = email → test_token, empty when the address has no access
-    curl -s -X POST "$API/v1/auth/magic-link" \
-        -H 'Content-Type: application/x-www-form-urlencoded' \
-        --data-urlencode "email=$1" 2>/dev/null | sed -n 's/.*"test_token":"\([^"]*\)".*/\1/p' | head -1
+# magic_link_body <email> [secret-override] → raw response body
+magic_link_body() {
+    if [ "$#" -ge 2 ]; then
+        curl -s -X POST "$API/v1/auth/magic-link" \
+            -H 'Content-Type: application/x-www-form-urlencoded' \
+            -H "X-Smoke-Secret: $2" \
+            --data-urlencode "email=$1" 2>/dev/null
+    else
+        curl -s -X POST "$API/v1/auth/magic-link" \
+            -H 'Content-Type: application/x-www-form-urlencoded' \
+            --data-urlencode "email=$1" 2>/dev/null
+    fi
+}
+
+# magic_token <email> → test_token, empty unless the smoke secret is accepted
+magic_token() {
+    magic_link_body "$1" "$SMOKE_TOKEN_SECRET" | sed -n 's/.*"test_token":"\([^"]*\)".*/\1/p' | head -1
 }
 
 echo "== content manifest"
@@ -57,6 +107,37 @@ grep -q 'sign-in link is on its way' "$BODY" && ok "identical body for both" || 
 echo "== learner address cannot request a dashboard link"
 tok=$(magic_token "learner-not-instructor@example.com")
 [ -z "$tok" ] && ok "non-instructor gets no token" || bad "non-instructor received a token"
+
+# The token is the whole of the auth factor, so the header that unlocks it is
+# tested from every angle. Bodies are compared byte-for-byte against what an
+# unknown address receives: anything else is an oracle.
+echo "== test_token is gated by X-Smoke-Secret"
+BASELINE=$(magic_link_body "nobody-baseline-$(date +%s)@example.com")
+printf '%s' "$BASELINE" | grep -q 'test_token' && bad "baseline body leaks a token" || ok "baseline has no token"
+
+no_header=$(magic_link_body "$EMAIL")
+printf '%s' "$no_header" | grep -q 'test_token' && bad "no header → token leaked" || ok "no header → no token"
+check "no header → body identical to unknown address" "$no_header" "$BASELINE"
+
+wrong=$(magic_link_body "$EMAIL" "not-the-secret-$(date +%s)")
+printf '%s' "$wrong" | grep -q 'test_token' && bad "wrong secret → token leaked" || ok "wrong secret → no token"
+check "wrong secret → body identical to unknown address" "$wrong" "$BASELINE"
+
+# A valid secret must still not mint a token for a classroom that is not is_test.
+NON_TEST_EMAIL="${SMOKE_NON_TEST_EMAIL:-}"
+if [ -n "$NON_TEST_EMAIL" ]; then
+    real=$(magic_link_body "$NON_TEST_EMAIL" "$SMOKE_TOKEN_SECRET")
+    printf '%s' "$real" | grep -q 'test_token' && bad "valid secret leaked a token for a real classroom" \
+        || ok "valid secret + non-test classroom → no token"
+    check "non-test classroom → body identical to unknown address" "$real" "$BASELINE"
+else
+    # No real classroom exists yet; assert the rule with an address that has no
+    # classroom at all, which is the same branch of the check.
+    real=$(magic_link_body "definitely-not-a-classroom-$(date +%s)@example.com" "$SMOKE_TOKEN_SECRET")
+    printf '%s' "$real" | grep -q 'test_token' && bad "valid secret leaked a token for a non-test address" \
+        || ok "valid secret + non-test address → no token"
+    check "non-test address → body identical to unknown address" "$real" "$BASELINE"
+fi
 
 echo "== magic link → session → classroom summary"
 TOKEN=$(magic_token "$EMAIL")

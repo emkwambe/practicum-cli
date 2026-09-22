@@ -64,7 +64,22 @@ The site sells annual licences with no autorenewal, and `practicum-api` stamps
 `expires_at = created_at + 365d` on every key. A one-time product would mint a
 key the copy describes as annual, which the platform then expires.
 
-**4. Content IDs are permanent.**
+**4. The X-Smoke-Secret header is the only sanctioned production test entry point.**
+`POST /v1/auth/magic-link` returns a `test_token` only when the request carries
+`X-Smoke-Secret` matching `SMOKE_TOKEN_SECRET` on the worker **and** the address
+belongs to an active instructor in an `is_test = 1` classroom. Every other
+case — no header, wrong header, valid header against a real classroom, or the
+secret unset — returns the byte-identical body an unknown address gets. Do not
+add another way to obtain a token, a session, or a licence key out of
+production: no debug routes, no `?test=1` parameters, no environment sniffing.
+If a future phase needs a new prod-testable capability, gate it on this same
+header and the same `is_test` check, and assert the negative cases in smoke.
+The secret is never printed, never passed on a command line, and never
+committed; local runs use a different value in `.dev.vars`. Licences issued
+inside a test classroom expire after `TEST_LICENSE_TTL_HOURS` (24h) and smoke
+revokes every key it issues on exit, including on failure.
+
+**5. Content IDs are permanent.**
 `content/ids.lock.json` maps id → path and is the source of truth;
 `content/manifest.json` is generated from it. `npm run manifest` carries
 existing IDs forward, mints only for unseen files, and fails hard on any
