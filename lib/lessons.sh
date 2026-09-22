@@ -67,6 +67,18 @@ list_available_courses() {
     done
 }
 
+# get_course_days [slug] → highest dayN directory number for the course
+get_course_days() {
+    detect_course_dir
+    local max=0 d dnum
+    for d in "$COURSE_DIR"/day*/; do
+        [ -d "$d" ] || continue
+        dnum=$(basename "$d" | sed 's/day//')
+        [ "$dnum" -gt "$max" ] 2>/dev/null && max=$dnum
+    done
+    echo "$max"
+}
+
 get_day_title() {
     local day_num="$1"
     detect_course_dir

@@ -1,8 +1,9 @@
 #!/bin/bash
 # Practicum CLI — Intent. Context. Action. Result.
-# Version: 3.0.0
+# Version: read from ./VERSION — single source of truth
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PRACTICUM_VERSION="$(cat "$SCRIPT_DIR/VERSION" 2>/dev/null || echo unknown)"
 
 # Source all libraries
 source "$SCRIPT_DIR/lib/colors.sh"
@@ -26,7 +27,7 @@ seed_course_unlocks
 # --- Command Implementations ---
 
 show_help() {
-    cat << 'EOF'
+    cat << EOF
 Practicum CLI — Terminal-native IT training platform
 Intent. Context. Action. Result.
 
@@ -57,7 +58,7 @@ Navigation (available anytime):
   back        Go back one step
   status      Show progress
 
-Version: 3.0.0
+Version: $PRACTICUM_VERSION
 EOF
 }
 
@@ -752,6 +753,15 @@ cmd_quiz_day3() {
 }
 
 cmd_certificate() {
+    # Gate: the certificate covers the whole course, so it needs a license
+    # for it. Free courses (CLI Immersion) pass through can_access_course.
+    local course_slug
+    course_slug=$(get_active_course)
+    if ! can_access_course "$course_slug"; then
+        show_upgrade_prompt
+        return 1
+    fi
+
     local day1_score
     day1_score=$(get_score "day1_quiz")
     
@@ -1161,6 +1171,10 @@ cmd_day9_menu() {
 }
 
 cmd_assess2() {
+    if ! can_access_day "day9"; then
+        show_upgrade_prompt
+        return 1
+    fi
     detect_course_dir
     local test_script="$COURSE_DIR/day9/assess2_test.sh"
     echo ""
@@ -1234,6 +1248,10 @@ cmd_day10_menu() {
 }
 
 cmd_final_capstone() {
+    if ! can_access_day "day10"; then
+        show_upgrade_prompt
+        return 1
+    fi
     detect_course_dir
     local test_script="$COURSE_DIR/day10/final_capstone_test.sh"
     
@@ -1248,6 +1266,10 @@ cmd_final_capstone() {
 }
 
 cmd_final() {
+    if ! can_access_day "day5"; then
+        show_upgrade_prompt
+        return 1
+    fi
     echo ""
     echo "========================================="
     echo "  📝 Day 5 — Final Assessment"
