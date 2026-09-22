@@ -89,11 +89,41 @@ footer a:hover{color:var(--w)}
 .fl{margin-top:.75rem;font-family:'JetBrains Mono',monospace;font-size:.8rem}
 .fl a{margin:0 .75rem}
 @media(max-width:768px){.nl{display:none}.corpg{grid-template-columns:1fr}.pg{grid-template-columns:1fr}section{padding:3rem 1.25rem}}
+/* --- pricing redesign: tracks, tiers, license terms, teams --- */
+.yr{font-size:.55em;font-weight:600;color:var(--td);margin-left:.15em}
+.tp,.pa,.tmp{font-variant-numeric:tabular-nums}
+.tc{display:flex;flex-direction:column}
+.tc .th{display:flex;justify-content:space-between;align-items:flex-start;gap:.75rem;flex-wrap:wrap}
+.sv{font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:700;color:var(--g);border:1px solid var(--g);border-radius:4px;padding:.2rem .55rem;white-space:nowrap;letter-spacing:.03em}
+.tc .tm{font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--td);margin-top:auto;padding-top:1rem}
+.pg6{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.25rem}
+.pc{display:flex;flex-direction:column}
+.pc .pf{flex:1}
+.pc .fs{width:100%;padding:.6rem;margin-bottom:.75rem;background:var(--bg3);color:var(--w);border:1px solid var(--br);border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:.8rem;cursor:pointer}
+.pc .fs:focus,.pc a:focus-visible{outline:2px solid var(--g);outline-offset:2px}
+.pc .cta{display:block;text-align:center}
+.pol{border:1px solid var(--br);border-left:3px solid var(--g);background:var(--bg3);border-radius:0 8px 8px 0;padding:1.5rem 1.75rem;margin-top:2.5rem;max-width:760px}
+.pol .pl{font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--g);margin-bottom:.6rem}
+.pol p{font-size:.95rem;line-height:1.75;color:var(--t)}
+.tmg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.25rem;margin-top:2.5rem}
+.tmc{background:var(--bg);border:1px solid var(--br);border-radius:8px;padding:1.75rem;display:flex;flex-direction:column}
+.tmc h3{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--w);font-size:1rem;margin-bottom:.5rem}
+.tmp{font-family:'JetBrains Mono',monospace;font-size:1.6rem;font-weight:700;color:var(--g);line-height:1.2}
+.tms{font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--td);margin:.4rem 0 1rem}
+.tmc .pf{flex:1;margin-bottom:1.25rem}
+.tmc .pf li{border-bottom:1px solid var(--br)}
+.tmc .pf li:last-child{border-bottom:none}
+.tmc .pf li::before{content:none}
+.tmn{font-size:.85rem;margin-top:1.5rem;color:var(--td)}
+.tmn a{color:var(--cy);text-decoration:none}
+@media(max-width:1000px){.pg6,.tmg{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.pg6,.tmg{grid-template-columns:1fr}.pol{border-radius:0 6px 6px 0;padding:1.25rem}}
+@media(prefers-reduced-motion:reduce){.cc,.tc,.pc,.bo,.bp{transition:none}}
 </style>
 </head>
 <body>
 <div class="rose-bar"></div>
-<nav><a href="#" class="brand">practicum.cli</a><ul class="nl"><li><a href="#method">Method</a></li><li><a href="#courses">Courses</a></li><li><a href="#tracks">Tracks</a></li><li><a href="#teams">Teams</a></li><li><a href="#install">Install</a></li><li><a href="#pricing">Pricing</a></li></ul></nav>
+<nav><a href="#" class="brand">practicum.cli</a><ul class="nl"><li><a href="#method">Method</a></li><li><a href="#courses">Courses</a></li><li><a href="#tracks">Tracks</a></li><li><a href="#install">Install</a></li><li><a href="#pricing">Pricing</a></li><li><a href="#teams">Teams</a></li></ul></nav>
 
 <section class="hero" id="method"><div class="c">
 <h1>The Engineering <span class="gr">Practicum</span><br>Your Team Runs Before<br>Production Access</h1>
@@ -136,26 +166,12 @@ footer a:hover{color:var(--w)}
 
 <section id="tracks"><div class="c">
 <p class="sl">Professional Tracks</p><h2 class="st">Choose your engineering path.</h2>
-<p class="sd">Each track bundles courses matching a real career trajectory. Save up to $193 vs buying individually.</p>
+<p class="sd">Each track bundles courses matching a real career trajectory. Priced below the sum of its courses.</p>
 <div class="tg">
-<div class="tc"><h3>Data Engineering</h3><div class="tp"><a href="https://checkout.dodopayments.com/buy/pdt_0No7umL7kMaekaV8OezhO" style="color:var(--g);text-decoration:none">$99</a></div><ul class="tl"><li>Linux Foundations</li><li>Shell Mastery</li><li>Data Forging</li></ul><p style="font-size:.8rem;color:var(--td);margin-top:1rem">3 courses · 26 days · 111 lessons</p></div>
-<div class="tc" style="border-color:var(--g)"><h3>Platform Engineering</h3><div class="tp"><a href="https://checkout.dodopayments.com/buy/pdt_0No7umM8Suwb4dLat0K8G" style="color:var(--g);text-decoration:none">$129</a></div><ul class="tl"><li>Linux Foundations</li><li>Git & Version Control</li><li>Docker & Containers</li><li>CI/CD Pipelines</li><li>Terraform & IaC</li><li>Kubernetes</li></ul><p style="font-size:.8rem;color:var(--td);margin-top:1rem">6 courses · 66 days · 225 lessons</p></div>
-<div class="tc"><h3>Full Catalog v3</h3><div class="tp"><a href="https://checkout.dodopayments.com/buy/pdt_0No7umMgQG48JrJhqRVkc" style="color:var(--g);text-decoration:none">$199</a></div><ul class="tl"><li>All 8 paid courses</li><li>All professional tracks</li><li>82 days of training</li><li>280 lessons + updates</li><li>676 assessments</li></ul><p style="font-size:.8rem;color:var(--td);margin-top:1rem">vs $392 buying individually</p></div>
+<div class="tc"><div class="th"><h3>Data Engineering</h3><span class="sv">saves $48</span></div><div class="tp"><a href="https://checkout.dodopayments.com/buy/pdt_0No7umL7kMaekaV8OezhO" style="color:var(--g);text-decoration:none">$99<span class="yr">/yr</span></a></div><ul class="tl"><li>Linux Foundations</li><li>Shell Mastery</li><li>Data Forging</li></ul><p class="tm">3 courses · 26 days · 111 lessons</p></div>
+<div class="tc" style="border-color:var(--g)"><div class="th"><h3>Platform Engineering</h3><span class="sv">saves $165</span></div><div class="tp"><a href="https://checkout.dodopayments.com/buy/pdt_0No7umM8Suwb4dLat0K8G" style="color:var(--g);text-decoration:none">$129<span class="yr">/yr</span></a></div><ul class="tl"><li>Linux Foundations</li><li>Git &amp; Version Control</li><li>Docker &amp; Containers</li><li>CI/CD Pipelines</li><li>Terraform &amp; IaC</li><li>Kubernetes</li></ul><p class="tm">6 courses · 66 days · 225 lessons</p></div>
+<div class="tc"><div class="th"><h3>Full Catalog v3</h3><span class="sv">saves $193</span></div><div class="tp"><a href="https://checkout.dodopayments.com/buy/pdt_0No7umMgQG48JrJhqRVkc" style="color:var(--g);text-decoration:none">$199<span class="yr">/yr</span></a></div><ul class="tl"><li>All 8 courses</li><li>All Practicum Labs</li><li>Capstone</li><li>Certification</li></ul><p class="tm">82 days · 280 lessons · 676 assessments</p></div>
 </div></div></section>
-
-<section class="corp" id="teams"><div class="c">
-<p class="sl">For Organizations</p><h2 class="st">We develop engineers internally.</h2>
-<p class="sd">That's the statement every engineering org wants to make. Practicum gives you the infrastructure to back it up.</p>
-<div class="corpg"><div>
-<ul><li><strong>Pre-boarding</strong> — new hires start before day one. They arrive productive.</li><li><strong>Internal mobility</strong> — an analyst wants platform engineering? Hand them a track. 66 days, no external bootcamp.</li><li><strong>Apprenticeship</strong> — structured progression from terminal basics to Kubernetes administration.</li><li><strong>Promotion readiness</strong> — "is this engineer ready?" Now you have the data.</li></ul>
-<div class="cq">"The only engineering training where the product IS the terminal."</div>
-</div><div>
-<h3 style="font-family:'JetBrains Mono',monospace;color:var(--w);margin-bottom:1rem">Team pricing</h3>
-<div class="cc" style="margin-bottom:1rem"><div class="cn">5 seats</div><div style="font-family:'JetBrains Mono',monospace;color:var(--g);font-size:1.3rem;font-weight:700"><a href="https://checkout.dodopayments.com/buy/pdt_0No7umNCBCxwKBAZALtnS" style="color:var(--g);text-decoration:none">$899</a></div><p style="font-size:.8rem;color:var(--td);margin-top:.5rem">Full catalog · Team dashboard · Completion tracking</p></div>
-<div class="cc" style="margin-bottom:1rem"><div class="cn">10 seats</div><div style="font-family:'JetBrains Mono',monospace;color:var(--g);font-size:1.3rem;font-weight:700"><a href="https://checkout.dodopayments.com/buy/pdt_0No7umOh6PEBDCQTfXWzm" style="color:var(--g);text-decoration:none">$1,599</a></div><p style="font-size:.8rem;color:var(--td);margin-top:.5rem">Full catalog · Team dashboard · Completion tracking</p></div>
-<div class="cc"><div class="cn">Enterprise</div><div style="font-family:'JetBrains Mono',monospace;color:var(--g);font-size:1.1rem;font-weight:700">Contact sales</div><p style="font-size:.8rem;color:var(--td);margin-top:.5rem">SSO · Department management · Skill dashboards · Custom exercises</p></div>
-<p style="font-size:.85rem;margin-top:1.5rem"><a href="mailto:practicum@mpingo.ai" style="color:var(--cy);text-decoration:none">practicum@mpingo.ai</a></p>
-</div></div></div></section>
 
 <section id="install"><div class="c">
 <p class="sl">Get Started</p><h2 class="st">Install in 60 seconds.</h2>
@@ -167,14 +183,29 @@ footer a:hover{color:var(--w)}
 </div></div></section>
 
 <section id="pricing"><div class="c">
-<p class="sl">Pricing</p><h2 class="st">Buy it once. It's yours.</h2>
-<p class="sd">Days 1–3 are free. No credit card. No signup. Just install and learn.</p>
-<div class="pg">
-<div class="pc"><h3>Free</h3><div class="pa">$0</div><p class="pds">Try before you buy</p><ul class="pf"><li>CLI Immersion — all 4 days</li><li>Days 1–3 of every course</li><li>Quizzes and sandbox mode</li><li>No credit card required</li></ul><a href="#install" class="bo" style="display:block;text-align:center">Install Free</a></div>
-<div class="pc"><h3>Single Course</h3><div class="pa">$49</div><p class="pds">One course, lifetime access</p><ul class="pf"><li>Full access to one course</li><li>All quizzes and assessments</li><li>Completion certificate</li><li>Course updates included</li></ul><select id="course-select" onchange="var b=document.getElementById('course-buy');b.href=this.value||'#'" style="width:100%;padding:.6rem;margin-bottom:.75rem;background:var(--bg3);color:var(--w);border:1px solid var(--br);border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:.8rem;cursor:pointer"><option value="">Select a course...</option><option value="https://checkout.dodopayments.com/buy/pdt_0No7umC6gaGIE4EXLu2Gu">Linux Foundations</option><option value="https://checkout.dodopayments.com/buy/pdt_0No7umEyEyApMgJMBRwHI">Git & Version Control</option><option value="https://checkout.dodopayments.com/buy/pdt_0No7umGHodyphlPy7kVuw">Shell Mastery</option><option value="https://checkout.dodopayments.com/buy/pdt_0No7umI46jJ6QFGzDz9Wn">Data Forging</option><option value="https://checkout.dodopayments.com/buy/pdt_0No7umIT3vq6wQTDTLitA">Docker & Containers</option><option value="https://checkout.dodopayments.com/buy/pdt_0No7umIuzv3LovBDw9mJs">CI/CD Pipelines</option><option value="https://checkout.dodopayments.com/buy/pdt_0No7umJqQBlWvxZErrHqv">Terraform & IaC</option><option value="https://checkout.dodopayments.com/buy/pdt_0No7umKG7Jh3e57OeTvC6">Kubernetes</option></select><a id="course-buy" href="#" onclick="if(this.getAttribute('href')==='#'){alert('Select a course first');return false}" class="bo" style="display:block;text-align:center">Buy Course — $49</a></div>
-<div class="pc ft"><span class="pb">Most Popular</span><h3>Platform Engineering</h3><div class="pa">$129</div><p class="pds">6 courses, one career track</p><ul class="pf"><li>Linux + Git + Docker</li><li>CI/CD + Terraform + K8s</li><li>66 days of training</li><li>CKA + TF 004 + DCA aligned</li><li>All certificates</li></ul><a href="https://checkout.dodopayments.com/buy/pdt_0No7umM8Suwb4dLat0K8G" class="bp" style="display:block;text-align:center">Get Platform Track</a></div>
-<div class="pc"><h3>Full Catalog v3</h3><div class="pa">$199</div><p class="pds">All current courses + updates</p><ul class="pf"><li>All 8 paid courses</li><li>82 days, 280 lessons</li><li>676 assessments</li><li>5 certification alignments</li><li>All future v3 updates</li></ul><a href="https://checkout.dodopayments.com/buy/pdt_0No7umMgQG48JrJhqRVkc" class="bo" style="display:block;text-align:center">Get Full Catalog</a></div>
-</div></div></section>
+<p class="sl">Pricing</p><h2 class="st">Annual access. No autorenewal.</h2>
+<p class="sd">Days 1–3 are free. No credit card. No signup. Pay annually when you're ready to go deeper.</p>
+<div class="pg6">
+<div class="pc"><h3>Free Preview</h3><div class="pa">$0</div><p class="pds">Try before you buy</p><ul class="pf"><li>Days 1–3 of every course, no expiry</li><li>CLI Immersion — all 4 days</li><li>Quizzes and sandbox mode</li><li>No credit card required</li></ul><a href="#install" class="bo cta">Start Free</a></div>
+<div class="pc"><h3>Single Course</h3><div class="pa">$49<span class="yr">/yr</span></div><p class="pds">One course, full annual access</p><ul class="pf"><li>One complete course</li><li>All quizzes and assessments</li><li>Completion certificate</li><li>All course updates during your license year</li></ul><label for="course-select" class="sr" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Choose a course</label><select id="course-select" class="fs" onchange="var b=document.getElementById('course-buy');b.href=this.value||'#'"><option value="">Select a course...</option><option value="https://checkout.dodopayments.com/buy/pdt_0No7umC6gaGIE4EXLu2Gu">Linux Foundations</option><option value="https://checkout.dodopayments.com/buy/pdt_0No7umEyEyApMgJMBRwHI">Git &amp; Version Control</option><option value="https://checkout.dodopayments.com/buy/pdt_0No7umGHodyphlPy7kVuw">Shell Mastery</option><option value="https://checkout.dodopayments.com/buy/pdt_0No7umI46jJ6QFGzDz9Wn">Data Forging</option><option value="https://checkout.dodopayments.com/buy/pdt_0No7umIT3vq6wQTDTLitA">Docker &amp; Containers</option><option value="https://checkout.dodopayments.com/buy/pdt_0No7umIuzv3LovBDw9mJs">CI/CD Pipelines</option><option value="https://checkout.dodopayments.com/buy/pdt_0No7umJqQBlWvxZErrHqv">Terraform &amp; IaC</option><option value="https://checkout.dodopayments.com/buy/pdt_0No7umKG7Jh3e57OeTvC6">Kubernetes</option></select><a id="course-buy" href="#" onclick="if(this.getAttribute('href')==='#'){alert('Select a course first');return false}" class="bo cta">Buy Course — $49</a></div>
+<div class="pc"><h3>Data Engineering</h3><div class="pa">$99<span class="yr">/yr</span></div><p class="pds">3 courses, one career track</p><ul class="pf"><li>Linux Foundations + Shell Mastery + Data Forging</li><li>3 courses · 26 days · 111 lessons</li><li>Track projects and associated labs</li><li>All track additions during your license year</li></ul><a href="https://checkout.dodopayments.com/buy/pdt_0No7umL7kMaekaV8OezhO" class="bo cta">Start Data Engineering</a></div>
+<div class="pc ft"><span class="pb">Most Popular</span><h3>Platform Engineering</h3><div class="pa">$129<span class="yr">/yr</span></div><p class="pds">6 courses, one career track</p><ul class="pf"><li>Linux + Git + Docker + CI/CD + Terraform + Kubernetes</li><li>6 courses · 66 days · 225 lessons</li><li>CKA + TF Associate 004 + DCA aligned</li><li>All track additions during your license year</li></ul><a href="https://checkout.dodopayments.com/buy/pdt_0No7umM8Suwb4dLat0K8G" class="bp cta">Start Platform Engineering</a></div>
+<div class="pc"><h3>Full Catalog</h3><div class="pa">$199<span class="yr">/yr</span></div><p class="pds">Every course, lab, and capstone</p><ul class="pf"><li>All 8 courses + all Practicum Labs + Capstone</li><li>The only tier that includes Labs and Certification</li><li>82 days · 280 lessons · 676 assessments</li><li>5 certification alignments</li><li>Every course, lab, and catalog addition during your license year</li></ul><a href="https://checkout.dodopayments.com/buy/pdt_0No7umMgQG48JrJhqRVkc" class="bo cta">Get Full Access</a></div>
+<div class="pc"><h3>Classroom</h3><div class="pa">$3,499<span class="yr">/yr</span></div><p class="pds">For instructors and cohorts</p><ul class="pf"><li>Up to 30 learner seats + 2 instructor seats</li><li>Full catalog + all Practicum Labs</li><li>Instructor dashboard, assignments, cohort progress</li><li>Completion reporting and CSV export</li></ul><a href="#" class="bo cta">License a Classroom</a></div>
+</div>
+<div class="pol"><p class="pl">License terms</p><p>Your license is valid for 12 months from purchase. There is no automatic renewal. New courses, lessons, labs, and features added to your subscribed plan during that period are included at no additional cost. When your year ends, you choose whether to renew at the price published at that time.</p></div>
+</div></section>
+
+<section class="corp" id="teams"><div class="c">
+<p class="sl">For Organizations</p><h2 class="st">We develop engineers internally.</h2>
+<p class="sd">That's the statement every engineering org wants to make. Practicum gives you the infrastructure to back it up.</p>
+<div class="tmg">
+<div class="tmc"><h3>Team — 5</h3><div class="tmp">$899<span class="yr">/yr</span></div><p class="tms">5 named seats</p><ul class="pf"><li>Full catalog</li><li>Team dashboard</li><li>Completion tracking</li><li>1 admin</li></ul><a href="https://checkout.dodopayments.com/buy/pdt_0No7umNCBCxwKBAZALtnS" class="bo cta">License 5 Seats</a></div>
+<div class="tmc"><h3>Team — 10</h3><div class="tmp">$1,599<span class="yr">/yr</span></div><p class="tms">10 named seats</p><ul class="pf"><li>Full catalog</li><li>Team dashboard</li><li>Completion tracking</li><li>2 admins</li></ul><a href="https://checkout.dodopayments.com/buy/pdt_0No7umOh6PEBDCQTfXWzm" class="bo cta">License 10 Seats</a></div>
+<div class="tmc"><h3>Enterprise</h3><div class="tmp">Contact</div><p class="tms">Unlimited seats</p><ul class="pf"><li>SSO</li><li>Department management</li><li>Skill dashboards</li><li>Custom exercises</li></ul><a href="mailto:practicum@mpingo.ai" class="bo cta">Talk to Us</a></div>
+</div>
+<p class="tmn">Enterprise and institutional licensing: <a href="mailto:practicum@mpingo.ai">practicum@mpingo.ai</a></p>
+</div></section>
 
 <footer><div class="c"><p>Mpingo Systems LLC — Precision Tools built to stay.</p><div class="fl"><a href="https://github.com/emkwambe/practicum-cli">GitHub</a><a href="mailto:eddy@mpingo.ai">Contact</a><a href="https://mpingo.ai">Mpingo.ai</a></div></div></footer>
 </body></html>
