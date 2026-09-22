@@ -1,0 +1,25 @@
+# Practicum CLI — License API Worker
+# Deploy: wrangler deploy   (run from this directory)
+name = "practicum-api"
+main = "src/index.ts"
+compatibility_date = "2026-09-21"
+
+[[routes]]
+pattern = "api.practicum-cli.dev"
+custom_domain = true
+
+[[kv_namespaces]]
+binding = "LICENSES"
+id = "e6fce9aaf8d34bc38f75e3c08fdd4172"
+
+[[kv_namespaces]]
+binding = "ORDERS"
+id = "d353205faac4454a956187e0f66c4876"
+
+[vars]
+ENVIRONMENT = "production"
+
+# Secrets (wrangler secret put <NAME>, never in this file):
+#   DODO_WEBHOOK_SECRET   Dodo dashboard → Webhooks → signing secret (whsec_...)
+#   HMAC_SECRET           high-entropy random string; derives license keys from order IDs
+#   RESEND_API_KEY        Resend API key for practicum@mpingo.ai
