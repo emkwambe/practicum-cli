@@ -187,6 +187,81 @@ async function sendLicenseEmail(env: Env, email: string, key: string, entitlemen
 const json = (data: unknown, status = 200) =>
   Response.json(data, { status, headers: { "Access-Control-Allow-Origin": "*" } });
 
+// A Dodo event payload, as much of it as this worker reads. Named rather than
+// `any` so a field that stops arriving is a type error and not a silent null.
+interface DodoEventData {
+  payment_id?: string;
+  subscription_id?: string;
+  id?: string;
+  product_id?: string;
+  customer?: { email?: string };
+  customer_email?: string;
+  product_cart?: Array<{ product_id?: string }>;
+  next_billing_date?: string;
+}
+
+// Where a subscription's licence is recorded, so renewals can find it. Payments
+// are keyed on their own id; subscriptions get a second, stable pointer.
+const subKey = (subscriptionId: string) => `sub:${subscriptionId}`;
+
+// Resolves the licence a dispute or refund event refers to. Dispute payloads
+// carry the payment id; subscription-derived ones carry the subscription id.
+async function licenceFor(env: Env, data: DodoEventData): Promise<{ key: string; rec: LicenseRecord } | null> {
+  const id = data.payment_id ?? data.id;
+  const key = (id ? await env.ORDERS.get(id) : null)
+    ?? (data.subscription_id ? await env.ORDERS.get(subKey(data.subscription_id)) : null);
+  if (!key) return null;
+  const rec = await env.LICENSES.get<LicenseRecord>(key, "json");
+  return rec ? { key, rec } : null;
+}
+
+async function setRevoked(env: Env, data: DodoEventData, revoked: boolean, reason: string): Promise<void> {
+  const found = await licenceFor(env, data);
+  if (!found) return;
+  const { key, rec } = found;
+
+  if (revoked) {
+    if (rec.revoked) return;
+    rec.revoked = true;
+    rec.revoked_at = new Date().toISOString();
+    rec.revoked_reason = reason;
+  } else {
+    // Only undo a revocation this dispute caused. A refund, or a seat an
+    // instructor revoked, must survive a dispute being withdrawn.
+    if (!rec.revoked || rec.revoked_reason !== "dispute.opened") return;
+    rec.revoked = false;
+    rec.revoked_at = null;
+    rec.revoked_reason = null;
+  }
+  await env.LICENSES.put(key, JSON.stringify(rec));
+}
+
+// Extends a licence for another term. Dodo sends next_billing_date on renewal;
+// it is the authoritative end of the paid period, so it is preferred over
+// adding a year locally and drifting from what the customer was charged for.
+async function extendSubscription(env: Env, data: DodoEventData): Promise<void> {
+  const found = await licenceFor(env, data);
+  if (!found) {
+    console.error(`subscription.renewed for unknown subscription ${data.subscription_id}`);
+    return;
+  }
+  const { key, rec } = found;
+
+  const next = data.next_billing_date ? Date.parse(data.next_billing_date) : NaN;
+  // Extending from the current expiry, not from now, so a renewal processed
+  // late does not cost the customer the days it was late by.
+  const base = Math.max(Date.parse(rec.expires_at), Date.now());
+  rec.expires_at = new Date(Number.isFinite(next) ? next : base + LICENSE_TERM_DAYS * DAY_MS).toISOString();
+
+  // A renewal is also the moment a lapsed licence comes back.
+  if (rec.revoked && rec.revoked_reason === "subscription.expired") {
+    rec.revoked = false;
+    rec.revoked_at = null;
+    rec.revoked_reason = null;
+  }
+  await env.LICENSES.put(key, JSON.stringify(rec));
+}
+
 async function handleDodoWebhook(request: Request, env: Env): Promise<Response> {
   if (!env.DODO_WEBHOOK_SECRET || !env.HMAC_SECRET) {
     console.error("Webhook secrets not configured");
@@ -198,7 +273,7 @@ async function handleDodoWebhook(request: Request, env: Env): Promise<Response> 
     return new Response("Unauthorized", { status: 401 });
   }
 
-  let event: any;
+  let event: { type?: string; data?: DodoEventData };
   try {
     event = JSON.parse(body);
   } catch {
@@ -208,23 +283,53 @@ async function handleDodoWebhook(request: Request, env: Env): Promise<Response> 
   const type: string = event.type ?? "";
   const data = event.data ?? {};
 
-  // Refunds / disputes revoke the key minted for that payment.
-  if (type === "refund.succeeded" || type === "dispute.opened" || type === "dispute.won") {
-    const paymentId: string | undefined = data.payment_id ?? data.id;
-    if (paymentId) {
-      const key = await env.ORDERS.get(paymentId);
-      const rec = key ? await env.LICENSES.get<LicenseRecord>(key, "json") : null;
-      if (key && rec && !rec.revoked) {
-        rec.revoked = true;
-        rec.revoked_at = new Date().toISOString();
-        rec.revoked_reason = type;
-        await env.LICENSES.put(key, JSON.stringify(rec));
-      }
-    }
+  // Delivery-level idempotency. Dodo retries, and a retried renewal that is
+  // processed twice extends a licence by two years. webhook-id is the Standard
+  // Webhooks delivery id and is the only identifier every event type carries —
+  // subscription events have no payment id to dedupe on. D1, not KV, because a
+  // duplicate can arrive inside KV's consistency window (migration 0006).
+  const webhookId = request.headers.get("webhook-id");
+  if (webhookId) {
+    const claim = await env.CLASSROOM_DB.prepare(
+      `INSERT OR IGNORE INTO webhook_events (webhook_id, event_type) VALUES (?, ?)`,
+    ).bind(webhookId, type).run();
+    if ((claim.meta?.changes ?? 0) === 0) return new Response("OK");
+  }
+
+  // Dodo publishes two spellings of the success suffix across its own docs and
+  // CLI, and we have no way to tell from the outside which one the account
+  // actually sends — a wrong guess means refunds silently never revoke. Both
+  // are accepted; the cost is one array, and no test we can write would catch
+  // the mistake, because our fixtures sign whatever name we believe in.
+  const isType = (...names: string[]) => names.includes(type);
+
+  // Money taken back → revoke. dispute.opened is provisional: the money is held
+  // but not yet lost, and we revoke to stop further use while it is contested.
+  if (isType("refund.succeeded", "refund.success", "dispute.opened", "dispute.lost")) {
+    await setRevoked(env, data, true, type);
     return new Response("OK");
   }
 
-  if (type !== "payment.succeeded") return new Response("OK");
+  // Dispute resolved in our favour, or withdrawn: the money stays with us, so
+  // access must come back. Revoking here — which this handler used to do for
+  // dispute.won — punished a customer whose chargeback had already failed.
+  // Only a revocation this dispute caused is undone; a refund or an instructor
+  // revoking a seat is left alone.
+  if (isType("dispute.won", "dispute.cancelled")) {
+    await setRevoked(env, data, false, type);
+    return new Response("OK");
+  }
+
+  // Renewal. Dodo's guidance is to extend on subscription.renewed rather than
+  // on the payment: the renewal charge arrives as its own payment.succeeded
+  // with a new payment id, which this handler used to treat as a brand new
+  // purchase — minting a second key and emailing it while the original expired.
+  if (isType("subscription.renewed")) {
+    await extendSubscription(env, data);
+    return new Response("OK");
+  }
+
+  if (!isType("payment.succeeded", "payment.success")) return new Response("OK");
 
   // Dodo payment payload: payment_id, customer.email, product_cart[{product_id}]
   const orderId: string | undefined = data.payment_id ?? data.id;
@@ -260,6 +365,12 @@ async function handleDodoWebhook(request: Request, env: Env): Promise<Response> 
 
   await env.LICENSES.put(key, JSON.stringify(record));
   await env.ORDERS.put(orderId, key);
+
+  // Renewals arrive as subscription events carrying only the subscription id,
+  // so record that pointer now. Without it a renewal cannot find the licence it
+  // is meant to extend and falls back to logging an unknown subscription.
+  const subscriptionId: string | undefined = data.subscription_id;
+  if (subscriptionId) await env.ORDERS.put(subKey(subscriptionId), key);
 
   await sendLicenseEmail(env, email, key, entitlements, record.expires_at, record.seats);
   return new Response("OK");
