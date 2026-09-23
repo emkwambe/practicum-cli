@@ -496,6 +496,67 @@ else
         fi
     fi
 
+    # The hourly cap lives in D1, not KV, so concurrent events cannot lose an
+    # increment. The KV version read the counter, compared, then wrote value+1:
+    # events arriving together read the same number and wrote the same increment,
+    # so the cap leaked by however many raced. D1's UPSERT ... RETURNING hands
+    # every caller a distinct number, which makes the cap exact — and exact is
+    # testable. Test classrooms cap at 10/hour so this costs 15 requests, not 305.
+    echo "== concurrent events do not lose increments"
+    cc_body=$(invite "concurrent-$RUN@example.com")
+    CC_MEM=$(jfield "$cc_body" member_id); CC_KEY=$(jfield "$cc_body" test_key)
+    [ -n "$CC_MEM" ] && echo "$CC_MEM|$CC_KEY" >> "$ISSUED_KEYS"
+
+    if [ -z "$CC_MEM" ] || [ -z "$CC_KEY" ]; then
+        bad "no concurrency member/key — rate limit atomicity untested"
+    else
+        CC_LIMIT=10          # TEST_PROGRESS_LIMIT_PER_HOUR in src/progress.ts
+        CC_BURST=15
+        CC_DIR=$(mktemp -d)
+        i=1
+        while [ "$i" -le "$CC_BURST" ]; do
+            (
+                # The trailing newline matters: these files are concatenated and
+                # matched line by line, and %{http_code} alone writes none.
+                curl -s -o /dev/null -w '%{http_code}\n' -X POST "$API/v1/progress" \
+                    -H "X-License-Key: $CC_KEY" \
+                    --data-urlencode "event_id=ev-conc-$RUN-$$-$i" \
+                    --data-urlencode "content_id=linux-foundations/lesson/pwd" \
+                    --data-urlencode "event=lesson_started" \
+                    --data-urlencode "occurred_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+                    --data-urlencode "cli_version=smoke" > "$CC_DIR/$i"
+            ) &
+            i=$((i + 1))
+        done
+        wait
+
+        cc_ok=$(cat "$CC_DIR"/* 2>/dev/null | grep -c '^200$')
+        cc_429=$(cat "$CC_DIR"/* 2>/dev/null | grep -c '^429$')
+        cc_other=$(cat "$CC_DIR"/* 2>/dev/null | grep -vc '^200$\|^429$')
+        rm -rf "$CC_DIR"
+
+        check "every concurrent request answered 200 or 429" "$cc_other" "0"
+        # The whole point: not "about 10". Exactly 10.
+        check "exactly the cap was accepted" "$cc_ok" "$CC_LIMIT"
+        check "the rest were rate limited" "$cc_429" "$((CC_BURST - CC_LIMIT))"
+
+        # A rejection the CLI can act on, and one more attempt still refused.
+        code=$(curl -s -o "$BODY" -w '%{http_code}' -X POST "$API/v1/progress" \
+            -H "X-License-Key: $CC_KEY" \
+            --data-urlencode "event_id=ev-conc-$RUN-$$-over" \
+            --data-urlencode "content_id=linux-foundations/lesson/pwd" \
+            --data-urlencode "event=lesson_started")
+        check "a further event past the cap → 429" "$code" "429"
+        grep -q '^ERR|rate_limited|' "$BODY" && ok "cap rejection names rate_limited" \
+            || bad "wrong error record past the cap"
+
+        # Every accepted event was stored exactly once: 10 accepted → 10 rows.
+        # Fewer means a racing writer was lost, more means one was counted twice.
+        tl=$(curl -s -b "$JAR" "$API/v1/classroom/progress/$CC_MEM")
+        stored=$(printf '%s' "$tl" | grep -o '"occurred_at":' | wc -l | tr -d ' ')
+        check "one stored row per accepted event" "$stored" "$CC_LIMIT"
+    fi
+
     echo "== normalisation and duplicates"
     dup=$(invite "  LEARNER-$RUN@Example.COM  ")
     printf '%s' "$dup" | grep -q 'already on this roster' && ok "email normalised; duplicate rejected" || bad "duplicate not caught: $(printf '%s' "$dup" | cut -c1-70)"

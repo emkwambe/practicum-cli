@@ -403,60 +403,6 @@ async function handleMintSmokeSolo(request: Request, env: ClassroomEnv & RosterE
   });
 }
 
-// One-off repair for keys activated before 7C-0 existed: KV knows they were
-// activated, but their roster row was never promoted, so instructors see every
-// learner as never-started. Dry by default — it reports what it would change
-// and writes nothing unless apply=1.
-async function handleBackfillActivation(request: Request, env: ClassroomEnv & RosterEnv): Promise<Response> {
-  const apply = new URL(request.url).searchParams.get("apply") === "1";
-  let scanned = 0, classroomKeys = 0, activatedKeys = 0, promoted = 0, skippedRevoked = 0, alreadyActive = 0;
-  const samples: string[] = [];
-
-  let cursor: string | undefined;
-  do {
-    const page = await env.LICENSES.list({ cursor, limit: 1000 });
-    cursor = page.list_complete ? undefined : page.cursor;
-
-    for (const entry of page.keys) {
-      scanned++;
-      const rec = await env.LICENSES.get<LicenseRecord>(entry.name, "json");
-      if (!rec?.classroom_id || !rec.member_id) continue;
-      classroomKeys++;
-      if (!rec.activated) continue;
-      activatedKeys++;
-
-      const member = await env.CLASSROOM_DB.prepare(
-        `SELECT status FROM members WHERE id = ? AND classroom_id = ?`,
-      ).bind(rec.member_id, rec.classroom_id).first<{ status: string }>();
-      if (!member) continue;
-      if (member.status === "revoked") { skippedRevoked++; continue; }
-      if (member.status !== "invited") { alreadyActive++; continue; }
-
-      promoted++;
-      if (samples.length < 5) samples.push(rec.member_id);
-      if (apply) {
-        await env.CLASSROOM_DB.prepare(
-          `UPDATE members
-              SET status = 'active',
-                  activated_at = COALESCE(activated_at, ?)
-            WHERE id = ? AND classroom_id = ? AND status = 'invited'`,
-        ).bind(rec.activated_at ?? new Date().toISOString(), rec.member_id, rec.classroom_id).run();
-      }
-    }
-  } while (cursor);
-
-  return json(request, {
-    applied: apply,
-    scanned_keys: scanned,
-    classroom_keys: classroomKeys,
-    activated_classroom_keys: activatedKeys,
-    would_promote: promoted,
-    skipped_revoked: skippedRevoked,
-    already_active: alreadyActive,
-    sample_member_ids: samples,
-  });
-}
-
 function retryPage(message: string): string {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -490,13 +436,6 @@ export async function routeClassroom(request: Request, env: ClassroomEnv): Promi
   // customer key is ever used as a fixture. Gated on the same X-Smoke-Secret as
   // the magic-link test path — the only sanctioned production test entry point.
   // The record is is_test, so it is excluded from customer and revenue counts.
-  if (path === "/v1/admin/backfill-activation" && method === "POST") {
-    if (!(await secretMatches(request.headers.get("X-Smoke-Secret"), env.SMOKE_TOKEN_SECRET))) {
-      return new Response("Not found", { status: 404 });
-    }
-    return handleBackfillActivation(request, env as ClassroomEnv & RosterEnv);
-  }
-
   if (path === "/v1/admin/mint-smoke-solo" && method === "POST") {
     if (!(await secretMatches(request.headers.get("X-Smoke-Secret"), env.SMOKE_TOKEN_SECRET))) {
       return new Response("Not found", { status: 404 });

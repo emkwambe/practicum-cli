@@ -219,12 +219,24 @@ therefore unreachable, and §1's "cohort progress" promise had no foundation.
 - [x] Roster shows a real relative time ("just now", "3 hours ago", "yesterday"),
       with the exact date on hover; the em dash is reserved for genuinely
       never-seen members. Active badge confirmed rendering once status flips.
-- [x] Backfill available at `POST /v1/admin/backfill-activation` (X-Smoke-Secret
+- [x] Backfill ran at `POST /v1/admin/backfill-activation` (X-Smoke-Secret
       gated, dry by default, `?apply=1` to write). Dry run on production:
       231 keys scanned, 230 classroom keys, 22 activated, **0 to promote** —
       every activated classroom key belonged to a smoke member since revoked,
-      so there was nothing to repair and it was not run in apply mode. Re-run
-      the dry form after the first real cohort if this ever needs revisiting.
+      so there was nothing to repair and it was never run in apply mode.
+- [x] **Endpoint removed** once 7C-0 had been deployed long enough that no key
+      can be activated without its roster row being promoted. It scanned the
+      whole LICENSES namespace — one `list` per 1,000 keys plus one `get` per
+      key, even for a dry run — and keys are never deleted from KV, so its cost
+      grew with every seat ever issued. At 10,000 accumulated keys a single dry
+      run would have spent 10% of the free daily read allowance.
+
+      **If a repair is ever needed again, do not rebuild it this way.** The
+      shape to build is scoped to one classroom: take the classroom id, ask D1
+      for that classroom's member ids, derive each key, and read only those
+      keys. That is bounded by roster size (tens) instead of by every key the
+      platform has ever minted, and an instructor repairing their own cohort is
+      the only case that has ever come up.
 - [x] Smoke: invited with no last seen → activate → active with last seen
       stamped → second validate within the hour does not move it → a revoked
       member stays revoked after a validate attempt.

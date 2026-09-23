@@ -14,7 +14,7 @@
 // in the outbox and try later.
 
 import manifest from "../../../content/manifest.json";
-import { sha256Hex, type LicenseRecord } from "./catalog";
+import type { LicenseRecord } from "./catalog";
 import type { ClassroomEnv } from "./classroom";
 
 export interface ProgressEnv extends ClassroomEnv {
@@ -23,6 +23,10 @@ export interface ProgressEnv extends ClassroomEnv {
 
 // A learner working through a day emits a handful of events a minute at most.
 const PROGRESS_LIMIT_PER_HOUR = 300;
+// Test classrooms get a much lower ceiling so the smoke suite can reach the cap
+// in a handful of requests instead of 300. Lower, never higher: a test-only
+// value that loosens a limit is a way in, one that tightens it is not.
+const TEST_PROGRESS_LIMIT_PER_HOUR = 10;
 
 const EVENTS = ["lesson_started", "lesson_completed", "lab_passed", "lab_failed"] as const;
 type ProgressEvent = (typeof EVENTS)[number];
@@ -86,23 +90,46 @@ export async function handleProgress(request: Request, env: ProgressEnv): Promis
   if (!EVENTS.includes(event)) return err("bad_event", `Unknown event '${event}'`, 400);
   if (!VALID_CONTENT_IDS.has(contentId)) return err("bad_content", `Unknown content_id '${contentId}'`, 400);
 
-  // Per-key hourly cap. Keyed on a hash so no license key is written to KV
-  // under a guessable name.
-  const bucket = `rlp:${(await sha256Hex(key)).slice(0, 24)}:${Math.floor(Date.now() / 3_600_000)}`;
-  const used = Number((await env.SESSIONS.get(bucket)) ?? "0");
-  if (used >= PROGRESS_LIMIT_PER_HOUR) {
-    // 429 is retryable: the event stays in the outbox and goes out next hour.
-    return err("rate_limited", `More than ${PROGRESS_LIMIT_PER_HOUR} events this hour`, 429);
-  }
-  await env.SESSIONS.put(bucket, String(used + 1), { expirationTtl: 3600 });
-
   // The member must still hold a seat. A revoked row means the KV record is
-  // simply stale — treat it exactly like a revoked license.
+  // simply stale — treat it exactly like a revoked license. is_test comes along
+  // for the rate limit below rather than costing a second query.
   const member = await env.CLASSROOM_DB.prepare(
-    `SELECT status FROM members WHERE id = ? AND classroom_id = ?`,
-  ).bind(license.member_id, license.classroom_id).first<{ status: string }>();
+    `SELECT m.status, c.is_test
+       FROM members m JOIN classrooms c ON c.id = m.classroom_id
+      WHERE m.id = ? AND m.classroom_id = ?`,
+  ).bind(license.member_id, license.classroom_id).first<{ status: string; is_test: number }>();
   if (!member) return err("no_member", "No roster entry for this license", 403);
   if (member.status === "revoked") return err("revoked", "Your classroom seat was removed", 403);
+
+  // Per-member hourly cap, in D1 rather than KV. One UPSERT ... RETURNING both
+  // increments and reports the new value, so two events arriving together get
+  // two distinct numbers and the cap is exact — the KV read-modify-write it
+  // replaces could lose an increment and let the cap leak. See migration 0005.
+  //
+  // Fixed hour buckets: strftime is evaluated by SQLite inside this statement,
+  // so every edge agrees on the boundary, and a stale bucket resets to 1 in the
+  // same write. It is a bucket, not a sliding window — a client may send a full
+  // allowance either side of the top of the hour, exactly as before.
+  //
+  // This has to run before the event is claimed. A 429 is retryable and the
+  // event stays in the outbox; if it were claimed first, the retry would come
+  // back OK|duplicate and its progress_state update would be lost forever.
+  const limit = member.is_test === 1 ? TEST_PROGRESS_LIMIT_PER_HOUR : PROGRESS_LIMIT_PER_HOUR;
+  const rate = await env.CLASSROOM_DB.prepare(
+    `INSERT INTO progress_rate (member_id, classroom_id, window_start, used)
+     VALUES (?, ?, strftime('%Y-%m-%dT%H','now'), 1)
+     ON CONFLICT(member_id) DO UPDATE SET
+       used = CASE WHEN progress_rate.window_start < excluded.window_start
+                   THEN 1 ELSE progress_rate.used + 1 END,
+       window_start = excluded.window_start,
+       updated_at   = datetime('now')
+     RETURNING used`,
+  ).bind(license.member_id, license.classroom_id).first<{ used: number }>();
+
+  if ((rate?.used ?? 0) > limit) {
+    // 429 is retryable: the event stays in the outbox and goes out next hour.
+    return err("rate_limited", `More than ${limit} events this hour`, 429);
+  }
 
   const status = STATUS_FOR[event];
   const completedNow = status === "completed" || status === "passed";
