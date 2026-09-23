@@ -223,6 +223,8 @@ export function inviteEmailText(opts: {
     `   PRACTICUM_KEY=your-key ./practicum activate\n\n` +
     `3. Start learning\n\n` +
     `   ./practicum start\n\n` +
+    `What your instructor set for you:\n\n` +
+    `   ./practicum assignments\n\n` +
     `Your license key\n\n` +
     `   ${opts.key}\n` +
     telegram +

@@ -57,6 +57,7 @@ Commands:
   community   Your class group link (classroom)
   sharing     Progress sharing on|off|status (classroom)
   activate    Activate a license key
+  license     Show license status and expiry
   help        Show this help message
 
 Navigation (available anytime):
@@ -224,6 +225,16 @@ cmd_start() {
     fi
     print_menu_item "k" "📚 Switch course"
     print_menu_item "d" "🩺 IT Clinic (diagnose)"
+    # Classroom learners find their assignments here. A learner who never types
+    # --help still has to be able to see what their instructor set, so these
+    # appear in the menu itself — and only for a classroom license.
+    if [ -n "$(_license_field classroom_id 2>/dev/null)" ]; then
+        echo ""
+        echo -e "  ${C_PURPLE}Your classroom:${C_RESET}"
+        print_menu_item "a" "📋 Assignments"
+        print_menu_item "g" "💬 Class group"
+        print_menu_item "h" "🔒 Progress sharing"
+    fi
     print_menu_item "0" "Exit"
     print_prompt
     read -r choice || return 0
@@ -260,6 +271,9 @@ cmd_start() {
         x|X) if [ "$active_slug" = "linux-foundations" ]; then cmd_challenges; else echo -e "  ${C_DIM}Challenges available in Linux Foundations course.${C_RESET}"; cmd_start; fi ;;
         s|S) if [ "$active_slug" = "linux-foundations" ]; then cmd_scenarios; cmd_start; else echo -e "  ${C_DIM}Scenarios available in Linux Foundations course.${C_RESET}"; cmd_start; fi ;;
         m|M) if [ "$active_slug" = "linux-foundations" ]; then show_mastery_dashboard; cmd_start; else echo -e "  ${C_DIM}Mastery dashboard available in Linux Foundations course.${C_RESET}"; cmd_start; fi ;;
+        a|A) cmd_assignments; cmd_start ;;
+        g|G) cmd_community; cmd_start ;;
+        h|H) progress_sharing status; cmd_start ;;
         k|K) cmd_course_switch; cmd_start ;;
         d|D) cmd_diagnose; cmd_start ;;
         0) echo -e "  ${C_GREEN}Goodbye!${C_RESET}"; return 0 ;;

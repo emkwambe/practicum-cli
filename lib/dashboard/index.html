@@ -111,7 +111,15 @@ table.matrix thead th.rot{writing-mode:vertical-rl;transform:rotate(180deg);max-
 .legend i{width:.8rem;height:.8rem;border-radius:2px;display:inline-block}
 .due{font-size:.72rem;color:var(--td)}
 .due.over{color:var(--red)}
-.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.tl-row{display:flex;gap:.75rem;align-items:baseline;padding:.4rem 0;border-bottom:1px solid var(--br);font-size:.88rem}
+.tl-row:last-child{border-bottom:none}
+.tl-when{font-family:var(--mono);font-size:.75rem;color:var(--td);min-width:7rem}
+.tl-what{flex:1;color:var(--w)}
+.tl-verb{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em}
+.tl-verb.good{color:var(--g)}
+.tl-verb.bad{color:var(--amber)}
+tr.clickable{cursor:pointer}
+tr.clickable:hover th,tr.clickable:hover td{background:var(--bg3)}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 footer{color:var(--td);font-size:.8rem;border-top:1px solid var(--br);margin-top:3rem}
 footer .wrap{padding-block:1.25rem}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -243,6 +251,16 @@ footer .wrap{padding-block:1.25rem}
       </div>
       <p class="empty" id="matrix-empty" hidden>Assign a lesson or lab to see cohort progress.</p>
 
+      <div id="timeline" hidden style="margin-top:1rem;border-top:1px solid var(--br);padding-top:1rem">
+        <div class="seatbar">
+          <div>
+            <h2 style="margin:0" id="timeline-name">&nbsp;</h2>
+            <span class="muted" id="timeline-sub"></span>
+          </div>
+          <button type="button" class="btn-quiet" id="timeline-close">Close</button>
+        </div>
+        <div id="timeline-body"></div>
+      </div>
       <div class="toolbar" style="align-items:center">
         <span class="muted">Export:</span>
         <div><button type="button" class="btn-quiet" data-export="roster">Roster CSV</button></div>
@@ -255,6 +273,7 @@ footer .wrap{padding-block:1.25rem}
       <div class="seatbar">
         <h2 style="margin:0">Roster</h2>
         <span class="count" id="seat-count">&nbsp;</span>
+        <button type="button" class="btn-quiet" id="pending-filter" hidden></button>
       </div>
 
       <form class="toolbar" id="invite-form" novalidate>
@@ -514,10 +533,13 @@ async function loadRoster() {
   if (!res.ok) return;
   const { members } = await res.json();
   ACTIVE_INSTRUCTORS = members.filter((m) => m.role === 'instructor' && m.status !== 'revoked').length;
+  updatePendingCount(members);
+  const shown = applyRosterFilter(members);
   const body = $('roster-body');
-  body.replaceChildren(...members.map(rosterRow));
-  $('roster-empty').hidden = members.length > 0;
-  $('roster-table').hidden = members.length === 0;
+  body.replaceChildren(...shown.map(rosterRow));
+  $('roster-empty').hidden = shown.length > 0;
+  $('roster-table').hidden = shown.length === 0;
+  if (shown.length === 0 && members.length > 0) $('roster-empty').textContent = 'No learners match this filter.';
 }
 
 function note(el, message, good) {
@@ -721,6 +743,45 @@ function assignmentRow(a, pct) {
 
   const acts = document.createElement('td');
   acts.className = 'acts';
+
+  // Dates slip. Moving one must read as the same assignment with a new date,
+  // which is why this PATCHes rather than unassign-and-reassign.
+  const edit = document.createElement('button');
+  edit.type = 'button';
+  edit.className = 'btn-quiet';
+  edit.textContent = 'Change due';
+  edit.title = 'Move this deadline. The assignment and its progress are kept.';
+  edit.addEventListener('click', async () => {
+    const current = a.due_at ? fmtDate(a.due_at) : '';
+    const answer = prompt(
+      `New due date for "${a.title}" (YYYY-MM-DD).\nLeave blank to remove the deadline.`,
+      current,
+    );
+    if (answer === null) return;                    // cancelled
+    const wanted = answer.trim();
+    if (wanted && !/^\d{4}-\d{2}-\d{2}$/.test(wanted)) {
+      note($('asg-msg'), 'Use YYYY-MM-DD, for example 2026-11-30.', false);
+      return;
+    }
+    edit.disabled = true;
+    try {
+      const res = await api(`/v1/classroom/assignments/${a.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ due_at: wanted ? `${wanted}T23:59:59Z` : '' }),
+      });
+      const out = await res.json().catch(() => ({}));
+      if (res.ok) {
+        note($('asg-msg'), wanted ? `Due date moved to ${wanted}.` : 'Deadline removed.', true);
+        await loadReporting();
+      } else {
+        note($('asg-msg'), out.error || 'That date did not save.', false);
+      }
+    } finally {
+      edit.disabled = false;
+    }
+  });
+
   const remove = document.createElement('button');
   remove.type = 'button';
   remove.className = 'btn-quiet';
@@ -732,7 +793,7 @@ function assignmentRow(a, pct) {
     await api(`/v1/classroom/assignments/${a.id}`, { method: 'DELETE' });
     await loadReporting();
   });
-  acts.append(remove);
+  acts.append(edit, remove);
 
   tr.append(what, due, done, acts);
   return tr;
@@ -775,6 +836,11 @@ function renderMatrix(data) {
     who.scope = 'row';
     who.textContent = l.name;
     who.title = `${l.email} — ${l.complete} of ${assignments.length} complete`;
+    // A row leads to that learner's timeline: the matrix shows who is behind,
+    // the drill-in shows why.
+    tr.className = 'clickable';
+    tr.title = 'Open this learner’s timeline';
+    tr.addEventListener('click', () => showTimeline(l.member_id));
     tr.append(who);
     for (const a of assignments) {
       const td = document.createElement('td');
@@ -869,6 +935,100 @@ for (const btn of document.querySelectorAll('[data-export]')) {
     window.location.href = `${API}/v1/classroom/export.csv?type=${btn.dataset.export}`;
   });
 }
+
+// --- learner drill-in -------------------------------------------------------
+
+// "Why is this learner behind?" is the first question the matrix provokes, so
+// a row leads straight to that learner's timeline. Titles come from the API,
+// which resolves them through the manifest — an instructor should never be
+// shown a raw content id.
+async function showTimeline(memberId) {
+  const panel = $('timeline');
+  const body = $('timeline-body');
+  panel.hidden = false;
+  $('timeline-name').textContent = 'Loading…';
+  body.replaceChildren();
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  const res = await api(`/v1/classroom/progress/${memberId}`);
+  if (!res.ok) {
+    $('timeline-name').textContent = 'Could not load that learner.';
+    return;
+  }
+  const { member, events } = await res.json();
+  $('timeline-name').textContent = member.display_name || member.email;
+  $('timeline-sub').textContent =
+    `${member.email} · ${member.status}` +
+    (member.last_seen_at ? ` · last seen ${relativeTime(member.last_seen_at)}` : ' · never seen');
+
+  if (!events.length) {
+    const p = document.createElement('p');
+    p.className = 'empty';
+    p.textContent = 'No activity recorded yet.';
+    body.append(p);
+    return;
+  }
+
+  const EVENT_LABEL = {
+    lesson_started: 'started', lesson_completed: 'completed',
+    lab_passed: 'passed', lab_failed: 'failed',
+  };
+  for (const e of events) {
+    const row = document.createElement('div');
+    row.className = 'tl-row';
+    const when = document.createElement('span');
+    when.className = 'tl-when';
+    when.textContent = relativeTime(e.occurred_at);
+    when.title = fmtDate(e.occurred_at);
+    const what = document.createElement('span');
+    what.className = 'tl-what';
+    // The API resolves content_id -> manifest title; show that, not the id.
+    what.textContent = e.title;
+    const verb = document.createElement('span');
+    verb.className = 'tl-verb ' + (e.event === 'lab_failed' ? 'bad' : 'good');
+    verb.textContent = EVENT_LABEL[e.event] ?? e.event;
+    row.append(when, what, verb);
+    body.append(row);
+  }
+}
+
+$('timeline-close').addEventListener('click', () => { $('timeline').hidden = true; });
+
+// --- roster: not-yet-activated count and filter ------------------------------
+
+let ROSTER_FILTER = 'all';   // all | pending
+
+function applyRosterFilter(members) {
+  return ROSTER_FILTER === 'pending'
+    ? members.filter((m) => m.role === 'learner' && m.status === 'invited')
+    : members;
+}
+
+function updatePendingCount(members) {
+  const learners = members.filter((m) => m.role === 'learner' && m.status !== 'revoked');
+  const pending = learners.filter((m) => m.status === 'invited');
+  const btn = $('pending-filter');
+
+  if (pending.length === 0) {
+    btn.hidden = learners.length === 0;
+    btn.textContent = learners.length ? 'Everyone has activated' : '';
+    btn.disabled = true;
+    btn.title = 'Every learner on the roster has activated their key.';
+    ROSTER_FILTER = 'all';
+    return;
+  }
+  btn.hidden = false;
+  btn.disabled = false;
+  btn.textContent = ROSTER_FILTER === 'pending'
+    ? `Showing ${pending.length} not activated — show all`
+    : `${pending.length} of ${learners.length} haven't activated`;
+  btn.title = 'Learners who were invited but have not yet run practicum activate.';
+}
+
+$('pending-filter').addEventListener('click', () => {
+  ROSTER_FILTER = ROSTER_FILTER === 'pending' ? 'all' : 'pending';
+  loadRoster();
+});
 
 // A session cookie means we can go straight to the classroom.
 loadHome().catch(() => show('login'));

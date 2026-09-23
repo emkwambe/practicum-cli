@@ -80,20 +80,53 @@ async function createAssignment(request: Request, env: ReportingEnv, session: Se
   return json(request, { id, content_id: contentId, title: item.title, content_type: item.type, due_at: dueAt }, 201);
 }
 
+// Editing never touches created_at or created_by: a moved deadline must read as
+// the same assignment with a new date, not as a fresh one. The old and new
+// values both go to audit_log so "why did this date change?" is answerable.
 async function updateAssignment(request: Request, env: ReportingEnv, session: Session, id: string): Promise<Response> {
   const body = await readBody(request);
   const dueAt = body.due_at !== undefined ? (body.due_at.trim() || null) : undefined;
   if (dueAt && Number.isNaN(Date.parse(dueAt))) return json(request, { error: "due_at is not a date" }, 400);
 
-  const res = await env.CLASSROOM_DB.prepare(
+  const before = await env.CLASSROOM_DB.prepare(
+    `SELECT title, due_at, created_at FROM assignments
+      WHERE id = ? AND classroom_id = ? AND archived_at IS NULL`,
+  ).bind(id, session.classroom_id).first<{ title: string; due_at: string | null; created_at: string }>();
+  if (!before) return json(request, { error: "Assignment not found" }, 404);
+
+  // COALESCE(?, col) leaves a column alone when the caller omitted it; clearing
+  // a due date is done by sending an empty value, which arrives here as null.
+  await env.CLASSROOM_DB.prepare(
     `UPDATE assignments
-        SET due_at       = COALESCE(?, due_at),
+        SET due_at       = CASE WHEN ? THEN ? ELSE due_at END,
             instructions = COALESCE(?, instructions)
       WHERE id = ? AND classroom_id = ? AND archived_at IS NULL`,
-  ).bind(dueAt ?? null, body.instructions?.trim() ?? null, id, session.classroom_id).run();
+  ).bind(
+    dueAt !== undefined ? 1 : 0, dueAt ?? null,
+    body.instructions?.trim() ?? null, id, session.classroom_id,
+  ).run();
 
-  if ((res.meta?.changes ?? 0) === 0) return json(request, { error: "Assignment not found" }, 404);
-  return json(request, { ok: true, id });
+  const after = await env.CLASSROOM_DB.prepare(
+    `SELECT due_at, created_at FROM assignments WHERE id = ? AND classroom_id = ?`,
+  ).bind(id, session.classroom_id).first<{ due_at: string | null; created_at: string }>();
+
+  if (dueAt !== undefined && before.due_at !== after?.due_at) {
+    await env.CLASSROOM_DB.prepare(
+      `INSERT INTO audit_log (classroom_id, actor, action, detail) VALUES (?, ?, 'assignment.due_changed', ?)`,
+    ).bind(
+      session.classroom_id, session.member_id,
+      `${before.title}: ${before.due_at ?? "no due date"} -> ${after?.due_at ?? "no due date"}`,
+    ).run();
+  }
+
+  return json(request, {
+    ok: true,
+    id,
+    due_at: after?.due_at ?? null,
+    // Proof to the caller that this is still the same assignment.
+    created_at: after?.created_at ?? before.created_at,
+    created_at_unchanged: before.created_at === after?.created_at,
+  });
 }
 
 // Soft archive: learners stop seeing it, and progress rows keep their meaning.
@@ -254,7 +287,7 @@ const csvRow = (fields: unknown[]) => fields.map(csvField).join(",") + "\r\n";
 function streamCsv(
   filename: string,
   header: string[],
-  page: (offset: number, limit: number) => Promise<string[][]>,
+  page: (offset: number, limit: number) => Promise<unknown[][]>,
 ): Response {
   const PAGE = 500;
   const encoder = new TextEncoder();

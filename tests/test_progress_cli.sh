@@ -105,6 +105,26 @@ else
     bad "content/manifest.json missing — cannot verify ids"
 fi
 
+echo "== classroom commands are discoverable"
+# A learner who never types --help must still find their assignments, so the
+# three classroom commands appear in the start menu — and only for a classroom
+# license, so a solo buyer never sees options that do not apply to them.
+help_out=$(cd "$ROOT" && bash practicum --help 2>/dev/null)
+for c in assignments community sharing license activate; do
+    printf '%s' "$help_out" | grep -qE "^  $c " && ok "help lists '$c'" || bad "help missing '$c'"
+done
+
+write_license "cls_test"
+menu_classroom=$(cd "$ROOT" && printf '0\n' | bash practicum start 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g')
+printf '%s' "$menu_classroom" | grep -q 'Your classroom:' && ok "menu shows the classroom section" || bad "classroom section missing"
+for entry in 'Assignments' 'Class group' 'Progress sharing'; do
+    printf '%s' "$menu_classroom" | grep -q "$entry" && ok "menu offers '$entry'" || bad "menu missing '$entry'"
+done
+
+write_license ""
+menu_solo=$(cd "$ROOT" && printf '0\n' | bash practicum start 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g')
+printf '%s' "$menu_solo" | grep -q 'Your classroom:' && bad "solo license sees classroom options" || ok "solo license sees no classroom options"
+
 echo ""
 echo "  $pass passed, $fail failed"
 [ "$fail" -eq 0 ]

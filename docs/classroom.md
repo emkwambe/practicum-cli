@@ -68,6 +68,23 @@ When it does take effect, the learner sees:
 Your classroom seat was removed. Contact your instructor.
 ```
 
+## What your learners type
+
+Three commands cover everything a learner needs. All three are also in the menu
+`./practicum start` opens, under **Your classroom**, so nobody has to remember
+them:
+
+| Command | Does |
+|---|---|
+| `./practicum start` | Open the course menu and work through lessons |
+| `./practicum assignments` | What you set, each marked with their own status, overdue flagged |
+| `./practicum community` | The class group link, if you have set one |
+| `./practicum sharing` | Whether progress sharing is on, and turn it on or off |
+| `./practicum license` | Their key's status and expiry |
+
+The classroom entries only appear for a classroom license — someone who bought
+a course themselves never sees them.
+
 ## What your learners see
 
 Learners clone the repo, run `./practicum activate <key>` (or

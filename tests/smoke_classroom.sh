@@ -690,6 +690,27 @@ else
         printf '%s' "$lbody" | grep -q "\"$ASG_ID\"" && ok "new assignment appears in the list" || bad "assignment missing from the list"
     fi
 
+    # A moved deadline must stay the same assignment: same id, same created_at,
+    # with the change recorded. Unassign-and-reassign would lose both.
+    echo "== due date can be moved without recreating the assignment"
+    if [ -n "$ASG_ID" ]; then
+        created_before=$(printf '%s' "$(curl -s -b "$JAR" "$API/v1/classroom/assignments")" \
+            | tr '}' '\n' | grep "\"$ASG_ID\"" | sed -n 's/.*"created_at":"\([^"]*\)".*/\1/p')
+        pcode=$(curl -s -o "$BODY" -w '%{http_code}' -X PATCH -b "$JAR" "$API/v1/classroom/assignments/$ASG_ID" \
+            -H 'Content-Type: application/x-www-form-urlencoded' --data-urlencode "due_at=2031-06-30T23:59:59Z")
+        pbody=$(cat "$BODY")
+        if http_ok "move due date" "$pcode" "$pbody"; then
+            printf '%s' "$pbody" | grep -q '"due_at":"2031-06-30' && ok "new due date returned" || bad "due date not applied"
+            printf '%s' "$pbody" | grep -q '"created_at_unchanged":true' && ok "created_at preserved" || bad "created_at changed"
+        fi
+        created_after=$(printf '%s' "$(curl -s -b "$JAR" "$API/v1/classroom/assignments")" \
+            | tr '}' '\n' | grep "\"$ASG_ID\"" | sed -n 's/.*"created_at":"\([^"]*\)".*/\1/p')
+        check "assignment keeps its original created_at" "$created_after" "$created_before"
+        code=$(curl -s -o /dev/null -w '%{http_code}' -X PATCH -b "$JAR" "$API/v1/classroom/assignments/$ASG_ID" \
+            -H 'Content-Type: application/x-www-form-urlencoded' --data-urlencode "due_at=not-a-date")
+        check "bad due date rejected" "$code" "400"
+    fi
+
     echo "== cohort matrix"
     code=$(curl -s -o "$BODY" -w '%{http_code}' -b "$JAR" "$API/v1/classroom/progress")
     mbody=$(cat "$BODY")
@@ -703,6 +724,24 @@ else
         fi
         qms=$(printf '%s' "$mbody" | sed -n 's/.*"query_ms":\([0-9]*\).*/\1/p')
         [ -n "$qms" ] && [ "$qms" -lt 1000 ] && ok "matrix query under 1s (${qms}ms)" || bad "matrix query slow or unreported: '${qms}'"
+    fi
+
+    # "Why is this learner behind?" — the drill-in must answer it in words the
+    # instructor recognises, not raw content ids.
+    echo "== learner drill-in"
+    if [ -n "${PR_MEM:-}" ]; then
+        dcode=$(curl -s -o "$BODY" -w '%{http_code}' -b "$JAR" "$API/v1/classroom/progress/$PR_MEM")
+        dbody=$(cat "$BODY")
+        if http_ok "learner timeline" "$dcode" "$dbody"; then
+            printf '%s' "$dbody" | grep -q '"member":{' && ok "timeline names the member" || bad "no member block"
+            printf '%s' "$dbody" | grep -q '"events":\[' && ok "timeline returns events" || bad "no events array"
+            # The title must be the manifest title, never the id echoed back.
+            printf '%s' "$dbody" | grep -q '"title":"pwd — Print Working Directory"' \
+                && ok "events carry manifest titles" \
+                || bad "titles not resolved: $(printf '%s' "$dbody" | sed -n 's/.*"title":"\([^"]*\)".*/\1/p' | head -1)"
+        fi
+        code=$(curl -s -o /dev/null -w '%{http_code}' -b "$JAR" "$API/v1/classroom/progress/mem_perf000000000000000000")
+        check "cannot drill into another classroom's learner" "$code" "404"
     fi
 
     echo "== CSV export"
