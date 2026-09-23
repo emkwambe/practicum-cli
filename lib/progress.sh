@@ -156,13 +156,17 @@ progress_flush() {
     key=$(_license_field key)
     [ -n "$key" ] || return 0
 
-    local keep sent=0 dropped=0 line n=0
+    local keep sent=0 dropped=0 line n=0 offline=0
     keep=$(mktemp 2>/dev/null) || return 0
 
     while IFS='|' read -r event_id content_id event occurred_at cli_version; do
         [ -n "$event_id" ] || continue
         n=$((n + 1))
-        if [ "$n" -gt "$PROGRESS_MAX_FLUSH" ]; then
+        # Once the server is unreachable, stop trying. Every attempt costs a
+        # connect timeout, so a learner with a backlog would otherwise wait
+        # seconds per queued event after finishing a lesson — the flush is
+        # meant to be invisible.
+        if [ "$offline" -eq 1 ] || [ "$n" -gt "$PROGRESS_MAX_FLUSH" ]; then
             printf '%s|%s|%s|%s|%s\n' "$event_id" "$content_id" "$event" "$occurred_at" "$cli_version" >> "$keep"
             continue
         fi
@@ -188,6 +192,11 @@ progress_flush() {
                  else
                      dropped=$((dropped + 1))
                  fi ;;
+            # 000 is curl's "could not connect at all" — no network, DNS
+            # failure, or the server is down. Keep this event and every one
+            # after it, and stop making calls.
+            000) offline=1
+                 printf '%s|%s|%s|%s|%s\n' "$event_id" "$content_id" "$event" "$occurred_at" "$cli_version" >> "$keep" ;;
             *)   printf '%s|%s|%s|%s|%s\n' "$event_id" "$content_id" "$event" "$occurred_at" "$cli_version" >> "$keep" ;;
         esac
     done < "$PROGRESS_OUTBOX"
