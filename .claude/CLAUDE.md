@@ -107,3 +107,23 @@ existing IDs forward, mints only for unseen files, and fails hard on any
 within-course collision. Never hand-edit or delete a lock entry: progress rows
 in D1 key on these IDs. Renaming a lesson file changes its slug and therefore
 its ID — treat that as a migration, not a rename.
+**7. `npm run smoke` type-checks the worker, and the typecheck is a gate.**
+`tests/typecheck_api.sh` runs `tsc --noEmit` over `workers/practicum-api`
+alongside the two lints, before any network suite. It never skips: a missing
+`node_modules` is installed with `npm ci` rather than shrugged at, because a
+check that quietly passes when it did not run is worse than no check.
+
+This is a gate and not a convenience because **no worker code written before
+`78f3208` was ever type-checked.** `@cloudflare/workers-types` was pinned to
+`^4` while wrangler 4.x requires `^5`, so `npm install` in that directory died
+with an ERESOLVE conflict, there was no `node_modules`, and `npm run typecheck`
+failed with "'tsc' is not recognized". Every commit from the worker's creation
+through 7D shipped unchecked. The sweep at that point found exactly one real
+defect — `streamCsv`'s page callback was typed `Promise<string[][]>` while the
+progress export returns a numeric `attempts` — but one is one more than a
+deploy should carry, and the point of a gate is that it runs before the next
+one exists.
+
+`strict` is on. Keep it on, and prefer a real row interface over `all<any>`
+when touching a query: the `any` at the D1 boundary is where the checker stops
+looking.

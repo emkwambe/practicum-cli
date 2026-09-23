@@ -33,6 +33,7 @@ echo "SITE: $SITE"
 # mistake that are expensive once deployed.
 run "lint: unlock chains" "$HERE/lint_unlock_chains.sh"
 run "lint: asset allow-list" "$HERE/lint_assets.sh"
+run "typecheck: practicum-api" "$HERE/typecheck_api.sh"
 
 run "progress CLI (7C, local mechanics)" "$HERE/test_progress_cli.sh"
 run "classroom (sprint 7A/7B/7C)" "$HERE/smoke_classroom.sh"
