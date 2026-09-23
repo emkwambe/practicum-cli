@@ -13,6 +13,7 @@
 
 import manifest from "../../../content/manifest.json";
 import { routeRoster, type RosterEnv } from "./roster";
+import { handleProgress, type ProgressEnv } from "./progress";
 import { buildLicenseRecord, licenseKeyFrom, type LicenseRecord } from "./catalog";
 
 export interface ClassroomEnv {
@@ -500,6 +501,11 @@ export async function routeClassroom(request: Request, env: ClassroomEnv): Promi
       return new Response("Not found", { status: 404 });
     }
     return handleMintSmokeSolo(request, env as ClassroomEnv & RosterEnv);
+  }
+
+  // Learner-facing, authenticated by license key rather than a session.
+  if (path === "/v1/progress" && method === "POST") {
+    return handleProgress(request, env as ClassroomEnv & ProgressEnv);
   }
 
   if (path === "/v1/auth/magic-link" && method === "POST") return handleMagicLink(request, env);

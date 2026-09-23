@@ -15,6 +15,7 @@ source "$SCRIPT_DIR/lib/sandbox.sh"
 source "$SCRIPT_DIR/lib/wrappers.sh"
 source "$SCRIPT_DIR/lib/apprentice.sh"
 source "$SCRIPT_DIR/lib/license.sh"
+source "$SCRIPT_DIR/lib/progress.sh"
 [ -f "$SCRIPT_DIR/lib/challenges/engine.sh" ] && source "$SCRIPT_DIR/lib/challenges/engine.sh"
 [ -f "$SCRIPT_DIR/lib/diagnose.sh" ] && source "$SCRIPT_DIR/lib/diagnose.sh"
 
@@ -24,6 +25,7 @@ init_mastery
 init_license
 seed_course_unlocks
 migrate_scores "$(get_active_course)"
+progress_flush 2>/dev/null || true
 
 # --- Command Implementations ---
 
@@ -355,8 +357,11 @@ cmd_generic_day_menu() {
         if [ -n "$lesson_file" ]; then
             local cmd
             cmd=$(get_lesson_command "$lesson_file")
+            progress_emit "lesson_started" "$(progress_lesson_id "$cmd")"
             show_lesson_with_context "$day" "$lesson_file" "$cmd"
             add_completed "$cmd"
+            progress_emit "lesson_completed" "$(progress_lesson_id "$cmd")"
+            progress_flush 2>/dev/null || true
             unlock_next_from_chain "$cmd"
             echo "  ✅ Lesson '$cmd' completed!"
             show_encouragement "$day"
@@ -1186,6 +1191,7 @@ cmd_assess2() {
     
     if bash "$test_script"; then
         save_score "assess2" "passed"
+        progress_emit "lab_passed" "$(progress_lab_id assessment-2)"; progress_flush 2>/dev/null || true
         unlock_lesson "review"
         echo ""
         echo -e "  ${C_GREEN}🎓 Assessment 2 PASSED!${C_RESET}"
@@ -1258,6 +1264,7 @@ cmd_final_capstone() {
     
     if bash "$test_script"; then
         save_score "final_capstone" "passed"
+        progress_emit "lab_passed" "$(progress_lab_id final-capstone)"; progress_flush 2>/dev/null || true
         echo ""
         echo -e "  ${C_GREEN}🏆 CONGRATULATIONS!${C_RESET}"
         echo -e "  ${C_GREEN}  You have completed $(get_course_name).${C_RESET}"
@@ -1295,6 +1302,7 @@ cmd_final() {
     
     detect_course_dir
     if bash "$COURSE_DIR/day5/capstone_test.sh" "monitor.sh"; then
+        progress_emit "lab_passed" "$(progress_lab_id capstone)"; progress_flush 2>/dev/null || true
         save_score "capstone" "passed"
         echo ""
         echo "========================================="
@@ -1539,6 +1547,9 @@ case "$1" in
         ;;
     license)
         license_status
+        ;;
+    sharing)
+        progress_sharing "$2"
         ;;
     certificate|cert)
         cmd_certificate

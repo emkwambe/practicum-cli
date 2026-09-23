@@ -11,7 +11,10 @@ PRACTICUM_API="${PRACTICUM_API:-https://api.practicum-cli.dev}"
 LICENSE_FILE="$HOME/.practicum/license.json"
 LICENSE_EXPIRED_FILE="$HOME/.practicum/license.expired"   # date of last expiry, for messaging
 LICENSE_DENY_REASON="unlicensed"   # set by validate_license / can_access_course
-LICENSE_CACHE_TTL=86400        # 24h — trust cache without a server call
+LICENSE_CACHE_TTL=86400          # 24h — solo licenses: work offline for a day
+LICENSE_CACHE_TTL_CLASSROOM=3600 # 1h  — classroom seats: an instructor who
+                                 #       revokes a seat expects it to bite
+                                 #       within the lesson, not the next day
 LICENSE_OFFLINE_GRACE=604800   # 7d  — keep working offline if server unreachable
 FREE_COURSES="00-cli-immersion"
 
@@ -72,6 +75,8 @@ _license_write() {
     "entitlements": "$(_json_arr "$body" entitlements)",
     "seats": "$(_json_num "$body" seats)",
     "role": "${role}",
+    "classroom_id": "$(_json_str "$body" classroom_id)",
+    "member_id": "$(_json_str "$body" member_id)",
     "activated_at": "$(_json_str "$body" activated_at)",
     "expires_at": "$(_json_str "$body" expires_at)",
     "expires_epoch": "$(_json_num "$body" expires_epoch)",
@@ -186,6 +191,12 @@ activate_license() {
     done
     echo -e "  ${C_WHITE}  Valid until: $(_license_expiry_date)${C_RESET}  ${C_DIM}(annual license, no autorenewal)${C_RESET}"
     echo ""
+
+    # A classroom key reports progress to an instructor, so the learner is told
+    # once, on activation, and nothing is recorded until they agree.
+    if [ -n "$(_license_field classroom_id)" ] && type progress_request_consent >/dev/null 2>&1; then
+        progress_request_consent "" || true
+    fi
     return 0
 }
 
@@ -289,7 +300,12 @@ validate_license() {
     cached=$(_license_field cached_epoch)
     age=$(( $(date +%s) - ${cached:-0} ))
 
-    [ "$age" -lt "$LICENSE_CACHE_TTL" ] && return 0
+    # Classroom seats revalidate hourly; solo licenses keep the full day. The
+    # offline grace below is unchanged for both — a flaky lab network must not
+    # lock a whole class out mid-session.
+    local ttl="$LICENSE_CACHE_TTL"
+    [ -n "$(_license_field classroom_id)" ] && ttl="$LICENSE_CACHE_TTL_CLASSROOM"
+    [ "$age" -lt "$ttl" ] && return 0
 
     local body
     if command -v curl &>/dev/null && body=$(_license_fetch "$key") && [ -n "$body" ]; then

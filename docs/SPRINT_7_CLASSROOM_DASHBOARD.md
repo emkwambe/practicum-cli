@@ -233,12 +233,12 @@ therefore unreachable, and §1's "cohort progress" promise had no foundation.
 
 Add `lib/progress.sh` with `progress_emit <event> <content_id>` (appends a pipe-delimited line with a generated `event_id` to the outbox) and `progress_flush` (curls each line as form data, removes lines on 2xx, keeps them on failure). Hook emission into lesson completion and lab verification. Add the consent notice on first classroom activation. The Worker's `POST /v1/progress` validates the key, confirms the member is active, validates `content_id` against the manifest, inserts the event (ignoring duplicates), upserts `progress_state`, and bumps `last_seen_at`.
 
-- [ ] Events generated with collision-safe IDs using only bash builtins, `date`, and `/dev/urandom`
-- [ ] Offline: events queue and flush on next connection; replays are no-ops
-- [ ] No events sent before consent; solo licenses never emit
-- [ ] Revoked or expired learners get 403 and the CLI stops retrying those events
-- [ ] Rate limit on `/v1/progress` per key
-- [ ] **Classroom keys re-validate hourly; solo keys keep the 24h cache.** 7B
+- [x] Events generated with collision-safe IDs using only bash builtins, `date`, and `/dev/urandom`
+- [x] Offline: events queue and flush on next connection; replays are true no-ops — the event row is claimed first and a duplicate returns OK|<id>|duplicate without touching progress_state, so a retried flush cannot inflate attempts
+- [x] No events sent before consent; solo licenses never emit (both asserted in tests/test_progress_cli.sh)
+- [x] Revoked or expired learners get 403 and the CLI stops retrying those events
+- [x] Rate limit on `/v1/progress` per key (300/hour, keyed on a hash of the key)
+- [x] **Classroom keys re-validate hourly; solo keys keep the 24h cache.** 7B
   made revocation real, but a revoked learner can keep working for up to 24h
   because `LICENSE_CACHE_TTL` is a flat 86400s — on top of KV propagation. An
   instructor reasonably expects removing a seat to take effect the same lesson.
@@ -249,11 +249,11 @@ Add `lib/progress.sh` with `progress_emit <event> <content_id>` (appends a pipe-
   both — a flaky lab network must not lock a class out mid-session. Update
   `docs/classroom.md` ("up to a day" becomes "within about an hour") in the
   same change.
-- [ ] `POST /v1/progress` also refreshes `members.last_seen_at`, reusing the
+- [x] `POST /v1/progress` also refreshes `members.last_seen_at`, reusing the
       same one-hour staleness window as 7C-0 rather than writing per event.
       `/license/validate` already returns `classroom_id` and `member_id`, so the
       CLI never has to be told where it belongs.
-- [ ] Smoke: bash script emits, flushes, and the event appears in `progress_state`
+- [x] Smoke: tests/test_progress_cli.sh covers the outbox, consent gate, solo silence, id uniqueness and offline queueing; smoke_classroom.sh posts a real event and asserts storage, replay, last_seen_at, promotion and every 4xx rejection by code
 
 ### Phase 7D — Assignments, reporting, CSV, community
 

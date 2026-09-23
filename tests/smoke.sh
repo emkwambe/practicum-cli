@@ -34,7 +34,8 @@ echo "SITE: $SITE"
 run "lint: unlock chains" "$HERE/lint_unlock_chains.sh"
 run "lint: asset allow-list" "$HERE/lint_assets.sh"
 
-run "classroom (sprint 7A)" "$HERE/smoke_classroom.sh"
+run "progress CLI (7C, local mechanics)" "$HERE/test_progress_cli.sh"
+run "classroom (sprint 7A/7B/7C)" "$HERE/smoke_classroom.sh"
 
 # The license suite mints keys by signing fake Dodo webhooks, so it only runs
 # against a local `wrangler dev` that has .dev.vars. Against production it is

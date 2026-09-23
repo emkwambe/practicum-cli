@@ -196,10 +196,25 @@ else
     if [ -z "$LINK" ]; then
         bad "no test_verify_url returned — cannot verify the emailed link"
     else
+        # The bug this guards against is the link pointing at the static-asset
+        # host, which serves no /v1 route. Assert that positively rather than
+        # pinning the exact origin: `wrangler dev` rewrites request.url to the
+        # configured custom domain, so locally the link is correct but does not
+        # equal $API.
+        link_host=${LINK#*://}; link_host=${link_host%%/*}
+        site_host=${SITE#*://}; site_host=${site_host%%/*}
         case "$LINK" in
-            "$API"/v1/auth/verify*) ok "emailed link targets the API host" ;;
-            *) bad "emailed link targets the wrong host: ${LINK%%/v1/*}" ;;
+            */v1/auth/verify\?token=*)
+                if [ "$link_host" = "$site_host" ]; then
+                    bad "emailed link points at the site host, which serves no /v1 route: $link_host"
+                else
+                    ok "emailed link targets an API host ($link_host)"
+                fi
+                ;;
+            *) bad "emailed link is not a verify URL: $(printf '%s' "$LINK" | cut -c1-60)" ;;
         esac
+        # Locally the rewritten host is unreachable, so follow $API instead.
+        [ "$link_host" = "${API#*://}" ] || LINK="$API/v1/auth/verify?token=${LINK##*token=}"
         hdrs=$(curl -s -D - -o /dev/null -c "$JAR" "$LINK")
         printf '%s' "$hdrs" | grep -qi '^HTTP/[0-9.]* 302' && ok "emailed link redirects" || bad "emailed link did not redirect"
         # Relative Location would land on the API host, which serves no dashboard.
@@ -391,6 +406,81 @@ else
         check "second validate within the hour does not move last_seen_at" "$seen_after" "$seen_before"
     else
         bad "no lifecycle member/key — activation write untested"
+    fi
+
+    # 7C: the CLI emits events to an outbox and flushes them; the server stores
+    # them idempotently and refuses anything it will never accept.
+    echo "== progress pipeline (7C)"
+    pr_body=$(invite "progress-$RUN@example.com")
+    PR_MEM=$(jfield "$pr_body" member_id); PR_KEY=$(jfield "$pr_body" test_key)
+    [ -n "$PR_MEM" ] && echo "$PR_MEM|$PR_KEY" >> "$ISSUED_KEYS"
+
+    # post_event <event_id> <content_id> <event> → status, body in $BODY
+    post_event() {
+        curl -s -o "$BODY" -w '%{http_code}' -X POST "$API/v1/progress" \
+            -H "X-License-Key: $PR_KEY" \
+            --data-urlencode "event_id=$1" \
+            --data-urlencode "content_id=$2" \
+            --data-urlencode "event=$3" \
+            --data-urlencode "occurred_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --data-urlencode "cli_version=smoke"
+    }
+
+    if [ -z "$PR_MEM" ] || [ -z "$PR_KEY" ]; then
+        bad "no progress member/key — pipeline untested"
+    else
+        EV="ev-smoke-$RUN-$$-1"
+        CONTENT="linux-foundations/lesson/pwd"
+
+        code=$(post_event "$EV" "$CONTENT" "lesson_completed")
+        pr=$(cat "$BODY")
+        if http_ok "progress event accepted" "$code" "$pr"; then
+            # Positive: the documented OK record, not merely "no error".
+            printf '%s' "$pr" | grep -q "^OK|$EV|stored" && ok "response is the OK record for this event" \
+                || bad "unexpected body: $(printf '%s' "$pr" | cut -c1-70)"
+        fi
+
+        # Replay must be a no-op, not a duplicate or an error.
+        # A retried flush must be a true no-op: recorded once, and no second
+        # attempt counted against the learner.
+        code=$(post_event "$EV" "$CONTENT" "lesson_completed")
+        pr=$(cat "$BODY")
+        if http_ok "replayed event accepted" "$code" "$pr"; then
+            printf '%s' "$pr" | grep -q "^OK|$EV|duplicate" && ok "replay reported as duplicate" \
+                || bad "replay not recognised: $(printf '%s' "$pr" | cut -c1-70)"
+        fi
+
+        # It must actually be stored, and the roster must show the learner alive.
+        row=$(member_row "$PR_MEM")
+        printf '%s' "$row" | grep -qE '"last_seen_at":"[0-9]{4}-[0-9]{2}-[0-9]{2}' \
+            && ok "progress refreshed last_seen_at" || bad "last_seen_at not stamped by progress"
+        printf '%s' "$row" | grep -q '"status":"active"' && ok "progress promoted the member to active" \
+            || bad "member not promoted by progress"
+
+        # Rejections the CLI must never retry: all 4xx, each with a code.
+        code=$(post_event "ev-smoke-$RUN-bad-content" "linux-foundations/lesson/does-not-exist" "lesson_completed")
+        check "unknown content_id rejected" "$code" "400"
+        grep -q '^ERR|bad_content|' "$BODY" && ok "unknown content names bad_content" || bad "wrong error record"
+
+        code=$(post_event "ev-smoke-$RUN-bad-event" "$CONTENT" "not_a_real_event")
+        check "unknown event rejected" "$code" "400"
+        grep -q '^ERR|bad_event|' "$BODY" && ok "unknown event names bad_event" || bad "wrong error record"
+
+        code=$(curl -s -o "$BODY" -w '%{http_code}' -X POST "$API/v1/progress" \
+            --data-urlencode "event_id=ev-smoke-$RUN-nokey" --data-urlencode "content_id=$CONTENT" \
+            --data-urlencode "event=lesson_completed")
+        check "no license key rejected" "$code" "401"
+        grep -q '^ERR|no_key|' "$BODY" && ok "missing key names no_key" || bad "wrong error record"
+
+        # A solo license has no classroom to report into.
+        if [ -n "${SMOKE_SOLO_KEY:-}" ]; then
+            code=$(curl -s -o "$BODY" -w '%{http_code}' -X POST "$API/v1/progress" \
+                -H "X-License-Key: $SMOKE_SOLO_KEY" \
+                --data-urlencode "event_id=ev-smoke-$RUN-solo" \
+                --data-urlencode "content_id=$CONTENT" --data-urlencode "event=lesson_completed")
+            check "solo license cannot post progress" "$code" "403"
+            grep -q '^ERR|not_classroom|' "$BODY" && ok "solo rejection names not_classroom" || bad "wrong error record"
+        fi
     fi
 
     echo "== normalisation and duplicates"
