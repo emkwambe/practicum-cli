@@ -7,6 +7,7 @@
   "scripts": {
     "manifest": "node scripts/generate-manifest.mjs",
     "seed:test-classroom": "node scripts/seed-test-classroom.mjs",
+    "seed:perf": "node scripts/seed-perf-classroom.mjs",
     "smoke": "bash tests/smoke.sh",
     "smoke:classroom": "bash tests/smoke_classroom.sh"
   }

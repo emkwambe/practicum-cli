@@ -211,3 +211,84 @@ progress_flush() {
     [ -n "${PRACTICUM_PROGRESS_DEBUG:-}" ] && echo "  progress: $sent sent, $dropped dropped" >&2
     return 0
 }
+
+# --- learner-facing classroom views -----------------------------------------
+
+# practicum assignments — what the instructor set, and where this learner is.
+cmd_assignments() {
+    local key
+    key=$(_license_field key)
+    if [ -z "$(_progress_classroom_id)" ]; then
+        echo -e "  ${C_DIM}Assignments are part of a classroom license.${C_RESET}"
+        return 0
+    fi
+    check_curl || return 1
+
+    local body
+    body=$(curl -s --connect-timeout 5 --max-time 15 \
+        -H "X-License-Key: $key" "$PRACTICUM_API/v1/learner/assignments" 2>/dev/null)
+
+    if [ -z "$body" ]; then
+        echo -e "  ${C_YELLOW}Could not reach Practicum. Showing nothing rather than something stale.${C_RESET}"
+        return 1
+    fi
+    case "$body" in
+        ERR\|*)  echo -e "  ${C_YELLOW}$(printf '%s' "$body" | cut -d'|' -f3)${C_RESET}"; return 1 ;;
+        NONE\|*) echo ""; echo -e "  ${C_DIM}No assignments yet.${C_RESET}"; echo ""; return 0 ;;
+    esac
+
+    echo ""
+    echo -e "  ${C_PURPLE}Assignments${C_RESET}"
+    echo ""
+    printf '%s\n' "$body" | while IFS='|' read -r tag id content title due state overdue; do
+        [ "$tag" = "ASSIGN" ] || continue
+        local mark colour
+        case "$state" in
+            complete)    mark="[x]"; colour="$C_GREEN" ;;
+            in_progress) mark="[~]"; colour="$C_CYAN" ;;
+            *)           mark="[ ]"; colour="$C_RESET" ;;
+        esac
+        printf '  %b%s %s%b\n' "$colour" "$mark" "$title" "$C_RESET"
+        if [ -n "$due" ]; then
+            if [ "$overdue" = "overdue" ]; then
+                printf '      %bdue %s — overdue%b\n' "$C_RED" "${due%%T*}" "$C_RESET"
+            else
+                printf '      %bdue %s%b\n' "$C_DIM" "${due%%T*}" "$C_RESET"
+            fi
+        fi
+        printf '      %b%s%b\n' "$C_DIM" "$content" "$C_RESET"
+    done
+    echo ""
+}
+
+# practicum community — the class group link, if the instructor set one.
+cmd_community() {
+    local key
+    key=$(_license_field key)
+    if [ -z "$(_progress_classroom_id)" ]; then
+        echo -e "  ${C_DIM}The class group is part of a classroom license.${C_RESET}"
+        return 0
+    fi
+    check_curl || return 1
+
+    local body
+    body=$(curl -s --connect-timeout 5 --max-time 15 \
+        -H "X-License-Key: $key" "$PRACTICUM_API/v1/learner/community" 2>/dev/null)
+    case "$body" in
+        COMMUNITY\|*)
+            echo ""
+            echo -e "  ${C_PURPLE}Your class group${C_RESET}"
+            echo -e "  ${C_CYAN}  $(printf '%s' "$body" | cut -d'|' -f2)${C_RESET}"
+            echo ""
+            ;;
+        NONE\|*)
+            echo ""
+            echo -e "  ${C_DIM}Your instructor has not set a group link yet.${C_RESET}"
+            echo ""
+            ;;
+        *)
+            echo -e "  ${C_YELLOW}Could not reach Practicum.${C_RESET}"
+            return 1
+            ;;
+    esac
+}

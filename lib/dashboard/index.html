@@ -91,6 +91,26 @@ td.acts button{padding:.35rem .7rem;font-size:.75rem;margin-left:.3rem}
 .rowmsg.err{color:var(--red)}
 .rowmsg.good{color:var(--g)}
 .empty{padding:2rem 1rem;text-align:center;color:var(--td);font-size:.9rem}
+.matrixwrap{overflow:auto;max-height:70vh;border:1px solid var(--br);border-radius:6px}
+table.matrix{min-width:auto;border-collapse:separate;border-spacing:0}
+table.matrix th,table.matrix td{border-bottom:1px solid var(--br);padding:.4rem .5rem}
+table.matrix thead th{position:sticky;top:0;background:var(--bg2);z-index:2}
+table.matrix tbody th{position:sticky;left:0;background:var(--bg2);z-index:1;text-align:left;
+  font-family:inherit;font-size:.85rem;color:var(--w);text-transform:none;letter-spacing:0;white-space:nowrap}
+table.matrix thead th.rot{writing-mode:vertical-rl;transform:rotate(180deg);max-height:11rem;
+  font-weight:600;text-transform:none;letter-spacing:0;font-size:.72rem}
+.cell{display:block;width:100%;text-align:center;font-family:var(--mono);font-size:.7rem;
+  border-radius:3px;padding:.15rem 0}
+.cell.complete{background:rgba(46,204,113,.18);color:var(--g)}
+.cell.in_progress{background:rgba(103,232,249,.14);color:var(--cy)}
+.cell.not_started{background:var(--bg3);color:var(--td)}
+.pctbar{height:4px;border-radius:2px;background:var(--bg3);overflow:hidden;margin-top:.25rem}
+.pctbar i{display:block;height:100%;background:var(--g)}
+.legend{display:flex;gap:1rem;flex-wrap:wrap;font-size:.78rem;color:var(--td);margin-bottom:.75rem}
+.legend span{display:inline-flex;align-items:center;gap:.35rem}
+.legend i{width:.8rem;height:.8rem;border-radius:2px;display:inline-block}
+.due{font-size:.72rem;color:var(--td)}
+.due.over{color:var(--red)}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 footer{color:var(--td);font-size:.8rem;border-top:1px solid var(--br);margin-top:3rem}
 footer .wrap{padding-block:1.25rem}
@@ -164,9 +184,71 @@ footer .wrap{padding-block:1.25rem}
         <dt>Telegram group</dt><dd id="room-telegram">Not set yet</dd>
       </dl>
       <p class="muted" style="margin:.25rem 0 0">Support reference: <span id="support-ref">—</span></p>
-      <ul class="soon">
-        <li>Assignments and the cohort progress matrix — next release</li>
-      </ul>
+      <div class="toolbar" style="align-items:flex-end">
+        <div class="field" style="flex:1 1 20rem">
+          <label for="tg-url">Telegram group link <span class="muted">(shared with every learner)</span></label>
+          <input type="text" id="tg-url" placeholder="https://t.me/your-class" spellcheck="false">
+        </div>
+        <div><button type="button" class="btn-quiet" id="tg-save">Save link</button></div>
+      </div>
+      <p class="rowmsg" id="tg-msg" hidden></p>
+    </div>
+
+    <div class="card stack" style="margin-top:1rem">
+      <div class="seatbar">
+        <h2 style="margin:0">Assignments</h2>
+        <span class="count" id="asg-count">&nbsp;</span>
+      </div>
+
+      <form class="toolbar" id="asg-form" novalidate>
+        <div class="field" style="flex:2 1 18rem">
+          <label for="asg-content">Lesson or lab</label>
+          <select id="asg-content"><option value="">Loading…</option></select>
+        </div>
+        <div class="field" style="flex:0 1 11rem">
+          <label for="asg-due">Due <span class="muted">(optional)</span></label>
+          <input type="date" id="asg-due">
+        </div>
+        <div><button type="submit" id="asg-submit">Assign</button></div>
+      </form>
+      <p class="rowmsg" id="asg-msg" hidden></p>
+
+      <div class="tablewrap">
+        <table id="asg-table">
+          <thead><tr>
+            <th scope="col">Assignment</th><th scope="col">Due</th>
+            <th scope="col">Cohort complete</th><th scope="col"><span class="sr-only">Actions</span></th>
+          </tr></thead>
+          <tbody id="asg-body"></tbody>
+        </table>
+      </div>
+      <p class="empty" id="asg-empty" hidden>Nothing assigned yet. Pick a lesson or lab above.</p>
+    </div>
+
+    <div class="card stack" style="margin-top:1rem">
+      <div class="seatbar">
+        <h2 style="margin:0">Progress</h2>
+        <span class="count" id="matrix-summary">&nbsp;</span>
+      </div>
+      <div class="legend">
+        <span><i class="cell complete" style="width:.8rem;height:.8rem"></i> complete</span>
+        <span><i class="cell in_progress" style="width:.8rem;height:.8rem"></i> in progress</span>
+        <span><i class="cell not_started" style="width:.8rem;height:.8rem"></i> not started</span>
+      </div>
+      <div class="matrixwrap" id="matrix-wrap" hidden>
+        <table class="matrix" id="matrix-table">
+          <thead><tr id="matrix-head"></tr></thead>
+          <tbody id="matrix-body"></tbody>
+        </table>
+      </div>
+      <p class="empty" id="matrix-empty" hidden>Assign a lesson or lab to see cohort progress.</p>
+
+      <div class="toolbar" style="align-items:center">
+        <span class="muted">Export:</span>
+        <div><button type="button" class="btn-quiet" data-export="roster">Roster CSV</button></div>
+        <div><button type="button" class="btn-quiet" data-export="progress">Progress CSV</button></div>
+        <div><button type="button" class="btn-quiet" data-export="assignments">Assignments CSV</button></div>
+      </div>
     </div>
 
     <div class="card stack" style="margin-top:1rem">
@@ -287,8 +369,12 @@ async function loadHome() {
     `${seats.learners.used} of ${seats.learners.limit} learner seats · ` +
     `${seats.instructors.used} of ${seats.instructors.limit} instructor`;
 
+  $('tg-url').value = classroom.telegram_invite_url || '';
+
   show('home');
   await loadRoster();
+  if (!$('asg-content').dataset.loaded) { await loadContentPicker(); $('asg-content').dataset.loaded = '1'; }
+  await loadReporting();
   return true;
 }
 
@@ -573,6 +659,216 @@ $('signout').addEventListener('click', async () => {
   await api('/v1/auth/logout', { method: 'POST' });
   show('login');
 });
+
+// --- assignments, matrix, exports, Telegram (7D) ----------------------------
+
+// The picker is built from the same manifest the API validates against, so a
+// content id can never be assigned that progress events could not match.
+async function loadContentPicker() {
+  const sel = $('asg-content');
+  try {
+    const res = await fetch(API + '/v1/content/manifest');
+    if (!res.ok) throw new Error(String(res.status));
+    const manifest = await res.json();
+    sel.replaceChildren(new Option('Select a lesson or lab…', ''));
+    for (const course of manifest.courses) {
+      const group = document.createElement('optgroup');
+      group.label = course.title;
+      for (const day of course.days) {
+        for (const item of [...day.lessons, ...day.labs]) {
+          const isLab = item.id.includes('/lab/');
+          group.append(new Option(`Day ${day.day} · ${item.title}${isLab ? ' (lab)' : ''}`, item.id));
+        }
+      }
+      sel.append(group);
+    }
+  } catch {
+    sel.replaceChildren(new Option('Could not load the course list', ''));
+  }
+}
+
+function assignmentRow(a, pct) {
+  const tr = document.createElement('tr');
+
+  const what = document.createElement('td');
+  const nm = document.createElement('div');
+  nm.textContent = a.title;
+  nm.style.color = 'var(--w)';
+  const cid = document.createElement('div');
+  cid.className = 'muted';
+  cid.textContent = a.content_id;
+  what.append(nm, cid);
+
+  const due = document.createElement('td');
+  if (a.due_at) {
+    const overdue = parseUtc(a.due_at).getTime() < Date.now();
+    const s = document.createElement('span');
+    s.className = 'due' + (overdue ? ' over' : '');
+    s.textContent = fmtDate(a.due_at) + (overdue ? ' · overdue' : '');
+    due.append(s);
+  } else {
+    due.textContent = '—';
+  }
+
+  const done = document.createElement('td');
+  done.textContent = `${pct}%`;
+  const bar = document.createElement('div');
+  bar.className = 'pctbar';
+  const fill = document.createElement('i');
+  fill.style.width = pct + '%';
+  bar.append(fill);
+  done.append(bar);
+
+  const acts = document.createElement('td');
+  acts.className = 'acts';
+  const remove = document.createElement('button');
+  remove.type = 'button';
+  remove.className = 'btn-quiet';
+  remove.textContent = 'Unassign';
+  remove.title = 'Remove this assignment. Learner progress is kept.';
+  remove.addEventListener('click', async () => {
+    if (!confirm(`Unassign "${a.title}"? Progress already recorded is kept.`)) return;
+    remove.disabled = true;
+    await api(`/v1/classroom/assignments/${a.id}`, { method: 'DELETE' });
+    await loadReporting();
+  });
+  acts.append(remove);
+
+  tr.append(what, due, done, acts);
+  return tr;
+}
+
+function renderMatrix(data) {
+  const { learners, assignments, cohort } = data;
+  $('matrix-summary').textContent = assignments.length
+    ? `${cohort.learners} learners · ${cohort.assignments} assignments · ${cohort.completion_pct}% complete overall`
+    : '';
+
+  const empty = assignments.length === 0 || learners.length === 0;
+  $('matrix-wrap').hidden = empty;
+  $('matrix-empty').hidden = !empty;
+  $('matrix-empty').textContent = assignments.length === 0
+    ? 'Assign a lesson or lab to see cohort progress.'
+    : 'No learners on the roster yet.';
+  if (empty) return;
+
+  const head = $('matrix-head');
+  head.replaceChildren();
+  const corner = document.createElement('th');
+  corner.scope = 'col';
+  corner.textContent = 'Learner';
+  head.append(corner);
+  for (const a of assignments) {
+    const th = document.createElement('th');
+    th.scope = 'col';
+    th.className = 'rot';
+    th.textContent = a.title;
+    th.title = `${a.title} — ${a.completion_pct}% complete`;
+    head.append(th);
+  }
+
+  const body = $('matrix-body');
+  body.replaceChildren();
+  for (const l of learners) {
+    const tr = document.createElement('tr');
+    const who = document.createElement('th');
+    who.scope = 'row';
+    who.textContent = l.name;
+    who.title = `${l.email} — ${l.complete} of ${assignments.length} complete`;
+    tr.append(who);
+    for (const a of assignments) {
+      const td = document.createElement('td');
+      const state = l.cells[a.assignment_id] ?? 'not_started';
+      const box = document.createElement('span');
+      box.className = 'cell ' + state;
+      // Text as well as colour: the grid must be readable without colour vision.
+      box.textContent = state === 'complete' ? '✓' : state === 'in_progress' ? '·' : '—';
+      box.title = `${l.name} — ${a.title}: ${state.replace('_', ' ')}`;
+      td.append(box);
+      tr.append(td);
+    }
+    body.append(tr);
+  }
+}
+
+async function loadReporting() {
+  const [asgRes, matRes] = await Promise.all([
+    api('/v1/classroom/assignments'),
+    api('/v1/classroom/progress'),
+  ]);
+  if (!asgRes.ok || !matRes.ok) return;
+
+  const { assignments } = await asgRes.json();
+  const matrix = await matRes.json();
+  const pct = new Map(matrix.assignments.map((a) => [a.assignment_id, a.completion_pct]));
+
+  $('asg-count').textContent = assignments.length ? `${assignments.length} assigned` : '';
+  $('asg-body').replaceChildren(...assignments.map((a) => assignmentRow(a, pct.get(a.id) ?? 0)));
+  $('asg-empty').hidden = assignments.length > 0;
+  $('asg-table').hidden = assignments.length === 0;
+
+  renderMatrix(matrix);
+}
+
+$('asg-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const msg = $('asg-msg');
+  msg.hidden = true;
+  const contentId = $('asg-content').value;
+  if (!contentId) { note(msg, 'Pick a lesson or lab first.', false); return; }
+
+  const button = $('asg-submit');
+  button.disabled = true;
+  try {
+    const body = new URLSearchParams({ content_id: contentId });
+    // <input type=date> gives YYYY-MM-DD; due at the end of that day, UTC.
+    if ($('asg-due').value) body.set('due_at', new Date($('asg-due').value + 'T23:59:59Z').toISOString());
+    const res = await api('/v1/classroom/assignments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body,
+    });
+    const out = await res.json().catch(() => ({}));
+    if (res.ok) {
+      note(msg, `Assigned ${out.title}.`, true);
+      $('asg-content').value = '';
+      $('asg-due').value = '';
+      await loadReporting();
+    } else {
+      note(msg, out.error || 'That assignment did not save.', false);
+    }
+  } catch {
+    note(msg, 'Could not reach the classroom service.', false);
+  } finally {
+    button.disabled = false;
+  }
+});
+
+$('tg-save').addEventListener('click', async () => {
+  const msg = $('tg-msg');
+  msg.hidden = true;
+  const url = $('tg-url').value.trim();
+  const res = await api('/v1/classroom', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ telegram_invite_url: url }),
+  });
+  const out = await res.json().catch(() => ({}));
+  if (res.ok) {
+    note(msg, url ? 'Group link saved. New invites will include it.' : 'Group link removed.', true);
+    await loadHome();
+  } else {
+    note(msg, out.error || 'That link did not save.', false);
+  }
+});
+
+// The sandbox blocks script-driven downloads, so navigate instead: the
+// Content-Disposition header makes the browser save the file.
+for (const btn of document.querySelectorAll('[data-export]')) {
+  btn.addEventListener('click', () => {
+    window.location.href = `${API}/v1/classroom/export.csv?type=${btn.dataset.export}`;
+  });
+}
 
 // A session cookie means we can go straight to the classroom.
 loadHome().catch(() => show('login'));

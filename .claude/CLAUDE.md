@@ -86,7 +86,21 @@ does not. Licenses issued
 inside a test classroom expire after `TEST_LICENSE_TTL_HOURS` (24h) and smoke
 revokes every key it issues on exit, including on failure.
 
-**5. Content IDs are permanent.**
+**5. CLI changes ship by `git push`, not by `wrangler deploy`.**
+Anything under `lib/` or the `practicum` entrypoint reaches a learner only
+through `git clone` from GitHub. Deploying a Worker ships the API and the site;
+it ships none of the CLI. So **any end-to-end check that exercises the CLI is
+invalid until the push has landed** — verify with a fresh clone, not with the
+working tree.
+
+This is not hypothetical. The first 7C end-to-end run against production failed
+with `lib/progress.sh: No such file or directory`: the Worker had been deployed
+and `practicum-api` was serving `/v1/progress` correctly, but the CLI half was
+committed locally and unpushed, so the cloned student CLI had no progress code
+at all. The run looked like a broken feature and was actually a stale clone.
+When a change spans both halves, push first, then deploy, then verify.
+
+**6. Content IDs are permanent.**
 `content/ids.lock.json` maps id → path and is the source of truth;
 `content/manifest.json` is generated from it. `npm run manifest` carries
 existing IDs forward, mints only for unseen files, and fails hard on any

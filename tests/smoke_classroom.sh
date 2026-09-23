@@ -655,6 +655,100 @@ else
     fi
     rm -f "$RL_JAR"
 
+    # 7D: assignments, the cohort matrix, CSV export and the community link.
+    echo "== assignments and reporting (7D)"
+    ASG_CONTENT="linux-foundations/lesson/pwd"
+    acode=$(curl -s -o "$BODY" -w '%{http_code}' -X POST -b "$JAR" "$API/v1/classroom/assignments" \
+        -H 'Content-Type: application/x-www-form-urlencoded' \
+        --data-urlencode "content_id=$ASG_CONTENT" \
+        --data-urlencode "due_at=2030-01-01T23:59:59Z")
+    abody=$(cat "$BODY")
+    ASG_ID=$(jfield "$abody" id)
+    if http_ok "create assignment" "$acode" "$abody"; then
+        [ -n "$ASG_ID" ] && ok "assignment has an id" || bad "no assignment id returned"
+        printf '%s' "$abody" | grep -q "\"content_id\":\"$ASG_CONTENT\"" && ok "assignment names the content" || bad "wrong content_id"
+    fi
+
+    # A content id the manifest does not know must be refused, or the matrix
+    # would carry a row nothing can ever complete.
+    code=$(curl -s -o "$BODY" -w '%{http_code}' -X POST -b "$JAR" "$API/v1/classroom/assignments" \
+        -H 'Content-Type: application/x-www-form-urlencoded' --data-urlencode "content_id=not/a/real/thing")
+    check "unknown content_id rejected" "$code" "400"
+    grep -q 'Unknown content_id' "$BODY" && ok "rejection names the content id" || bad "wrong rejection body"
+
+    code=$(curl -s -o "$BODY" -w '%{http_code}' -b "$JAR" "$API/v1/classroom/assignments")
+    lbody=$(cat "$BODY")
+    if http_ok "list assignments" "$code" "$lbody"; then
+        printf '%s' "$lbody" | grep -q "\"$ASG_ID\"" && ok "new assignment appears in the list" || bad "assignment missing from the list"
+    fi
+
+    echo "== cohort matrix"
+    code=$(curl -s -o "$BODY" -w '%{http_code}' -b "$JAR" "$API/v1/classroom/progress")
+    mbody=$(cat "$BODY")
+    if http_ok "matrix" "$code" "$mbody"; then
+        printf '%s' "$mbody" | grep -q '"cohort":{' && ok "matrix returns a cohort summary" || bad "no cohort summary"
+        printf '%s' "$mbody" | grep -q '"completion_pct":' && ok "matrix reports completion %" || bad "no completion %"
+        # The learner who posted progress above must read as complete for it.
+        if [ -n "${PR_MEM:-}" ]; then
+            printf '%s' "$mbody" | grep -q "\"member_id\":\"$PR_MEM\"" \
+                && ok "the progressing learner is in the matrix" || bad "learner missing from the matrix"
+        fi
+        qms=$(printf '%s' "$mbody" | sed -n 's/.*"query_ms":\([0-9]*\).*/\1/p')
+        [ -n "$qms" ] && [ "$qms" -lt 1000 ] && ok "matrix query under 1s (${qms}ms)" || bad "matrix query slow or unreported: '${qms}'"
+    fi
+
+    echo "== CSV export"
+    for t in roster progress assignments; do
+        code=$(curl -s -o "$BODY" -w '%{http_code}' -b "$JAR" "$API/v1/classroom/export.csv?type=$t")
+        if http_ok "export $t" "$code" "$(head -c 80 "$BODY")"; then
+            # UTF-8 BOM, so Excel reads it as UTF-8 rather than mojibake.
+            [ "$(head -c 3 "$BODY" | od -An -tx1 | tr -d ' \n')" = "efbbbf" ] \
+                && ok "$t CSV starts with a UTF-8 BOM" || bad "$t CSV missing BOM"
+            head -1 "$BODY" | grep -q ',' && ok "$t CSV has a header row" || bad "$t CSV header missing"
+            # RFC 4180 line endings.
+            head -2 "$BODY" | od -c | grep -q '\\r  \\n' && ok "$t CSV uses CRLF" || bad "$t CSV not CRLF"
+        fi
+    done
+    code=$(curl -s -o /dev/null -w '%{http_code}' -b "$JAR" "$API/v1/classroom/export.csv?type=evil")
+    check "unknown export type rejected" "$code" "400"
+
+    echo "== community link round-trip"
+    code=$(curl -s -o "$BODY" -w '%{http_code}' -X PATCH -b "$JAR" "$API/v1/classroom" \
+        -H 'Content-Type: application/x-www-form-urlencoded' --data-urlencode "telegram_invite_url=https://example.com/not-telegram")
+    check "non-Telegram link rejected" "$code" "400"
+
+    TG="https://t.me/smoke-$RUN"
+    code=$(curl -s -o "$BODY" -w '%{http_code}' -X PATCH -b "$JAR" "$API/v1/classroom" \
+        -H 'Content-Type: application/x-www-form-urlencoded' --data-urlencode "telegram_invite_url=$TG")
+    http_ok "set Telegram link" "$code" "$(cat "$BODY")" && {
+        curl -s -b "$JAR" "$API/v1/classroom" | grep -q "$TG" && ok "summary returns the link" || bad "summary lost the link"
+    }
+
+    if [ -n "${PR_KEY:-}" ]; then
+        lc=$(curl -s -o "$BODY" -w '%{http_code}' -H "X-License-Key: $PR_KEY" "$API/v1/learner/community")
+        if http_ok "learner community endpoint" "$lc" "$(cat "$BODY")"; then
+            grep -q "^COMMUNITY|$TG" "$BODY" && ok "learner receives the group link" || bad "learner did not get the link"
+        fi
+        la=$(curl -s -o "$BODY" -w '%{http_code}' -H "X-License-Key: $PR_KEY" "$API/v1/learner/assignments")
+        if http_ok "learner assignments endpoint" "$la" "$(cat "$BODY")"; then
+            grep -q "^ASSIGN|.*|$ASG_CONTENT|" "$BODY" && ok "learner sees the assignment" || bad "learner cannot see the assignment"
+            grep -q "^ASSIGN|.*|complete|" "$BODY" && ok "learner's own status is reflected" \
+                || ok "learner status present (not yet complete)"
+        fi
+    fi
+
+    # Soft archive: the learner stops seeing it, the progress rows survive.
+    if [ -n "$ASG_ID" ]; then
+        code=$(curl -s -o "$BODY" -w '%{http_code}' -X DELETE -b "$JAR" "$API/v1/classroom/assignments/$ASG_ID")
+        http_ok "archive assignment" "$code" "$(cat "$BODY")"
+        curl -s -b "$JAR" "$API/v1/classroom/assignments" | grep -q "\"$ASG_ID\"" \
+            && bad "archived assignment still listed" || ok "archived assignment hidden from the list"
+        if [ -n "${PR_KEY:-}" ]; then
+            curl -s -H "X-License-Key: $PR_KEY" "$API/v1/learner/assignments" | grep -q "$ASG_ID" \
+                && bad "learner still sees the archived assignment" || ok "learner no longer sees it"
+        fi
+    fi
+
     echo "== solo licenses are unaffected"
     if [ -z "${SMOKE_SOLO_KEY:-}" ] && [ -f "$SOLO_KEY_FILE" ]; then
         SMOKE_SOLO_KEY=$(tr -d '\r\n' < "$SOLO_KEY_FILE" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')

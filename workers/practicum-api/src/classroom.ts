@@ -14,6 +14,7 @@
 import manifest from "../../../content/manifest.json";
 import { routeRoster, type RosterEnv } from "./roster";
 import { handleProgress, type ProgressEnv } from "./progress";
+import { routeReporting, routeLearner, type ReportingEnv } from "./reporting";
 import { buildLicenseRecord, licenseKeyFrom, type LicenseRecord } from "./catalog";
 
 export interface ClassroomEnv {
@@ -504,6 +505,11 @@ export async function routeClassroom(request: Request, env: ClassroomEnv): Promi
   }
 
   // Learner-facing, authenticated by license key rather than a session.
+  if (path.startsWith("/v1/learner/")) {
+    const handled = await routeLearner(request, env as ClassroomEnv & ReportingEnv, path);
+    if (handled) return handled;
+  }
+  // Learner-facing, authenticated by license key rather than a session.
   if (path === "/v1/progress" && method === "POST") {
     return handleProgress(request, env as ClassroomEnv & ProgressEnv);
   }
@@ -521,6 +527,9 @@ export async function routeClassroom(request: Request, env: ClassroomEnv): Promi
 
     const roster = await routeRoster(request, env as ClassroomEnv & RosterEnv, session, path);
     if (roster) return roster;
+
+    const reporting = await routeReporting(request, env as ClassroomEnv & ReportingEnv, session, path);
+    if (reporting) return reporting;
   }
 
   return null; // not a classroom route

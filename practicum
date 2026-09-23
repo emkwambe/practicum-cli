@@ -53,6 +53,9 @@ Commands:
   challenges  Interactive problem-solving (Linux course)
   scenarios   Multi-step work scenarios (Linux course)
   mastery     Skill mastery dashboard (Linux course)
+  assignments What your instructor set (classroom)
+  community   Your class group link (classroom)
+  sharing     Progress sharing on|off|status (classroom)
   activate    Activate a license key
   help        Show this help message
 
@@ -1550,6 +1553,12 @@ case "$1" in
         ;;
     sharing)
         progress_sharing "$2"
+        ;;
+    assignments)
+        cmd_assignments
+        ;;
+    community)
+        cmd_community
         ;;
     certificate|cert)
         cmd_certificate
