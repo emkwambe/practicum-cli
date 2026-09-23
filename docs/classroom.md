@@ -110,6 +110,70 @@ courses, lessons and labs added during that period are included. If you cancel,
 access continues to the end of the term; there are no prorated refunds for
 unused months.
 
+## Reusing seats
+
+> The three sections below take effect when the Classroom tier goes on sale.
+> They are published now so that a privacy or procurement review can read them
+> before you buy. Until the tier is live they describe intent, not behaviour
+> that is already running.
+
+A seat is not tied to one person for the whole year. Revoke a learner and the
+seat is free for someone else immediately, so a 30-seat license can carry a
+class in the autumn and a different class in the spring.
+
+There is a limit, because a license for one classroom should not quietly become
+a license for a whole institution. We count the number of **distinct people**
+who have held a seat during your 12-month term, not the number of seats:
+
+| Distinct people this term | What happens |
+|---|---|
+| Up to 44 | Nothing; invite as normal |
+| 45 | The dashboard warns you that you are approaching the limit |
+| 60 | Further invitations are blocked, with a message pointing you at support |
+
+Two terms of a 30-seat class fit comfortably. Three full turnovers do not, and
+at that point the honest answer is that you need a second license or a site
+agreement — email practicum@mpingo.ai and we will sort it out rather than let
+you hit a wall mid-term. Re-inviting someone who already held a seat does not
+count twice; the count is of people, not invitations.
+
+## When your license ends
+
+If you let the term lapse or cancel, nothing is deleted on the last day.
+
+**Your learners** lose access to the paid courses. Their keys stop unlocking
+lessons and labs, and they see a message telling them their classroom license
+has ended.
+
+**You keep the dashboard for 90 days**, read-only. You can still see the roster
+and the progress matrix, and you can still export CSV — so a term that ends in
+June can still be reported on in September. You cannot invite, revoke, or set
+assignments, because there is no live classroom to do it to.
+
+Renewing within those 90 days restores everything exactly as it was.
+
+## What we keep, and for how long
+
+**For 90 days after your license ends**, your classroom stays as described
+above: names, email addresses and progress all intact, so you can export what
+you need.
+
+**After 90 days we anonymize it.** Learner names and email addresses are
+deleted. What remains is aggregate progress — how many people completed a
+lesson or passed a lab — with nothing that identifies who they were. This is
+what lets us understand how the courses are used without holding onto a class
+list from years ago. It cannot be reversed, and it cannot be un-anonymized on
+request afterwards, so export anything you need before the 90 days are up.
+
+**Deletion on request is honoured within 30 days.** You, or a learner directly,
+can ask us to delete their data at any time — during the term or after it —
+and we will do it within 30 days and confirm when it is done. Write to
+practicum@mpingo.ai. A learner does not need to go through you to ask.
+
+If your institution needs a different retention window, a data processing
+agreement, or answers for a privacy review, email practicum@mpingo.ai. We would
+rather have that conversation before you buy than after.
+
 ## Getting help
 
 practicum@mpingo.ai
