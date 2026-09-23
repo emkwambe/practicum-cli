@@ -41,20 +41,20 @@ else. Their key stops working.
 
 ### How quickly a revoked key stops working
 
-Not instantly. Plan for **up to a day**, and don't rely on revocation as a way
-to cut off access urgently.
+Not instantly, but quickly: plan for **within about an hour**.
 
 Two things are in the way:
 
 1. **Propagation (seconds to about a minute).** License data is replicated
    around the world so the CLI is fast everywhere. A revocation takes a short
    while to reach every location.
-2. **The learner's cached license (up to 24 hours).** The CLI remembers a valid
-   license for 24 hours so learners can work on a train, on hotel wifi, or in a
-   lab with no internet. Until that cache next refreshes, their terminal does
-   not know anything changed.
+2. **The learner's cached license (up to one hour).** The CLI remembers a valid
+   license so learners can keep working on a train, on hotel wifi, or in a lab
+   with no internet. Classroom seats re-check every hour; a personal licence
+   bought directly is cached for a day, since nobody can revoke it out from
+   under the owner.
 
-So a learner who was working offline may keep opening lessons for up to 24 hours
+So a learner who is working offline may keep opening lessons for up to an hour
 after you revoke them. The seat is freed for re-use immediately — it is only
 their existing copy that lags.
 
