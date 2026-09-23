@@ -5,8 +5,9 @@
 //   npm run seed:perf                 # local D1
 //   npm run seed:perf -- --remote     # production D1
 //
-// The classroom is is_test = 1, so its licenses are excluded from customer
-// counts and the smoke suite's guard refuses to touch it as a fixture.
+// The classroom is is_test = 1 and is seeded straight into D1: no license keys
+// are minted, so it contributes nothing to LICENSES KV at all. The smoke suite
+// refuses to reset or revoke anything in it — it is a fixture, not a workspace.
 
 import { execFileSync } from "node:child_process";
 import { writeFileSync, unlinkSync, readFileSync } from "node:fs";
@@ -117,4 +118,11 @@ console.log(
   `seeded ${remote ? "remote" : "local"} perf classroom ${ROOM}: ` +
   `${LEARNERS} learners x ${ASSIGNMENTS} assignments = ${LEARNERS * ASSIGNMENTS} cells, ${cells} progress rows`,
 );
+// Smoke reads this to verify the fixture is still intact and correctly sized.
+const fixture = join(ROOT, "tests", "smoke_fixture.env");
+try {
+  const existing = readFileSync(fixture, "utf8").split("\n").filter((l) => l && !l.startsWith("SMOKE_PERF_"));
+  writeFileSync(fixture, [...existing, `SMOKE_PERF_EMAIL=perf@practicum-cli.dev`, `SMOKE_PERF_CLASSROOM_ID=${ROOM}`, ""].join("\n"), "utf8");
+} catch { /* fixture file is written by seed-test-classroom; nothing to append to yet */ }
+
 console.log(`  instructor: perf@practicum-cli.dev`);

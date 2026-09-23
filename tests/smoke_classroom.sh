@@ -278,12 +278,20 @@ else
     echo "== reset guard"
     guard=$(curl -s -b "$JAR" "$API/v1/classroom")
     guard_id=$(field "$guard" id)
+    # Fixtures, not workspaces. Classroom C delivers real mail; the perf
+    # classroom is a fixed 30x50 dataset whose numbers are the measurement —
+    # clearing either would destroy the thing it exists for.
     guard_qa="cls_manualqa000000000000000"
+    guard_perf="cls_perftest00000000000000"
 
-    if [ "$guard_id" = "$guard_qa" ]; then
-        echo "  ABORT: session is the manual QA classroom — it must never be reset." >&2
-        exit 3
-    fi
+    case "$guard_id" in
+        "$guard_qa")
+            echo "  ABORT: session is the manual QA classroom — it must never be reset." >&2
+            exit 3 ;;
+        "$guard_perf")
+            echo "  ABORT: session is the perf fixture classroom — its dataset must not be cleared." >&2
+            exit 3 ;;
+    esac
     if [ "$guard_id" != "$ROOM" ] && [ "$guard_id" != "$ROOM_B" ]; then
         echo "  ABORT: session classroom '$guard_id' is not a smoke classroom." >&2
         exit 3
@@ -766,12 +774,41 @@ else
 
     # Classroom C exists for manual QA and delivers real mail. Nothing here may
     # reach it: this session is scoped to classroom A, and that is asserted.
-    echo "== manual QA classroom is untouched"
+    # Two fixtures must survive every run untouched: the manual QA classroom,
+    # which delivers real mail, and the perf classroom, whose 30x50 dataset is
+    # the measurement. Session scoping is what protects them, so prove it.
+    echo "== fixture classrooms are untouched"
     qa_id="cls_manualqa000000000000000"
-    [ "$(field "$(curl -s -b "$JAR" "$API/v1/classroom")" id)" != "$qa_id" ] \
-        && ok "session is not classroom C" || bad "session leaked into the QA classroom"
+    perf_id="cls_perftest00000000000000"
+    session_room=$(field "$(curl -s -b "$JAR" "$API/v1/classroom")" id)
+    [ "$session_room" != "$qa_id" ] && ok "session is not the QA classroom" || bad "session leaked into the QA classroom"
+    [ "$session_room" != "$perf_id" ] && ok "session is not the perf classroom" || bad "session leaked into the perf classroom"
+
     code=$(curl -s -o /dev/null -w '%{http_code}' -b "$JAR" -X DELETE "$API/v1/classroom/members/mem_manualqa_instructor000")
-    check "cannot revoke a classroom C member from a classroom A session" "$code" "404"
+    check "cannot revoke a QA classroom member from this session" "$code" "404"
+    code=$(curl -s -o /dev/null -w '%{http_code}' -b "$JAR" -X DELETE "$API/v1/classroom/members/mem_perf000000000000000000")
+    check "cannot revoke a perf classroom member from this session" "$code" "404"
+
+    # The perf fixture must still be intact and the right size after this run.
+    if [ -n "${SMOKE_PERF_EMAIL:-}" ]; then
+        ptok=$(magic_token "$SMOKE_PERF_EMAIL")
+        if [ -n "$ptok" ]; then
+            PJAR=$(mktemp)
+            curl -s -o /dev/null -c "$PJAR" "$API/v1/auth/verify?token=$ptok"
+            pbody=$(curl -s -b "$PJAR" "$API/v1/classroom/progress")
+            printf '%s' "$pbody" | grep -q '"learners":30,"assignments":50,"cells":1500' \
+                && ok "perf fixture intact: 30 x 50 = 1500 cells" \
+                || bad "perf fixture altered: $(printf '%s' "$pbody" | sed -n 's/.*"cohort":{\([^}]*\)}.*/\1/p')"
+            pms=$(printf '%s' "$pbody" | sed -n 's/.*"query_ms":\([0-9]*\).*/\1/p')
+            [ -n "$pms" ] && [ "$pms" -lt 1000 ] && ok "perf matrix under 1s at full size (${pms}ms)" \
+                || bad "perf matrix slow: '${pms}'"
+            rm -f "$PJAR"
+        else
+            bad "no token for the perf instructor — fixture unverified"
+        fi
+    else
+        echo "  SKIP  perf fixture check — set SMOKE_PERF_EMAIL to verify it"
+    fi
 
 echo "== logout"
     curl -s -o /dev/null -X POST -b "$JAR" -c "$JAR" "$API/v1/auth/logout"
