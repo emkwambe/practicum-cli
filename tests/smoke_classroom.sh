@@ -33,11 +33,16 @@ cleanup() {
         # identifies what it revoked, and add the key prefix when we have it.
         # (The old format sliced to the first "-", which is the literal "PRAC"
         # on every key, so every line read the same — and blank for imports.)
+        # Format: member_id|key|note — key and note may both be empty.
         revoked_n=0; failed_n=0
-        while IFS='|' read -r member_id key; do
+        while IFS='|' read -r member_id key note; do
             [ -n "$member_id" ] || continue
             what="$member_id"
             [ -n "$key" ] && what="$member_id (${key:0:9}…)"
+            # One member can appear twice — the rotation test issues a second
+            # key for the same seat. The note says so, so the repeat does not
+            # read as a duplicate ledger entry.
+            [ -n "$note" ] && what="$what [$note]"
             code=$(curl -s -o /dev/null -w '%{http_code}' -X DELETE -b "$JAR" \
                 "$API/v1/classroom/members/$member_id" 2>/dev/null)
             case "$code" in
@@ -550,7 +555,10 @@ else
     if [ -n "$MEM" ] && [ -n "$KEY" ]; then
         rot=$(curl -s -X POST -b "$JAR" "$API/v1/classroom/members/$MEM/resend")
         NEWKEY=$(jfield "$rot" test_key)
-        [ -n "$NEWKEY" ] && echo "$MEM|$NEWKEY" >> "$ISSUED_KEYS"
+        # The member is already in the ledger under its original key. This is a
+        # second entry for the same member, not a duplicate: the rotated key is
+        # live and has to be revoked too. The note makes the repeat legible.
+        [ -n "$NEWKEY" ] && echo "$MEM|$NEWKEY|rotated by resend, replaced ${KEY:0:9}…" >> "$ISSUED_KEYS"
         [ -n "$NEWKEY" ] && [ "$NEWKEY" != "$KEY" ] && ok "resend rotated the key" || bad "key did not rotate"
         curl -s "$API/license/validate?key=$NEWKEY" | grep -q '"valid":true' && ok "new key validates" || bad "new key invalid"
         validate_becomes "$KEY" 403 >/dev/null && ok "old key stops validating" || bad "old key still validates"
